@@ -1068,25 +1068,27 @@ function renderMiniCart(){
     itemsEl.innerHTML = `<div class="mini-cart-empty">Votre panier est vide.</div>`;
     if(totalEl) totalEl.textContent = fmt(0);
     if(countEl) countEl.textContent = '';
-    document.getElementById('submit-btn').disabled = true;
+    const sb = document.getElementById('submit-btn');
+    if(sb) sb.disabled = true;
     return;
   }
 
   const sub = cart.reduce((s,i)=>s+i.price*i.qty, 0);
   if(countEl) countEl.textContent = `${cart.reduce((s,i)=>s+i.qty,0)} article(s)`;
   if(totalEl) totalEl.textContent = fmt(sub);
-  document.getElementById('submit-btn').disabled = false;
+  const sb = document.getElementById('submit-btn');
+  if(sb) sb.disabled = false;
 
-  itemsEl.innerHTML = cart.map(i=>`
-    <div class="mini-cart-item">
-      <div class="mini-ci-img">
-        ${i.thumb
-          ? `<img src="${i.thumb}" onerror="this.parentElement.innerHTML='📦'"/>`
-          : `<span>${i.emoji||'📦'}</span>`}
-      </div>
+  itemsEl.innerHTML = cart.map(i=>{
+    const thumb = i.thumb
+      ? `<img src="${i.thumb}" onerror="this.parentElement.innerHTML='📦'"/>`
+      : `<span>${i.emoji||'📦'}</span>`;
+    const variant = i.variant ? `<div class="mini-ci-variant">📌 ${i.variant}</div>` : '';
+    return `<div class="mini-cart-item">
+      <div class="mini-ci-img">${thumb}</div>
       <div class="mini-ci-info">
         <div class="mini-ci-name">${i.name}</div>
-        ${i.variant?`<div class="mini-ci-variant">📌 ${i.variant}</div>`:''}
+        ${variant}
         <div class="mini-ci-price">${fmt(i.price)}</div>
       </div>
       <div class="mini-ci-qty">
@@ -1095,8 +1097,8 @@ function renderMiniCart(){
         <button class="mini-qty-btn" onclick="miniChangeQty('${i.cartKey}',1)">+</button>
       </div>
       <button class="mini-remove-btn" onclick="miniRemove('${i.cartKey}')">🗑️</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function miniChangeQty(key, d){
