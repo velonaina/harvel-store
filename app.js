@@ -163,6 +163,7 @@ async function loadProducts(){
     renderHome();
     renderShop();
     showToast('✅ '+products.length+' produits chargés');
+    return true;
   }catch(err){
     console.error(err);
     showErrorState('home-products');
@@ -299,6 +300,7 @@ function openProduct(id){
         '<button class="back-to-shop" onclick="showPage(\'shop\')">← Continuer mes achats</button>'+
       '</div>'+
     '</div>';
+  window.location.hash = 'product-'+id;
   showPage('product');
 }
 
@@ -489,6 +491,7 @@ function showPage(p){
   if(p==='home') renderHome();
   if(p==='shop') renderShop();
   if(p==='cart') renderCart();
+  window.location.hash = p==='home' ? '' : p;
   window.scrollTo(0,0);
 }
 
@@ -498,4 +501,28 @@ function showToast(msg,type){
 }
 
 // ===== INIT =====
-loadProducts();
+function initFromHash(){
+  var hash = window.location.hash.replace('#','');
+  if(!hash || hash==='home'){
+    showPage('home');
+  } else if(hash==='shop'){
+    showPage('shop');
+  } else if(hash==='about'){
+    showPage('about');
+  } else if(hash==='suivi'){
+    showPage('suivi');
+  } else if(hash==='cart'){
+    showPage('cart');
+  } else if(hash.startsWith('product-')){
+    var id=hash.replace('product-','');
+    var p=products.find(function(p){return p.id==id;});
+    if(p) openProduct(id);
+    else showPage('home');
+  } else {
+    showPage('home');
+  }
+}
+
+loadProducts().then(function(){
+  initFromHash();
+});
