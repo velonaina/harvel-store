@@ -491,7 +491,7 @@ function showPage(p){
   if(p==='home') renderHome();
   if(p==='shop') renderShop();
   if(p==='cart') renderCart();
-  window.location.hash = p==='home' ? '' : p;
+  if(p !== 'product') window.location.hash = p==='home' ? '' : p;
   window.scrollTo(0,0);
 }
 
