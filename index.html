@@ -1028,7 +1028,7 @@ function miniRemove(key){
   cart=cart.filter(function(x){return x.cartKey!==key;});
   updateCartCount();
   renderMiniCart();
-  if(!cart.length) showToast('🛒 Panier vide — ajoutez des articles','warning');
+  if(!cart.length) showToast("🛒 Panier vide — ajoutez des articles",'warning');
 }
 
 function goToOrder(){showPage('order');renderMiniCart();}
@@ -1048,8 +1048,8 @@ async function submitOrder(){
   var phone=document.getElementById('f-phone').value.trim();
   var address=document.getElementById('f-address').value.trim();
   var note=document.getElementById('f-note').value.trim();
-  if(!name||!phone||!address){showToast('⚠️ Veuillez remplir tous les champs obligatoires.','warning');return;}
-  if(!cart.length){showToast('⚠️ Votre panier est vide.','warning');return;}
+  if(!name||!phone||!address){showToast("⚠️ Veuillez remplir tous les champs obligatoires.",'warning');return;}
+  if(!cart.length){showToast("⚠️ Votre panier est vide.",'warning');return;}
   var btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ Envoi en cours...';
   var payload={
     customer:{name:name,phone:phone,address:address,note:note},
@@ -1068,7 +1068,7 @@ async function submitOrder(){
     cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-item.qty);});
     ['f-name','f-phone','f-address','f-note'].forEach(function(id){document.getElementById(id).value='';});
     cart=[];updateCartCount();showPage('success');
-  }catch(err){showToast('❌ Erreur lors de l\'envoi. Réessayez.','error');}
+  }catch(err){showToast("❌ Erreur lors de l'envoi. Réessayez.",'error');}
   finally{btn.disabled=false;btn.textContent='✅ Confirmer la commande';}
 }
 
