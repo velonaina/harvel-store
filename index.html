@@ -210,7 +210,23 @@
   .checkout-btn{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:14px;transition:.2s;}
   .checkout-btn:hover{background:var(--primary-dark);}
 
-  /* ORDER */
+  /* MINI PANIER EDITABLE */
+  .mini-cart{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;}
+  .mini-cart-title{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+  .mini-cart-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.85rem;}
+  .mini-cart-item:last-child{border-bottom:none;}
+  .mini-ci-img{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:1.2rem;overflow:hidden;}
+  .mini-ci-img img{width:100%;height:100%;object-fit:cover;}
+  .mini-ci-info{flex:1;}
+  .mini-ci-name{font-weight:600;color:var(--text);font-size:.83rem;}
+  .mini-ci-variant{font-size:.75rem;color:var(--muted);}
+  .mini-ci-price{color:var(--primary);font-weight:700;font-size:.83rem;}
+  .mini-ci-qty{display:flex;align-items:center;gap:6px;}
+  .mini-qty-btn{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:.9rem;font-weight:700;color:var(--primary);transition:.2s;display:flex;align-items:center;justify-content:center;}
+  .mini-qty-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .mini-remove-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:1rem;padding:2px;}
+  .mini-cart-total{display:flex;justify-content:space-between;align-items:center;padding-top:10px;margin-top:8px;border-top:1.5px solid var(--border);font-weight:800;color:var(--primary);font-size:.95rem;}
+  .mini-cart-empty{text-align:center;color:var(--muted);font-size:.85rem;padding:10px 0;}
   .order-form{background:#fff;border-radius:16px;padding:24px;box-shadow:0 2px 12px #3dbd0010;border:1px solid var(--border);}
   .order-form h2{color:var(--primary);margin-bottom:18px;font-size:1.1rem;}
   .form-group{margin-bottom:14px;}
@@ -543,7 +559,17 @@
 <div class="page" id="page-order">
   <div class="order-form">
     <h2>📋 Finaliser la commande</h2>
-    <div class="order-items-preview" id="order-preview"></div>
+    <div class="mini-cart" id="mini-cart">
+      <div class="mini-cart-title">
+        <span>🛒 Mon panier</span>
+        <span id="mini-cart-count" style="color:var(--muted);font-size:.8rem;font-weight:400;"></span>
+      </div>
+      <div id="mini-cart-items"></div>
+      <div class="mini-cart-total">
+        <span>Total produits</span>
+        <span id="mini-cart-total"></span>
+      </div>
+    </div>
     <div class="livraison-zones">
       <h4>🚚 Frais de livraison</h4>
       <div class="zone-row"><div class="zone-dot" style="background:#22c55e;"></div><div class="zone-info"><div class="zone-name">Zone 1 — Tanà centre</div></div><div class="zone-price" style="color:#16a34a;">4 000 Ar</div></div>
@@ -1032,7 +1058,69 @@ function changeQty(key,d){
 }
 function removeFromCart(key){cart=cart.filter(x=>x.cartKey!==key);updateCartCount();renderCart();}
 
-function goToOrder(){
+function renderMiniCart(){
+  const itemsEl = document.getElementById('mini-cart-items');
+  const totalEl = document.getElementById('mini-cart-total');
+  const countEl = document.getElementById('mini-cart-count');
+  if(!itemsEl) return;
+
+  if(!cart.length){
+    itemsEl.innerHTML = `<div class="mini-cart-empty">Votre panier est vide.</div>`;
+    if(totalEl) totalEl.textContent = fmt(0);
+    if(countEl) countEl.textContent = '';
+    document.getElementById('submit-btn').disabled = true;
+    return;
+  }
+
+  const sub = cart.reduce((s,i)=>s+i.price*i.qty, 0);
+  if(countEl) countEl.textContent = `${cart.reduce((s,i)=>s+i.qty,0)} article(s)`;
+  if(totalEl) totalEl.textContent = fmt(sub);
+  document.getElementById('submit-btn').disabled = false;
+
+  itemsEl.innerHTML = cart.map(i=>`
+    <div class="mini-cart-item">
+      <div class="mini-ci-img">
+        ${i.thumb
+          ? `<img src="${i.thumb}" onerror="this.parentElement.innerHTML='📦'"/>`
+          : `<span>${i.emoji||'📦'}</span>`}
+      </div>
+      <div class="mini-ci-info">
+        <div class="mini-ci-name">${i.name}</div>
+        ${i.variant?`<div class="mini-ci-variant">📌 ${i.variant}</div>`:''}
+        <div class="mini-ci-price">${fmt(i.price)}</div>
+      </div>
+      <div class="mini-ci-qty">
+        <button class="mini-qty-btn" onclick="miniChangeQty('${i.cartKey}',-1)">−</button>
+        <span style="font-weight:600;min-width:16px;text-align:center;">${i.qty}</span>
+        <button class="mini-qty-btn" onclick="miniChangeQty('${i.cartKey}',1)">+</button>
+      </div>
+      <button class="mini-remove-btn" onclick="miniRemove('${i.cartKey}')">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function miniChangeQty(key, d){
+  const item = cart.find(x=>x.cartKey===key);
+  if(!item) return;
+  const prod = products.find(x=>x.id==item.id);
+  item.qty += d;
+  if(item.qty <= 0) cart = cart.filter(x=>x.cartKey!==key);
+  else if(prod && item.qty > prod.stock){
+    item.qty = prod.stock;
+    showToast("⚠️ Stock maximum atteint !",'warning');
+  }
+  updateCartCount();
+  renderMiniCart();
+}
+
+function miniRemove(key){
+  cart = cart.filter(x=>x.cartKey!==key);
+  updateCartCount();
+  renderMiniCart();
+  if(!cart.length) showToast("🛒 Panier vide — ajoutez des articles",'warning');
+}
+
+
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
   document.getElementById('order-preview').innerHTML=cart.map(i=>`<div class="oi-row"><span>${i.name}${i.variant?' ('+i.variant+')':''} x${i.qty}</span><span>${fmt(i.price*i.qty)}</span></div>`).join('')+`<div class="oi-row oi-total"><span>Total produits</span><span>${fmt(sub)}</span></div>`;
   showPage('order');
@@ -1041,6 +1129,7 @@ function goToOrder(){
 async function submitOrder(){
   const name=document.getElementById('f-name').value.trim(),phone=document.getElementById('f-phone').value.trim(),address=document.getElementById('f-address').value.trim(),note=document.getElementById('f-note').value.trim();
   if(!name||!phone||!address){showToast("⚠️ Veuillez remplir tous les champs obligatoires.",'warning');return;}
+  if(!cart.length){showToast("⚠️ Votre panier est vide.",'warning');return;}
   const btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ Envoi en cours...';
   const payload={customer:{name,phone,address,note},items:cart.map(i=>({id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty})),total:cart.reduce((s,i)=>s+i.price*i.qty,0),token:SECRET_TOKEN};
   try{
