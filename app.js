@@ -247,7 +247,14 @@ function openProduct(id){
   var optHtml='';
   if(p.options){
     var opts=p.options.split(',').map(function(o){return o.trim();});
-    optHtml='<div class="option-group"><div class="option-label">🎁 Options spéciales : <span id="selected-option-label">aucune</span></div><div class="special-options">'+opts.map(function(opt){var px=p.prix_option?Number(p.prix_option):null;return '<button class="special-btn" onclick="selectOption(\''+opt+'\','+(px||0)+',this)">'+(px?opt+' — '+fmt(px):opt)+'</button>';}).join('')+'</div></div>';
+    optHtml='<div class="option-group"><div class="option-label">🎁 Options spéciales : <span id="selected-option-label">— choisissez —</span></div><div class="special-options">'+
+    opts.map(function(opt){
+      var parts=opt.split(':');
+      var nom=parts[0].trim();
+      var px=parts[1]?Number(parts[1].trim()):0;
+      return '<button class="special-btn" onclick="selectOption(\''+nom+'\','+px+',this)">'+(px?nom+' — '+fmt(px):nom)+'</button>';
+    }).join('')+
+    '</div></div>';
   }
 
   var colHtml='';
