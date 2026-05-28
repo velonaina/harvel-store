@@ -101,7 +101,8 @@ nav{background:#fff;padding:0 20px;display:flex;align-items:center;justify-conte
 .products{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:16px;margin-bottom:28px;}
 .product-card{background:var(--card);border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #3dbd0010;transition:.2s;border:1px solid var(--border);cursor:pointer;position:relative;}
 .product-card:hover{transform:translateY(-3px);box-shadow:0 8px 22px #3dbd0025;}
-.prod-badge{position:absolute;top:8px;left:8px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;z-index:2;}
+.prod-badge-wrap{position:absolute;top:8px;left:8px;display:flex;flex-wrap:wrap;gap:4px;z-index:2;}
+.prod-badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
 .badge-nouveau{background:#3dbd00;color:#fff;}
 .badge-promo{background:#e74c3c;color:#fff;}
 .badge-populaire{background:#f97316;color:#fff;}
@@ -350,3 +351,7 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .cookie-btns{display:flex;gap:8px;flex-shrink:0;}
 .cookie-accept{background:#3dbd00;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem;}
 .cookie-refuse{background:none;color:#fff;border:1px solid #fff;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.85rem;}
+
+/* BADGES FICHE PRODUIT */
+.product-details .prod-badge-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;position:relative;z-index:10;}
+.product-details .prod-badge{position:relative;top:auto;left:auto;z-index:10;}

@@ -224,7 +224,13 @@ function renderProductGrid(id,list){
   el.innerHTML='<div class="products">'+list.map(function(p){
     var ph=getPhotos(p);
     var v=getViewers(p.id);
-    var badge=p.badge?'<div class="prod-badge badge-'+p.badge.toLowerCase()+'">'+p.badge+'</div>':'';
+    var badge='';
+if(p.badge){
+  badge='<div class="prod-badge-wrap">'+p.badge.split(',').map(function(b){
+    b=b.trim();
+    return '<div class="prod-badge badge-'+b.toLowerCase()+'">'+b+'</div>';
+  }).join('')+'</div>';
+}
     var imgHtml=ph.length>0?'<img src="'+ph[0]+'" alt="'+p.name+'" onerror="this.parentElement.innerHTML=\'📦\'"/>':'<span>'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</span>';
     var stockHtml=p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ Plus que '+p.stock:'✅ En stock';
     var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct('+p.id+')">Voir le produit →</button>';
@@ -286,6 +292,7 @@ function openProduct(id){
         thumbsHtml+
       '</div></div>'+
       '<div class="product-details">'+
+(p.badge?'<div class="prod-badge-wrap" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:4px;">'+p.badge.split(',').map(function(b){b=b.trim();return '<div class="prod-badge badge-'+b.toLowerCase()+'">'+b+'</div>';}).join('')+'</div>':'')+
         '<div class="pd-category">'+p.cat+(p.sous_categorie?' — '+p.sous_categorie:'')+'</div>'+
         '<div class="pd-name">'+p.name+'</div>'+
         '<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
