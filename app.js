@@ -144,7 +144,15 @@ async function suivreCommande(){
       return '<div class="suivi-step"><div class="step-dot '+(isDone?'done':isActive?'active':'')+'">'+(isDone?'✓':(STATUT_ICONS[s]||'○'))+'</div><div class="step-info"><div class="step-label '+cls+'">'+s+'</div></div></div>';
     }).join('');
     var raisonHtml=c.raison&&statut==='Annulé'?'<div class="suivi-raison">❌ Motif : '+c.raison+'</div>':'';
-    result.innerHTML='<div class="suivi-card"><div class="suivi-num">Commande '+c.num+' — '+c.date+'</div><div class="suivi-statut '+(STATUT_CLASS[statut]||'statut-attente')+'">'+(STATUT_ICONS[statut]||'⏳')+' '+statut+'</div>'+raisonHtml+'<div class="suivi-steps">'+stepsHtml+'</div><div class="suivi-produits">🛍️ '+c.produits+'</div></div>';
+    var historique=c.historique||'';
+    var historiqueParsed=historique?historique.split(' | ').map(function(h){
+      var parts=h.split(' — ');
+      var st=parts[0]||'';
+      var dt=parts.slice(1).join(' — ')||'';
+      return '<div class="hist-item"><span class="hist-statut">'+st+'</span><span class="hist-date">'+dt+'</span></div>';
+    }).join(''):'';
+    var historiqueHtml=historiqueParsed?'<div class="suivi-historique"><div class="hist-title">📋 Historique</div>'+historiqueParsed+'</div>':'';
+    result.innerHTML='<div class="suivi-card"><div class="suivi-num">Commande '+c.num+' — '+c.date+'</div><div class="suivi-statut '+(STATUT_CLASS[statut]||'statut-attente')+'">'+(STATUT_ICONS[statut]||'⏳')+' '+statut+'</div>'+raisonHtml+'<div class="suivi-steps">'+stepsHtml+'</div>'+historiqueHtml+'<div class="suivi-produits">🛍️ '+c.produits+'</div></div>';
   }catch(err){
     result.innerHTML='<div class="suivi-error">❌ Erreur lors de la recherche. Réessayez.</div>';
   }
