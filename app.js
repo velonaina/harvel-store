@@ -309,8 +309,25 @@ function openProduct(id){
     '</div>';
   window.location.hash = 'product-'+id;
   showPage('product');
-initCarouselSwipe();
+  initCarouselSwipe();
 }
+
+// ===== CAROUSEL =====
+function goToSlide(index){
+  var main=document.getElementById('carousel-main');
+  if(!main) return;
+  var imgs=main.querySelectorAll('img');
+  if(!imgs.length) return;
+  carouselIndex=(index+imgs.length)%imgs.length;
+  imgs.forEach(function(img,i){img.className=i===carouselIndex?'active':'';});
+  var dots=document.getElementById('carousel-dots');
+  if(dots) dots.querySelectorAll('.carousel-dot').forEach(function(d,i){d.className='carousel-dot'+(i===carouselIndex?' active':'');});
+  var thumbs=document.getElementById('carousel-thumbs');
+  if(thumbs) thumbs.querySelectorAll('.carousel-thumb').forEach(function(t,i){t.className='carousel-thumb'+(i===carouselIndex?' active':'');});
+}
+
+function carouselNext(){ goToSlide(carouselIndex+1); }
+function carouselPrev(){ goToSlide(carouselIndex-1); }
 
 var swipeStartX = 0;
 var swipeStartY = 0;
@@ -344,8 +361,10 @@ function updateCarouselForColor(ci){
   if(!main||!photos.length) return;
   carouselIndex=0;
   main.innerHTML=photos.map(function(u,i){return '<img src="'+u+'" class="'+(i===0?'active':'')+'" onerror="this.style.display=\'none\'"/>';}).join('');
+  main._swipeInit=false;
   if(dots) dots.innerHTML=photos.map(function(_,i){return '<div class="carousel-dot '+(i===0?'active':'')+'" onclick="goToSlide('+i+')"></div>';}).join('');
   if(thumbs) thumbs.innerHTML=photos.map(function(u,i){return '<img src="'+u+'" class="carousel-thumb '+(i===0?'active':'')+'" onclick="goToSlide('+i+')" onerror="this.style.display=\'none\'"/>';}).join('');
+  initCarouselSwipe();
 }
 
 function selectColor(c,i,btn){selectedColor=c;document.querySelectorAll('.color-btn-label').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-color-label');if(l)l.textContent=c;updateCarouselForColor(i);updateSummary();}
@@ -406,6 +425,7 @@ function renderCart(){
 
 function changeQty(key,d){
   var item=cart.find(function(x){return x.cartKey===key;});
+  if(!item) return;
   var prod=products.find(function(x){return x.id==item.id;});
   item.qty+=d;
   if(item.qty<=0) cart=cart.filter(function(x){return x.cartKey!==key;});
@@ -461,12 +481,32 @@ function goToOrder(){showPage('order');renderMiniCart();}
 
 function copyOrderNum(){
   var num=document.getElementById('success-order-num').textContent.replace('📋 ','').trim();
-  navigator.clipboard.writeText(num).then(function(){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(num).then(function(){
+      var btn=document.getElementById('copy-order-btn');
+      btn.textContent='✅ Numéro copié !';
+      btn.style.background='#edfae3';
+      setTimeout(function(){btn.textContent='📋 Copier mon numéro de commande';btn.style.background='';},2000);
+    }).catch(function(){
+      fallbackCopy(num);
+    });
+  } else {
+    fallbackCopy(num);
+  }
+}
+
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{
+    document.execCommand('copy');
     var btn=document.getElementById('copy-order-btn');
-    btn.textContent='✅ Numéro copié !';
-    btn.style.background='#edfae3';
-    setTimeout(function(){btn.textContent='📋 Copier mon numéro de commande';btn.style.background='';},2000);
-  });
+    if(btn){btn.textContent='✅ Numéro copié !';btn.style.background='#edfae3';setTimeout(function(){btn.textContent='📋 Copier mon numéro de commande';btn.style.background='';},2000);}
+  }catch(e){showToast('⚠️ Copie impossible, notez le manuellement','warning');}
+  document.body.removeChild(ta);
 }
 
 async function submitOrder(){
