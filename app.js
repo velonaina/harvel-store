@@ -228,7 +228,7 @@ function renderProductGrid(id,list){
     var imgHtml=ph.length>0?'<img src="'+ph[0]+'" alt="'+p.name+'" onerror="this.parentElement.innerHTML=\'📦\'"/>':'<span>'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</span>';
     var stockHtml=p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ Plus que '+p.stock:'✅ En stock';
     var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct('+p.id+')">Voir le produit →</button>';
-    return '<div class="product-card" onclick="openProduct('+p.id+')">'+badge+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div><div class="prod-price">'+fmt(p.price)+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
+    return '<div class="product-card" onclick="openProduct('+p.id+')">'+badge+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div><div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
   }).join('')+'</div>';
 }
 
@@ -288,7 +288,7 @@ function openProduct(id){
       '<div class="product-details">'+
         '<div class="pd-category">'+p.cat+(p.sous_categorie?' — '+p.sous_categorie:'')+'</div>'+
         '<div class="pd-name">'+p.name+'</div>'+
-        '<div class="pd-price" id="pd-price">'+fmt(p.price)+'</div>'+
+        '<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
         (p.matiere?'<div class="pd-matiere">🧵 <strong>Matière :</strong> '+p.matiere+'</div>':'')+
         (p.description?'<div class="pd-desc">'+p.description+'</div>':'')+
         colHtml+szHtml+optHtml+
@@ -523,6 +523,11 @@ function initFromHash(){
   }
 }
 
+// ===== BOUTON RETOUR EN HAUT =====
+window.addEventListener('scroll', function(){
+  var btn = document.getElementById('back-to-top');
+  if(btn) btn.classList.toggle('show', window.scrollY > 300);
+});
 loadProducts().then(function(){
   initFromHash();
 });
