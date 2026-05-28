@@ -312,14 +312,8 @@ function openProduct(id){
 initCarouselSwipe();
 }
 
-function updateCarousel(){
-  document.querySelectorAll('#carousel-main img').forEach(function(img,i){img.classList.toggle('active',i===carouselIndex);});
-  document.querySelectorAll('#carousel-dots .carousel-dot').forEach(function(d,i){d.classList.toggle('active',i===carouselIndex);});
-  document.querySelectorAll('#carousel-thumbs .carousel-thumb').forEach(function(t,i){t.classList.toggle('active',i===carouselIndex);});
-}
-function carouselNext(){var imgs=document.querySelectorAll('#carousel-main img');carouselIndex=(carouselIndex+1)%imgs.length;updateCarousel();}
-function carouselPrev(){var imgs=document.querySelectorAll('#carousel-main img');carouselIndex=(carouselIndex-1+imgs.length)%imgs.length;updateCarousel();}
-function goToSlide(i){carouselIndex=i;updateCarousel();}
+var swipeStartX = 0;
+var swipeStartY = 0;
 
 function initCarouselSwipe(){
   var carouselMain = document.getElementById('carousel-main');
@@ -335,7 +329,7 @@ function initCarouselSwipe(){
     var diffX = swipeStartX - e.changedTouches[0].clientX;
     var diffY = swipeStartY - e.changedTouches[0].clientY;
     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
-      if (diffX > 0) { carouselNext(); } 
+      if (diffX > 0) { carouselNext(); }
       else { carouselPrev(); }
     }
   }, { passive: true });
