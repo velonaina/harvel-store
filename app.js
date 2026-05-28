@@ -311,6 +311,33 @@ function openProduct(id){
   showPage('product');
 }
 
+// Touch swipe sur le carrousel
+var swipeStartX = 0;
+var swipeStartY = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+  var carouselMain = document.getElementById('carousel-main');
+  if (!carouselMain) return;
+
+  carouselMain.addEventListener('touchstart', function(e) {
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  carouselMain.addEventListener('touchend', function(e) {
+    var diffX = swipeStartX - e.changedTouches[0].clientX;
+    var diffY = swipeStartY - e.changedTouches[0].clientY;
+    // Swipe horizontal seulement (ignore le scroll vertical)
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+      if (diffX > 0) {
+        carouselNext(); // swipe gauche → image suivante
+      } else {
+        carouselPrev(); // swipe droite → image précédente
+      }
+    }
+  }, { passive: true });
+});
+
 function updateCarousel(){
   document.querySelectorAll('#carousel-main img').forEach(function(img,i){img.classList.toggle('active',i===carouselIndex);});
   document.querySelectorAll('#carousel-dots .carousel-dot').forEach(function(d,i){d.classList.toggle('active',i===carouselIndex);});
