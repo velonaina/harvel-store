@@ -528,6 +528,29 @@ window.addEventListener('scroll', function(){
   var btn = document.getElementById('back-to-top');
   if(btn) btn.classList.toggle('show', window.scrollY > 300);
 });
+
+// ===== COOKIES =====
+function initCookieBanner(){
+  if(!localStorage.getItem('cookie_consent')){
+    setTimeout(function(){
+      var banner=document.getElementById('cookie-banner');
+      if(banner) banner.classList.add('show');
+    },1000);
+  }
+}
+
+function acceptCookies(){
+  localStorage.setItem('cookie_consent','accepted');
+  document.getElementById('cookie-banner').classList.remove('show');
+}
+
+function refuseCookies(){
+  localStorage.setItem('cookie_consent','refused');
+  document.getElementById('cookie-banner').classList.remove('show');
+}
+
+initCookieBanner();
+
 loadProducts().then(function(){
   initFromHash();
 });
