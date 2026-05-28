@@ -309,34 +309,8 @@ function openProduct(id){
     '</div>';
   window.location.hash = 'product-'+id;
   showPage('product');
+initCarouselSwipe();
 }
-
-// Touch swipe sur le carrousel
-var swipeStartX = 0;
-var swipeStartY = 0;
-
-document.addEventListener('DOMContentLoaded', function() {
-  var carouselMain = document.getElementById('carousel-main');
-  if (!carouselMain) return;
-
-  carouselMain.addEventListener('touchstart', function(e) {
-    swipeStartX = e.touches[0].clientX;
-    swipeStartY = e.touches[0].clientY;
-  }, { passive: true });
-
-  carouselMain.addEventListener('touchend', function(e) {
-    var diffX = swipeStartX - e.changedTouches[0].clientX;
-    var diffY = swipeStartY - e.changedTouches[0].clientY;
-    // Swipe horizontal seulement (ignore le scroll vertical)
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
-      if (diffX > 0) {
-        carouselNext(); // swipe gauche → image suivante
-      } else {
-        carouselPrev(); // swipe droite → image précédente
-      }
-    }
-  }, { passive: true });
-});
 
 function updateCarousel(){
   document.querySelectorAll('#carousel-main img').forEach(function(img,i){img.classList.toggle('active',i===carouselIndex);});
@@ -346,6 +320,26 @@ function updateCarousel(){
 function carouselNext(){var imgs=document.querySelectorAll('#carousel-main img');carouselIndex=(carouselIndex+1)%imgs.length;updateCarousel();}
 function carouselPrev(){var imgs=document.querySelectorAll('#carousel-main img');carouselIndex=(carouselIndex-1+imgs.length)%imgs.length;updateCarousel();}
 function goToSlide(i){carouselIndex=i;updateCarousel();}
+
+function initCarouselSwipe(){
+  var carouselMain = document.getElementById('carousel-main');
+  if (!carouselMain || carouselMain._swipeInit) return;
+  carouselMain._swipeInit = true;
+
+  carouselMain.addEventListener('touchstart', function(e) {
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  carouselMain.addEventListener('touchend', function(e) {
+    var diffX = swipeStartX - e.changedTouches[0].clientX;
+    var diffY = swipeStartY - e.changedTouches[0].clientY;
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+      if (diffX > 0) { carouselNext(); } 
+      else { carouselPrev(); }
+    }
+  }, { passive: true });
+}
 
 function updateCarouselForColor(ci){
   if(!currentProduct) return;
