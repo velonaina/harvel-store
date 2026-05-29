@@ -850,7 +850,7 @@ function addToCartFromProduct(){
     if(ex.qty<p.stock){ex.qty++;showToast('✅ '+p.name+' mis à jour');animateToCart(emojiForAnim);}
     else{showToast('⚠️ Stock maximum atteint !','warning');return;}
   }else{
-    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:1,qty_stock:qtyReelle,thumb:photos[0]||null,code_promo:selectedCodePromo?selectedCodePromo.code:null}));
+    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:qtyReelle,thumb:photos[0]||null,code_promo:selectedCodePromo?selectedCodePromo.code:null}));
     showToast('✅ '+p.name+' ajouté au panier');
     animateToCart(emojiForAnim);
   }
@@ -974,9 +974,9 @@ async function submitOrder(){
   var btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ Envoi en cours...';
   var payload={
     customer:{name:name,phone:phone,address:address,note:note},
-    items:cart.map(function(i){return {id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty_stock||i.qty};}),
+    items:cart.map(function(i){return {id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty};}),
     code_promo:cart.length>0&&cart[0].code_promo?cart[0].code_promo:undefined,
-    total:cart.reduce(function(s,i){return s+i.price;},0), // price est déjà le prix global de l'option
+    total:cart.reduce(function(s,i){return s+i.price*i.qty;},0),
     token:SECRET_TOKEN
   };
   try{
@@ -987,20 +987,20 @@ async function submitOrder(){
     document.getElementById('success-order-num').textContent='📋 '+orderNum;
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
-    cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-(item.qty_stock||item.qty));});
+    cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-item.qty);});
 
     // ── Résumé commande dans page success ───────────────────────
     var resumeItems = cart.map(function(i){
       var nom = i.name;
       var option = i.variant ? '<div class="suivi-item-option">📌 '+i.variant+'</div>' : '';
-      var qtyAff = i.qty_stock||i.qty;
+      var qtyAff = i.qty;
       return '<div class="suivi-item">'+
         '<div class="suivi-item-nom">'+nom+'</div>'+
         option+
         '<div class="suivi-item-prix">'+qtyAff+' × '+fmt(i.price)+'</div>'+
       '</div>';
     }).join('');
-    var resumeTotal = cart.reduce(function(s,i){return s+i.price;},0);
+    var resumeTotal = cart.reduce(function(s,i){return s+i.price*i.qty;},0);
     var resumeAdresse = address;
     var resumeEl = document.getElementById('success-resume');
     if(resumeEl){
