@@ -464,3 +464,8 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .rec-btn-temoigner:hover{background:var(--primary);color:#fff;}
 .rec-empty{text-align:center;color:var(--muted);font-size:.88rem;padding:20px 0;display:flex;flex-direction:column;align-items:center;gap:12px;}
 .rec-loading{color:var(--muted);font-size:.85rem;text-align:center;padding:20px 0;}
+
+/* ===== PACK FIXE PANIER ===== */
+.ci-pack{display:flex;align-items:center;gap:8px;}
+.pack-label{font-size:.75rem;color:#6b8f5a;background:#edfae3;border:1px solid #c8edb8;border-radius:6px;padding:2px 8px;font-weight:600;}
+.pack-label-mini{font-size:.78rem;color:#6b8f5a;background:#edfae3;border:1px solid #c8edb8;border-radius:6px;padding:2px 8px;font-weight:700;}
