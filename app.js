@@ -1,7 +1,7 @@
 // ===== CONFIG =====
 // ===== MAINTENANCE =====
 // Passe à true pour activer la maintenance, false pour remettre en ligne
-var MAINTENANCE = true;
+var MAINTENANCE = false;
 var MAINTENANCE_MSG = "Nous effectuons des améliorations pour mieux vous servir.";
 var MAINTENANCE_DUREE = ""; // Laisse vide "" pour ne pas afficher la durée
 
