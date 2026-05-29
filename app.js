@@ -594,6 +594,30 @@ async function submitOrder(){
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
     cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-(item.qty_stock||item.qty));});
+
+    // ── Résumé commande dans page success ───────────────────────
+    var resumeItems = cart.map(function(i){
+      var nom = i.name;
+      var option = i.variant ? '<div class="suivi-item-option">📌 '+i.variant+'</div>' : '';
+      var qtyAff = i.qty_stock||i.qty;
+      return '<div class="suivi-item">'+
+        '<div class="suivi-item-nom">'+nom+'</div>'+
+        option+
+        '<div class="suivi-item-prix">'+qtyAff+' × '+fmt(i.price)+'</div>'+
+      '</div>';
+    }).join('');
+    var resumeTotal = cart.reduce(function(s,i){return s+i.price;},0);
+    var resumeAdresse = address;
+    var resumeEl = document.getElementById('success-resume');
+    if(resumeEl){
+      resumeEl.innerHTML =
+        '<div class="suivi-resume-title">🛍️ Détail de votre commande</div>'+
+        resumeItems+
+        '<div class="suivi-total">Total : <strong>'+fmt(resumeTotal)+'</strong></div>'+
+        '<div class="suivi-adresse">📍 '+resumeAdresse+'</div>';
+      resumeEl.style.display = 'block';
+    }
+
     ['f-name','f-phone','f-address','f-note'].forEach(function(id){document.getElementById(id).value='';});
     cart=[];updateCartCount();showPage('success');
   }catch(err){showToast('❌ Erreur lors de l\'envoi. Réessayez.','error');}
