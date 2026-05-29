@@ -457,7 +457,7 @@ function addToCartFromProduct(){
     if(ex.qty<p.stock){ex.qty++;showToast('✅ '+p.name+' mis à jour');animateToCart(emojiForAnim);}
     else{showToast('⚠️ Stock maximum atteint !','warning');return;}
   }else{
-    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:qtyReelle,thumb:photos[0]||null}));
+    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:1,qty_stock:qtyReelle,thumb:photos[0]||null}));
     showToast('✅ '+p.name+' ajouté au panier');
     animateToCart(emojiForAnim);
   }
@@ -581,7 +581,7 @@ async function submitOrder(){
   var btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ Envoi en cours...';
   var payload={
     customer:{name:name,phone:phone,address:address,note:note},
-    items:cart.map(function(i){return {id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty};}),
+    items:cart.map(function(i){return {id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty_stock||i.qty};}),
     total:cart.reduce(function(s,i){return s+i.price*i.qty;},0),
     token:SECRET_TOKEN
   };
@@ -593,7 +593,7 @@ async function submitOrder(){
     document.getElementById('success-order-num').textContent='📋 '+orderNum;
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
-    cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-item.qty);});
+    cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-(item.qty_stock||item.qty));});
     ['f-name','f-phone','f-address','f-note'].forEach(function(id){document.getElementById(id).value='';});
     cart=[];updateCartCount();showPage('success');
   }catch(err){showToast('❌ Erreur lors de l\'envoi. Réessayez.','error');}
