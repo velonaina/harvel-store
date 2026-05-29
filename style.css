@@ -373,3 +373,18 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 /* BADGES FICHE PRODUIT */
 .product-details .prod-badge-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;position:relative;z-index:10;}
 .product-details .prod-badge{position:relative;top:auto;left:auto;z-index:10;}
+/* ===== MAINTENANCE ===== */
+.maint-box{background:#fff;border-radius:16px;padding:32px 24px;max-width:420px;width:100%;text-align:center;box-shadow:0 4px 24px #0001;}
+.maint-icon{font-size:3rem;margin-bottom:12px;}
+.maint-title{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:10px;}
+.maint-msg{color:var(--muted);font-size:.92rem;line-height:1.6;margin-bottom:6px;}
+.maint-soon{color:var(--text);font-size:.92rem;font-weight:600;margin-bottom:10px;}
+.maint-duree{color:var(--primary-dark);font-size:.88rem;margin-bottom:14px;}
+.maint-sep{border-top:1px solid var(--border);margin:16px 0;}
+.maint-contact{color:var(--muted);font-size:.85rem;margin-bottom:10px;}
+.maint-btns{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.maint-wa{display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;padding:11px;border-radius:10px;font-weight:700;font-size:.9rem;text-decoration:none;transition:.2s;}
+.maint-wa:hover{background:#1ebe5d;}
+.maint-fb{display:flex;align-items:center;justify-content:center;gap:8px;background:#1877F2;color:#fff;padding:11px;border-radius:10px;font-weight:700;font-size:.9rem;text-decoration:none;transition:.2s;}
+.maint-fb:hover{background:#1565c0;}
+.maint-footer{color:var(--muted);font-size:.78rem;}
