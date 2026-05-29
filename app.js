@@ -582,7 +582,7 @@ async function submitOrder(){
   var payload={
     customer:{name:name,phone:phone,address:address,note:note},
     items:cart.map(function(i){return {id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty_stock||i.qty};}),
-    total:cart.reduce(function(s,i){return s+i.price*i.qty;},0),
+    total:cart.reduce(function(s,i){return s+i.price;},0), // price est déjà le prix global de l'option
     token:SECRET_TOKEN
   };
   try{
