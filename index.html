@@ -149,6 +149,10 @@
   <div class="cats" id="home-cats"></div>
   <div class="section-title">Produits populaires</div>
   <div id="home-products"></div>
+  <div class="section-title">💬 Ce que disent nos clients</div>
+  <div id="recommandations-carrousel" class="rec-carrousel-wrap">
+    <div class="rec-loading">Chargement des témoignages...</div>
+  </div>
 </div>
 
 <!-- SHOP -->
@@ -208,6 +212,20 @@
       <div class="about-contact-item"><span>👍</span><div>Facebook : <a href="https://www.facebook.com/harvelstore" target="_blank">@harvelstore</a></div></div>
       <div class="about-contact-item"><span>🕐</span><div>Disponible 7j/7 — Réponse rapide garantie</div></div>
     </div>
+  </div>
+  <div class="about-section" id="rec-form-section">
+    <h3>✍️ Laissez votre témoignage</h3>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px;">Partagez votre expérience avec Harvel Store — votre avis sera affiché après validation.</p>
+    <div class="avis-note-wrap">
+      <span class="avis-note-label">Note :</span>
+      <div class="avis-etoiles-sel" id="etoiles-rec"><span class="etoile-sel" data-note="1" onclick="selEtoileRec(1)">☆</span><span class="etoile-sel" data-note="2" onclick="selEtoileRec(2)">☆</span><span class="etoile-sel" data-note="3" onclick="selEtoileRec(3)">☆</span><span class="etoile-sel" data-note="4" onclick="selEtoileRec(4)">☆</span><span class="etoile-sel" data-note="5" onclick="selEtoileRec(5)">☆</span></div>
+    </div>
+    <textarea id="rec-texte" class="avis-textarea" placeholder="Votre témoignage..."></textarea>
+    <input id="rec-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Marie R.)"/>
+    <label class="avis-anon-label"><input type="checkbox" id="rec-anon" onchange="toggleAnonRec()"/> Rester anonyme</label>
+    <input id="rec-tel" class="avis-input" type="tel" placeholder="Votre téléphone * (requis)"/>
+    <div id="rec-msg" class="avis-msg"></div>
+    <button class="avis-submit-btn" onclick="soumettreRec()">Envoyer mon témoignage</button>
   </div>
   <div style="text-align:center;padding:20px 0;">
     <button class="hero-btn" style="background:var(--primary);color:#fff;margin:0 auto;" onclick="showPage('shop')">🛍️ Voir le catalogue →</button>

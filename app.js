@@ -1,9 +1,11 @@
 // ===== CONFIG =====
 // ===== MAINTENANCE =====
 // Passe à true pour activer la maintenance, false pour remettre en ligne
-var MAINTENANCE = true;
+var MAINTENANCE = false;
 var MAINTENANCE_MSG = "Nous effectuons des améliorations pour mieux vous servir.";
-var MAINTENANCE_DUREE = ""; // Laisse vide "" pour ne pas afficher la durée
+var GROS_COMMANDE_LIMITE = 10; // Au-delà → redirection WhatsApp
+
+var MAINTENANCE_DUREE = "30 minutes"; // Laisse vide "" pour ne pas afficher la durée
 
 var API_URL = "https://script.google.com/macros/s/AKfycbyr8QMDn_rG4FZE3Lu6tKTd-ozVRQLrlaZZxYmfR1q8zby8VY7BuAgIo2iM29GFWA4TkQ/exec";
 var SECRET_TOKEN = "HRV-2026-xK9mP3qL7nZ";
@@ -18,7 +20,7 @@ var COLOR_MAP = {
 function getColorHex(n){return COLOR_MAP[n.toLowerCase().trim()]||'#888';}
 
 var products=[],cart=[],activeFilter="Tous",currentProduct=null;
-var selectedColor=null,selectedSize=null,selectedOption=null,carouselIndex=0;
+var selectedColor=null,selectedSize=null,selectedOption=null,selectedQty=1,selectedCodePromo=null,carouselIndex=0;
 var searchQuery='',chronoInterval=null;
 function fmt(n){return Number(n).toLocaleString('fr-MG')+' Ar';}
 
@@ -304,15 +306,55 @@ if(p.badge){
   }).join('')+'</div>';
 }
 
-function renderHome(){renderCats('home-cats','filterHome');renderProductGrid('home-products',filteredProducts().slice(0,4));}
+function renderHome(){renderCats('home-cats','filterHome');renderProductGrid('home-products',filteredProducts().slice(0,4));chargerRecommandations();}
 function renderShop(){renderCats('shop-cats','filterShop');renderProductGrid('shop-products',filteredAndSearched());}
 function filterHome(c){activeFilter=c;renderHome();}
 function filterShop(c){activeFilter=c;renderShop();}
 
+// ===== PRIX DÉGRESSIF =====
+function parsePrixDegressif(str) {
+  // Parse "1:30000,2:27500,3:25000" → [{qty:1,prix:30000}, ...]
+  if(!str) return [];
+  return str.split(',').map(function(p){
+    var parts = p.trim().split(':');
+    return { qty: Number(parts[0])||1, prix: Number(parts[1])||0 };
+  }).filter(function(p){ return p.prix > 0; });
+}
+
+function getPrixDegressif(paliers, qty) {
+  // Retourne le prix pour une quantité donnée
+  if(!paliers || !paliers.length) return null;
+  // Trier par quantité croissante
+  paliers = paliers.slice().sort(function(a,b){ return a.qty - b.qty; });
+  var prixActuel = paliers[0].prix;
+  for(var i = 0; i < paliers.length; i++) {
+    if(qty >= paliers[i].qty) prixActuel = paliers[i].prix;
+  }
+  return prixActuel;
+}
+
+function renderPrixDegressifTable(paliers, qtyActuelle) {
+  // Affiche le tableau des paliers
+  if(!paliers || !paliers.length) return '';
+  paliers = paliers.slice().sort(function(a,b){ return a.qty - b.qty; });
+  var lastPrix = paliers[paliers.length-1].prix;
+  var rows = paliers.map(function(p, i) {
+    var isActive = qtyActuelle >= p.prix && (i === paliers.length-1 || qtyActuelle < paliers[i+1].qty);
+    var label = i === paliers.length-1
+      ? p.qty + ' articles et +' 
+      : p.qty + ' article' + (p.qty > 1 ? 's' : '');
+    return '<div class="degrv-row'+(isActive?' active':'')+'">'+
+      '<span class="degrv-qty">'+label+'</span>'+
+      '<span class="degrv-prix">'+fmt(p.prix)+' / article</span>'+
+    '</div>';
+  }).join('');
+  return '<div class="prix-degressif"><div class="degrv-title">🏷️ Prix selon quantité</div>'+rows+'</div>';
+}
+
 function openProduct(id){
   currentProduct=products.find(function(p){return p.id==id;});
   if(!currentProduct) return;
-  selectedColor=null;selectedSize=null;selectedOption=null;
+  selectedColor=null;selectedSize=null;selectedOption=null;selectedQty=1;selectedCodePromo=null;
   var p=currentProduct,colors=getColors(p),sizes=getSizes(p),mainPhotos=getPhotos(p);
   var v=getViewers(p.id);
   carouselIndex=0;
@@ -320,13 +362,23 @@ function openProduct(id){
   var optHtml='';
   if(p.options){
     var opts=p.options.split(',').map(function(o){return o.trim();});
-    optHtml='<div class="option-group"><div class="option-label">🎁 Options spéciales : <span id="selected-option-label">— choisissez —</span></div><div class="special-options">'+
+    var hasDegrv = p.prix_degressif && parsePrixDegressif(p.prix_degressif).length > 0;
+    // Si prix dégressif actif et qty > 1 → coupons grisés
+    var couponBloque = hasDegrv && selectedQty > 1;
+    var blocMsg = couponBloque
+      ? '<div class="option-bloque">ℹ️ Coupon non applicable avec le prix dégressif</div>'
+      : '';
+    optHtml='<div class="option-group"><div class="option-label">🎁 Options spéciales : <span id="selected-option-label">— choisissez —</span></div>'+blocMsg+'<div class="special-options">'+
     opts.map(function(opt){
       var parts=opt.split(':');
       var nom=parts[0].trim();
       var px=parts[1]?Number(parts[1].trim()):0;
-      var qtyOpt=parts[2]?Number(parts[2].trim()):1; // 3ème chiffre = quantité réelle
-      return '<button class="special-btn" onclick="selectOption(\''+nom+'\','+px+','+qtyOpt+',this)">'+(px?nom+' — '+fmt(px):nom)+'</button>';
+      var qtyOpt=parts[2]?Number(parts[2].trim()):1;
+      // Griser si coupon bloqué (qty > 1 avec dégressif)
+      var isBloque = couponBloque && qtyOpt === 1;
+      var disabledAttr = isBloque ? ' disabled' : '';
+      var disabledClass = isBloque ? ' disabled' : '';
+      return '<button class="special-btn'+disabledClass+'" '+disabledAttr+' onclick="selectOption(\'' + nom + '\',' + px + ',' + qtyOpt + ',this)">'+(px?nom+' — '+fmt(px):nom)+'</button>';
     }).join('')+
     '</div></div>';
   }
@@ -365,6 +417,26 @@ function openProduct(id){
         '<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
         (p.matiere?'<div class="pd-matiere">🧵 <strong>Matière :</strong> '+p.matiere+'</div>':'')+
         (p.description?'<div class="pd-desc">'+p.description+'</div>':'')+
+        (p.prix_degressif ? renderPrixDegressifTable(parsePrixDegressif(p.prix_degressif), selectedQty) : '')+
+        (p.prix_degressif && p.stock > 0 ?
+          '<div class="option-group">'+
+            '<div class="option-label">🔢 Quantité : <span id="selected-qty-label">1</span></div>'+
+            '<div class="qty-selector">'+
+              '<button class="qty-sel-btn" onclick="changeProductQty(-1)">−</button>'+
+              '<span id="qty-display">1</span>'+
+              '<button class="qty-sel-btn" onclick="changeProductQty(1)">+</button>'+
+            '</div>'+
+          '</div>'
+        : '')+
+        (p.codes_promo ? '<div class="option-group" id="code-promo-group">'+
+          '<div class="option-label">🎟️ Vous avez un code promo ?</div>'+
+          (selectedQty > 1 && p.prix_degressif ? '<div class="option-bloque">ℹ️ Code promo non applicable avec le prix dégressif</div>' : '')+
+          '<div class="code-promo-wrap">'+
+            '<input id="code-promo-input" class="code-promo-input" type="text" placeholder="Entrez votre code..." '+(selectedQty > 1 && p.prix_degressif ? 'disabled' : '')+' oninput="this.value=this.value.toUpperCase()"/>'+
+            '<button class="code-promo-btn" '+(selectedQty > 1 && p.prix_degressif ? 'disabled' : '')+' onclick="appliquerCodePromo()">Appliquer</button>'+
+          '</div>'+
+          '<div id="code-promo-msg"></div>'+
+        '</div>' : '')+
         colHtml+szHtml+optHtml+
         '<div class="selection-summary" id="selection-summary" style="display:none;">✅ <strong>Votre sélection :</strong> <span id="summary-text"></span></div>'+
         '<div class="pd-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div>'+
@@ -373,10 +445,129 @@ function openProduct(id){
         '<a id="wa-btn" class="whatsapp-btn" href="'+waUrl+'" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Commander via WhatsApp</a>'+
         '<button class="back-to-shop" onclick="showPage(\'shop\')">← Continuer mes achats</button>'+
       '</div>'+
-    '</div>';
+    '</div>'+
+    '<div id="avis-section" class="avis-section"></div>';
   window.location.hash = 'product-'+id;
   showPage('product');
   initCarouselSwipe();
+  chargerAvis(p.id);
+}
+
+// ===== AVIS PRODUITS =====
+function etoiles(note) {
+  var s = '';
+  for(var i = 1; i <= 5; i++) s += i <= note ? '★' : '☆';
+  return '<span class="etoiles">'+s+'</span>';
+}
+
+async function chargerAvis(produitId) {
+  var section = document.getElementById('avis-section');
+  if(!section) return;
+  section.innerHTML = '<div class="avis-loading">Chargement des avis...</div>';
+  try {
+    var url = API_URL+'?token='+SECRET_TOKEN+'&action=avis&produit_id='+produitId;
+    var res = await fetch(url, {redirect:'follow'});
+    var data = JSON.parse(await res.text());
+    var avis = data.avis || [];
+    var moy = avis.length ? (avis.reduce(function(s,a){return s+a.note;},0)/avis.length).toFixed(1) : null;
+    var avisList = avis.length
+      ? avis.map(function(a){
+          return '<div class="avis-item">'+
+            '<div class="avis-header">'+etoiles(a.note)+'<span class="avis-nom">'+a.nom+'</span><span class="avis-date">'+a.date+'</span></div>'+
+            (a.commentaire?'<div class="avis-comment">'+a.commentaire+'</div>':'')+
+          '</div>';
+        }).join('')
+      : '<div class="avis-empty">Aucun avis pour ce produit. Soyez le premier !</div>';
+
+    section.innerHTML =
+      '<div class="avis-titre">⭐ Avis clients'+(moy?' — <span class="avis-moy">'+moy+'/5</span> ('+avis.length+' avis)':'')+'</div>'+
+      avisList+
+      '<button class="avis-btn-ouvrir" onclick="toggleFormulaireAvis('+produitId+')">✍️ Laisser un avis</button>'+
+      '<div id="avis-form-'+produitId+'" class="avis-form" style="display:none;">'+
+        '<div class="avis-form-titre">Votre avis</div>'+
+        '<div class="avis-note-wrap">'+
+          '<span class="avis-note-label">Note :</span>'+
+          '<div class="avis-etoiles-sel" id="etoiles-sel-'+produitId+'">'+
+            [1,2,3,4,5].map(function(i){
+              return '<span class="etoile-sel" data-note="'+i+'" onclick="selEtoile('+produitId+','+i+')">☆</span>';
+            }).join('')+
+          '</div>'+
+        '</div>'+
+        '<textarea id="avis-comment-'+produitId+'" class="avis-textarea" placeholder="Votre commentaire (optionnel)..."></textarea>'+
+        '<input id="avis-nom-'+produitId+'" class="avis-input" type="text" placeholder="Votre prénom (ex: Marie R.)"/>'+
+        '<label class="avis-anon-label">'+
+          '<input type="checkbox" id="avis-anon-'+produitId+'" onchange="toggleAnon('+produitId+')"/> Rester anonyme'+
+        '</label>'+
+        '<input id="avis-tel-'+produitId+'" class="avis-input" type="tel" placeholder="Votre téléphone * (requis)"/>'+
+        '<div id="avis-msg-'+produitId+'" class="avis-msg"></div>'+
+        '<button class="avis-submit-btn" onclick="soumettreAvis('+produitId+')">Envoyer mon avis</button>'+
+      '</div>';
+  } catch(e) {
+    section.innerHTML = '<div class="avis-empty">Impossible de charger les avis.</div>';
+  }
+}
+
+function toggleFormulaireAvis(produitId) {
+  var form = document.getElementById('avis-form-'+produitId);
+  if(form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function selEtoile(produitId, note) {
+  var wrap = document.getElementById('etoiles-sel-'+produitId);
+  if(!wrap) return;
+  wrap.querySelectorAll('.etoile-sel').forEach(function(el, i) {
+    el.textContent = i < note ? '★' : '☆';
+    el.classList.toggle('active', i < note);
+  });
+  wrap.dataset.note = note;
+}
+
+function toggleAnon(produitId) {
+  var cb = document.getElementById('avis-anon-'+produitId);
+  var nomInput = document.getElementById('avis-nom-'+produitId);
+  if(nomInput) {
+    nomInput.disabled = cb && cb.checked;
+    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Marie R.)';
+  }
+}
+
+async function soumettreAvis(produitId) {
+  var wrap = document.getElementById('etoiles-sel-'+produitId);
+  var note = wrap ? Number(wrap.dataset.note||0) : 0;
+  var comment = document.getElementById('avis-comment-'+produitId);
+  var nomEl = document.getElementById('avis-nom-'+produitId);
+  var anonEl = document.getElementById('avis-anon-'+produitId);
+  var telEl = document.getElementById('avis-tel-'+produitId);
+  var msgEl = document.getElementById('avis-msg-'+produitId);
+
+  if(note < 1) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez sélectionner une note.'; return; }
+  if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
+
+  var payload = {
+    action: 'avis',
+    token: SECRET_TOKEN,
+    produit_id: String(produitId),
+    produit_nom: currentProduct ? currentProduct.name : '',
+    note: note,
+    commentaire: comment ? comment.value.trim() : '',
+    nom: nomEl ? nomEl.value.trim() : '',
+    anonyme: anonEl ? anonEl.checked : false,
+    phone: telEl.value.trim(),
+  };
+
+  msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
+
+  try {
+    var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+    var data = await res.json();
+    if(!data.success) { msgEl.className='avis-msg error'; msgEl.textContent='❌ '+data.error; return; }
+    msgEl.className='avis-msg success';
+    msgEl.textContent='✅ Merci ! Votre avis sera affiché après validation.';
+    // Réinitialiser le formulaire
+    setTimeout(function(){ toggleFormulaireAvis(produitId); }, 2000);
+  } catch(e) {
+    msgEl.className='avis-msg error'; msgEl.textContent='❌ Erreur lors de l\'envoi.';
+  }
 }
 
 // ===== CAROUSEL =====
@@ -395,6 +586,90 @@ function goToSlide(index){
 
 function carouselNext(){ goToSlide(carouselIndex+1); }
 function carouselPrev(){ goToSlide(carouselIndex-1); }
+
+// ===== QUANTITÉ + PRIX DÉGRESSIF =====
+function changeProductQty(delta) {
+  if(!currentProduct) return;
+  var paliers = parsePrixDegressif(currentProduct.prix_degressif);
+  var maxQty = currentProduct.stock;
+
+  // Vérifier limite grosse commande
+  var newQty = selectedQty + delta;
+
+  if(newQty < 1) return;
+  if(newQty > maxQty){ showToast('⚠️ Stock maximum : '+maxQty+' articles','warning'); return; }
+
+  // Redirection WhatsApp au-delà de la limite
+  if(newQty > GROS_COMMANDE_LIMITE) {
+    var waMsg = 'Bonjour Harvel Store ! 👋 Je souhaite commander *'+currentProduct.name+'* en grande quantité ('+newQty+' articles). Pouvez-vous me proposer un tarif personnalisé ? Merci !';
+    var waUrl = 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
+    showToast('📦 Pour '+GROS_COMMANDE_LIMITE+'+ articles, contactez-nous !','warning');
+    window.open(waUrl, '_blank');
+    return;
+  }
+
+  selectedQty = newQty;
+
+  // Mettre à jour l'affichage quantité
+  var qtyDisplay = document.getElementById('qty-display');
+  var qtyLabel = document.getElementById('selected-qty-label');
+  if(qtyDisplay) qtyDisplay.textContent = selectedQty;
+  if(qtyLabel) qtyLabel.textContent = selectedQty;
+
+  // Mettre à jour le prix selon palier
+  if(paliers.length) {
+    var nouveauPrix = getPrixDegressif(paliers, selectedQty);
+    var priceEl = document.getElementById('pd-price');
+    if(priceEl) priceEl.textContent = fmt(nouveauPrix);
+
+    // Mettre à jour le tableau dégressif (surligner le palier actif)
+    var table = document.querySelector('.prix-degressif');
+    if(table) {
+      var paliersTries = paliers.slice().sort(function(a,b){return a.qty-b.qty;});
+      table.querySelectorAll('.degrv-row').forEach(function(row, i) {
+        var isActive = selectedQty >= paliersTries[i].qty &&
+          (i === paliersTries.length-1 || selectedQty < paliersTries[i+1].qty);
+        row.classList.toggle('active', isActive);
+      });
+    }
+  }
+  updateSummary();
+
+  // Mettre à jour l'état des options (griser/dégriser les coupons)
+  if(currentProduct && currentProduct.options) {
+    var hasDegrv = currentProduct.prix_degressif && parsePrixDegressif(currentProduct.prix_degressif).length > 0;
+    var couponBloque = hasDegrv && selectedQty > 1;
+    var blocMsg = document.querySelector('.option-bloque');
+
+    // Afficher/masquer le message
+    if(couponBloque) {
+      if(!blocMsg) {
+        var msgEl = document.createElement('div');
+        msgEl.className = 'option-bloque';
+        msgEl.textContent = 'ℹ️ Coupon non applicable avec le prix dégressif';
+        var specialOpts = document.querySelector('.special-options');
+        if(specialOpts) specialOpts.parentNode.insertBefore(msgEl, specialOpts);
+      }
+    } else {
+      if(blocMsg) blocMsg.remove();
+    }
+
+    // Griser/dégriser les boutons options
+    document.querySelectorAll('.special-btn').forEach(function(btn){
+      if(btn.dataset.qtyopt === '1' || !btn.dataset.qtyopt) {
+        btn.disabled = couponBloque;
+        btn.classList.toggle('disabled', couponBloque);
+        // Désélectionner si bloqué
+        if(couponBloque && btn.classList.contains('active')) {
+          btn.classList.remove('active');
+          selectedOption = null;
+          var l = document.getElementById('selected-option-label');
+          if(l) l.textContent = '— choisissez —';
+        }
+      }
+    });
+  }
+}
 
 var swipeStartX = 0;
 var swipeStartY = 0;
@@ -447,13 +722,125 @@ function updateSummary(){
   if(waBtn&&currentProduct) waBtn.href=getWhatsAppUrl(currentProduct);
 }
 
+// ===== CODE PROMO =====
+function appliquerCodePromo() {
+  var p = currentProduct;
+  if(!p) return;
+
+  // Bloquer si prix dégressif actif et qty > 1
+  if(p.prix_degressif && parsePrixDegressif(p.prix_degressif).length > 0 && selectedQty > 1) {
+    showToast('⚠️ Code promo non applicable avec le prix dégressif','warning');
+    return;
+  }
+
+  var input = document.getElementById('code-promo-input');
+  var msg = document.getElementById('code-promo-msg');
+  if(!input || !msg) return;
+
+  var code = input.value.trim().toUpperCase();
+  if(!code) { showToast('⚠️ Entrez un code promo','warning'); return; }
+
+  // Parser les codes disponibles pour ce produit
+  var codesDispos = p.codes_promo ? p.codes_promo.split(',').map(function(c){ return c.trim(); }) : [];
+  var found = null;
+  for(var i = 0; i < codesDispos.length; i++) {
+    var parts = codesDispos[i].split(':');
+    var nom = parts[0].trim().toUpperCase();
+    if(nom === code) {
+      found = { nom: nom, remise: parts[1]?parts[1].trim():'', expire: parts[2]?parts[2].trim():'' };
+      break;
+    }
+  }
+
+  if(!found) {
+    msg.className = 'code-promo-error';
+    msg.textContent = '❌ Code promo invalide';
+    selectedCodePromo = null;
+    return;
+  }
+
+  // Vérifier expiration côté client
+  if(found.expire) {
+    var parts = found.expire.split('/');
+    var expireDate = new Date(parts[2], parts[1]-1, parts[0]);
+    if(expireDate < new Date()) {
+      msg.className = 'code-promo-error';
+      msg.textContent = '❌ Ce code promo a expiré';
+      selectedCodePromo = null;
+      return;
+    }
+  }
+
+  // Calculer le prix avec remise
+  var prixBase = document.getElementById('pd-price');
+  var paliers = parsePrixDegressif(p.prix_degressif);
+  var prixActuel = paliers.length ? getPrixDegressif(paliers, selectedQty) : p.price;
+
+  var remise = found.remise;
+  var prixRemise;
+  var remiseLabel;
+
+  if(remise.includes('%')) {
+    var pct = parseFloat(remise);
+    prixRemise = Math.round(prixActuel * (1 - pct/100));
+    remiseLabel = '-' + pct + '%';
+  } else {
+    var montant = Number(remise);
+    prixRemise = Math.max(0, prixActuel - montant);
+    remiseLabel = '-' + fmt(montant);
+  }
+
+  // Appliquer
+  selectedCodePromo = { code: found.nom, remise: remise, prixFinal: prixRemise };
+
+  if(prixBase) {
+    prixBase.innerHTML = '<span class="prix-barre">'+fmt(prixActuel)+'</span>'+
+      '<span class="prix-promo">'+fmt(prixRemise)+'</span>'+
+      '<span class="promo-badge">'+remiseLabel+'</span>';
+  }
+
+  msg.className = 'code-promo-success';
+  msg.textContent = '✅ Code ' + found.nom + ' appliqué ! ' + remiseLabel;
+  updateSummary();
+}
+
+function resetCodePromo() {
+  selectedCodePromo = null;
+  var input = document.getElementById('code-promo-input');
+  var msg = document.getElementById('code-promo-msg');
+  if(input) input.value = '';
+  if(msg) { msg.textContent = ''; msg.className = ''; }
+}
+
 function addToCartFromProduct(){
   var p=currentProduct;if(!p) return;
   var colors=getColors(p),sizes=getSizes(p),isOne=sizes.length===1&&sizes[0].toLowerCase().includes('one');
   if(colors.length>0&&!selectedColor){showToast('⚠️ Veuillez choisir une couleur','warning');return;}
   if(sizes.length>0&&!isOne&&!selectedSize){showToast('⚠️ Veuillez choisir une taille','warning');return;}
-  var price=selectedOption&&selectedOption.price>0?selectedOption.price:p.price;
-  var qtyReelle=selectedOption&&selectedOption.qty>1?selectedOption.qty:1; // quantité réelle selon option
+  // Prix : option > dégressif > prix de base
+  var paliers = parsePrixDegressif(p.prix_degressif);
+  var prixDegressif = paliers.length ? getPrixDegressif(paliers, selectedQty) : null;
+  var couponBloque = paliers.length > 0 && selectedQty > 1;
+
+  var price, qtyReelle;
+  if(selectedOption && selectedOption.qty > 1) {
+    // Option multi-paires (Deux paires, Trois paires) — prix de l'option
+    price = selectedOption.price;
+    qtyReelle = selectedOption.qty;
+  } else if(!couponBloque && selectedOption && selectedOption.price > 0) {
+    // Option coupon applicable (qty = 1 ou pas de dégressif)
+    price = selectedOption.price;
+    qtyReelle = selectedQty;
+  } else if(selectedCodePromo && !couponBloque) {
+    // Code promo appliqué
+    price = selectedCodePromo.prixFinal;
+    qtyReelle = selectedQty;
+  } else {
+    // Prix dégressif ou prix normal
+    price = prixDegressif || p.price;
+    qtyReelle = selectedQty;
+    if(couponBloque) { selectedOption = null; resetCodePromo(); }
+  }
   var variant=[selectedColor,selectedSize,selectedOption?selectedOption.name:null].filter(Boolean).join(' — ');
   var cartKey=p.id+'_'+variant;
   var photos=getPhotos(p);
@@ -463,7 +850,7 @@ function addToCartFromProduct(){
     if(ex.qty<p.stock){ex.qty++;showToast('✅ '+p.name+' mis à jour');animateToCart(emojiForAnim);}
     else{showToast('⚠️ Stock maximum atteint !','warning');return;}
   }else{
-    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:1,qty_stock:qtyReelle,thumb:photos[0]||null}));
+    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:1,qty_stock:qtyReelle,thumb:photos[0]||null,code_promo:selectedCodePromo?selectedCodePromo.code:null}));
     showToast('✅ '+p.name+' ajouté au panier');
     animateToCart(emojiForAnim);
   }
@@ -588,6 +975,7 @@ async function submitOrder(){
   var payload={
     customer:{name:name,phone:phone,address:address,note:note},
     items:cart.map(function(i){return {id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty_stock||i.qty};}),
+    code_promo:cart.length>0&&cart[0].code_promo?cart[0].code_promo:undefined,
     total:cart.reduce(function(s,i){return s+i.price;},0), // price est déjà le prix global de l'option
     token:SECRET_TOKEN
   };
@@ -652,6 +1040,130 @@ function showPage(p){
 function showToast(msg,type){
   var t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(type||'');
   setTimeout(function(){t.classList.remove('show');},2800);
+}
+
+// ===== RECOMMANDATIONS =====
+var recIndex = 0;
+var recData = [];
+var recTimer = null;
+
+async function chargerRecommandations() {
+  var wrap = document.getElementById('recommandations-carrousel');
+  if(!wrap) return;
+  try {
+    var url = API_URL+'?token='+SECRET_TOKEN+'&action=recommandations';
+    var res = await fetch(url, {redirect:'follow'});
+    var data = JSON.parse(await res.text());
+    recData = data.recommandations || [];
+    if(!recData.length) {
+      wrap.innerHTML = '<div class="rec-empty">Soyez le premier à témoigner ! <button class="rec-btn-temoigner" onclick="showPage(\'about\')">✍️ Laisser un témoignage</button></div>';
+      return;
+    }
+    renderCarrouselRec();
+  } catch(e) {
+    wrap.innerHTML = '';
+  }
+}
+
+function renderCarrouselRec() {
+  var wrap = document.getElementById('recommandations-carrousel');
+  if(!wrap || !recData.length) return;
+  var r = recData[recIndex];
+  var etoiles = '';
+  for(var i=1;i<=5;i++) etoiles += i<=r.note ? '★' : '☆';
+
+  wrap.innerHTML =
+    '<div class="rec-card">'+
+      '<div class="rec-etoiles">'+etoiles+'</div>'+
+      '<div class="rec-texte">"'+r.texte+'"</div>'+
+      '<div class="rec-footer">'+
+        '<span class="rec-nom">— '+r.nom+'</span>'+
+        (r.date?'<span class="rec-date">'+r.date+'</span>':'')+
+      '</div>'+
+    '</div>'+
+    '<div class="rec-nav">'+
+      '<button class="rec-nav-btn" onclick="recNavigue(-1)">‹</button>'+
+      '<div class="rec-dots">'+
+        recData.map(function(_,i){
+          return '<span class="rec-dot'+(i===recIndex?' active':'')+'" onclick="recGoTo('+i+')"></span>';
+        }).join('')+
+      '</div>'+
+      '<button class="rec-nav-btn" onclick="recNavigue(1)">›</button>'+
+    '</div>'+
+    '<div style="text-align:center;margin-top:12px;">'+
+      '<button class="rec-btn-temoigner" onclick="showPage(\'about\')">✍️ Laissez votre témoignage</button>'+
+    '</div>';
+
+  // Auto-défilement toutes les 4 secondes
+  if(recTimer) clearInterval(recTimer);
+  recTimer = setInterval(function(){ recNavigue(1); }, 4000);
+}
+
+function recNavigue(dir) {
+  recIndex = (recIndex + dir + recData.length) % recData.length;
+  renderCarrouselRec();
+}
+
+function recGoTo(i) {
+  recIndex = i;
+  renderCarrouselRec();
+}
+
+function selEtoileRec(note) {
+  var wrap = document.getElementById('etoiles-rec');
+  if(!wrap) return;
+  wrap.querySelectorAll('.etoile-sel').forEach(function(el, i) {
+    el.textContent = i < note ? '★' : '☆';
+    el.classList.toggle('active', i < note);
+  });
+  wrap.dataset.note = note;
+}
+
+function toggleAnonRec() {
+  var cb = document.getElementById('rec-anon');
+  var nomInput = document.getElementById('rec-nom');
+  if(nomInput) {
+    nomInput.disabled = cb && cb.checked;
+    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Marie R.)';
+  }
+}
+
+async function soumettreRec() {
+  var wrap = document.getElementById('etoiles-rec');
+  var note = wrap ? Number(wrap.dataset.note||5) : 5;
+  var texteEl = document.getElementById('rec-texte');
+  var nomEl   = document.getElementById('rec-nom');
+  var anonEl  = document.getElementById('rec-anon');
+  var telEl   = document.getElementById('rec-tel');
+  var msgEl   = document.getElementById('rec-msg');
+
+  if(!texteEl||!texteEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez écrire un témoignage.'; return; }
+  if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
+
+  var payload = {
+    action: 'recommandation',
+    token: SECRET_TOKEN,
+    note: note,
+    texte: texteEl.value.trim(),
+    nom: nomEl ? nomEl.value.trim() : '',
+    anonyme: anonEl ? anonEl.checked : false,
+    phone: telEl.value.trim(),
+  };
+
+  msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
+
+  try {
+    var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+    var data = await res.json();
+    if(!data.success) { msgEl.className='avis-msg error'; msgEl.textContent='❌ '+data.error; return; }
+    msgEl.className='avis-msg success';
+    msgEl.textContent='✅ Merci ! Votre témoignage sera affiché après validation.';
+    if(texteEl) texteEl.value='';
+    if(nomEl) nomEl.value='';
+    if(telEl) telEl.value='';
+  } catch(e) {
+    msgEl.className='avis-msg error'; msgEl.textContent='❌ Erreur lors de l\'envoi.';
+  }
 }
 
 // ===== INIT =====
