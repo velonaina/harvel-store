@@ -284,6 +284,14 @@ nav{background:#fff;padding:0 20px;display:flex;align-items:center;justify-conte
 .step-label.done,.step-label.active{color:var(--primary);}
 .step-label.pending{color:var(--muted);}
 .suivi-produits{font-size:.82rem;color:var(--muted);padding-top:12px;border-top:1px solid var(--border);}
+.suivi-resume{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
+.suivi-resume-title{font-weight:700;font-size:.88rem;color:var(--text);margin-bottom:8px;}
+.suivi-item{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:6px;}
+.suivi-item-nom{font-weight:600;font-size:.88rem;color:var(--text);}
+.suivi-item-option{font-size:.78rem;color:var(--muted);margin-top:2px;}
+.suivi-item-prix{font-size:.82rem;color:var(--primary-dark);font-weight:600;margin-top:4px;}
+.suivi-total{text-align:right;font-size:.9rem;color:var(--text);padding:8px 0;border-top:1px solid var(--border);margin-top:6px;}
+.suivi-adresse{font-size:.82rem;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
 .suivi-error{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;color:#991b1b;font-size:.88rem;text-align:center;}
 
 /* A PROPOS */

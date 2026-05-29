@@ -180,7 +180,30 @@ async function suivreCommande(){
     var waSuiviHtml='<div class="suivi-wa-hint">'+waHint+'</div><a class="suivi-wa-btn" href="'+waUrl+'" target="_blank">'+
       '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'+
       ' Contacter via WhatsApp</a>';
-    result.innerHTML='<div class="suivi-card"><div class="suivi-num">Commande '+c.num+' — '+c.date+'</div><div class="suivi-statut '+(STATUT_CLASS[statut]||'statut-attente')+'">'+(STATUT_ICONS[statut]||'⏳')+' '+statut+'</div>'+raisonHtml+dateLivraisonHtml+'<div class="suivi-steps">'+stepsHtml+'</div>'+historiqueHtml+'<div class="suivi-produits">🛍️ '+c.produits+'</div>'+waSuiviHtml+'</div>';
+    result.innerHTML='<div class="suivi-card"><div class="suivi-num">Commande '+c.num+' — '+c.date+'</div><div class="suivi-statut '+(STATUT_CLASS[statut]||'statut-attente')+'">'+(STATUT_ICONS[statut]||'⏳')+' '+statut+'</div>'+raisonHtml+dateLivraisonHtml+'<div class="suivi-steps">'+stepsHtml+'</div>'+historiqueHtml+(function(){
+      // Parser les articles : "Nom (Option) x1 = 55 000 Ar | ..."
+      var items = c.produits ? c.produits.split(' | ') : [];
+      var itemsHtml = items.map(function(item){
+        // Format : "Nom produit (Option) x1 = 55 000 Ar"
+        var match = item.match(/^(.+?)\s*x(\d+)\s*=\s*(.+)$/);
+        if(!match) return '<div class="suivi-item"><span class="suivi-item-nom">'+item+'</span></div>';
+        var nomComplet = match[1].trim();
+        var qty = match[2].trim();
+        var prix = match[3].trim();
+        // Extraire option entre parenthèses si présente
+        var nomMatch = nomComplet.match(/^(.+?)\s*\((.+)\)$/);
+        var nom = nomMatch ? nomMatch[1].trim() : nomComplet;
+        var option = nomMatch ? nomMatch[2].trim() : '';
+        return '<div class="suivi-item">'+
+          '<div class="suivi-item-nom">'+nom+'</div>'+
+          (option ? '<div class="suivi-item-option">📌 '+option+'</div>' : '')+
+          '<div class="suivi-item-prix">'+qty+' × '+prix+'</div>'+
+        '</div>';
+      }).join('');
+      var totalHtml = c.total ? '<div class="suivi-total">Total : <strong>'+Number(c.total).toLocaleString('fr-MG')+' Ar</strong></div>' : '';
+      var adresseHtml = c.adresse ? '<div class="suivi-adresse">📍 '+c.adresse+'</div>' : '';
+      return '<div class="suivi-resume"><div class="suivi-resume-title">🛍️ Détail de la commande</div>'+itemsHtml+totalHtml+adresseHtml+'</div>';
+    }())+waSuiviHtml+'</div>';
   }catch(err){
     result.innerHTML='<div class="suivi-error">❌ Erreur lors de la recherche. Réessayez.</div>';
   }
@@ -296,7 +319,8 @@ function openProduct(id){
       var parts=opt.split(':');
       var nom=parts[0].trim();
       var px=parts[1]?Number(parts[1].trim()):0;
-      return '<button class="special-btn" onclick="selectOption(\''+nom+'\','+px+',this)">'+(px?nom+' — '+fmt(px):nom)+'</button>';
+      var qtyOpt=parts[2]?Number(parts[2].trim()):1; // 3ème chiffre = quantité réelle
+      return '<button class="special-btn" onclick="selectOption(\''+nom+'\','+px+','+qtyOpt+',this)">'+(px?nom+' — '+fmt(px):nom)+'</button>';
     }).join('')+
     '</div></div>';
   }
@@ -406,7 +430,7 @@ function updateCarouselForColor(ci){
 
 function selectColor(c,i,btn){selectedColor=c;document.querySelectorAll('.color-btn-label').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-color-label');if(l)l.textContent=c;updateCarouselForColor(i);updateSummary();}
 function selectSize(s,btn){selectedSize=s;document.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-size-label');if(l)l.textContent=s;updateSummary();}
-function selectOption(opt,prix,btn){selectedOption={name:opt,price:prix};document.querySelectorAll('.special-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-option-label');if(l)l.textContent=opt;var pe=document.getElementById('pd-price');if(pe&&prix>0)pe.textContent=fmt(prix);updateSummary();}
+function selectOption(opt,prix,qtyOpt,btn){selectedOption={name:opt,price:prix,qty:qtyOpt||1};document.querySelectorAll('.special-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-option-label');if(l)l.textContent=opt;var pe=document.getElementById('pd-price');if(pe&&prix>0)pe.textContent=fmt(prix);updateSummary();}
 function toggleSizeGuide(){var g=document.getElementById('size-guide');if(g)g.classList.toggle('show');}
 
 function updateSummary(){
@@ -423,6 +447,7 @@ function addToCartFromProduct(){
   if(colors.length>0&&!selectedColor){showToast('⚠️ Veuillez choisir une couleur','warning');return;}
   if(sizes.length>0&&!isOne&&!selectedSize){showToast('⚠️ Veuillez choisir une taille','warning');return;}
   var price=selectedOption&&selectedOption.price>0?selectedOption.price:p.price;
+  var qtyReelle=selectedOption&&selectedOption.qty>1?selectedOption.qty:1; // quantité réelle selon option
   var variant=[selectedColor,selectedSize,selectedOption?selectedOption.name:null].filter(Boolean).join(' — ');
   var cartKey=p.id+'_'+variant;
   var photos=getPhotos(p);
@@ -432,7 +457,7 @@ function addToCartFromProduct(){
     if(ex.qty<p.stock){ex.qty++;showToast('✅ '+p.name+' mis à jour');animateToCart(emojiForAnim);}
     else{showToast('⚠️ Stock maximum atteint !','warning');return;}
   }else{
-    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:1,thumb:photos[0]||null}));
+    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:qtyReelle,thumb:photos[0]||null}));
     showToast('✅ '+p.name+' ajouté au panier');
     animateToCart(emojiForAnim);
   }
