@@ -1258,7 +1258,7 @@ async function ouvrirFormulaireAvis(numCommande) {
           '<div class="avis-cmd-produit">'+
             '<div class="avis-note-wrap">'+
               '<span class="avis-note-label">Note globale :</span>'+
-              '<div class="avis-etoiles-sel" id="etoiles-rec" data-note="0">'+
+              '<div class="avis-etoiles-sel" id="etoiles-rec-cmd" data-note="0">'+
                 [1,2,3,4,5].map(function(i){
                   return '<span class="etoile-sel" onclick="selEtoileRecCmd('+i+')">☆</span>';
                 }).join('')+
@@ -1270,7 +1270,7 @@ async function ouvrirFormulaireAvis(numCommande) {
 
         '<div class="avis-cmd-section">'+
           '<div class="avis-cmd-section-titre">👤 Vos informations</div>'+
-          '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Marie R.)"/>'+
+          '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean R.)"/>'+
           '<label class="avis-anon-label">'+
             '<input type="checkbox" id="avis-cmd-anon" onchange="toggleAnonCmd()"/> Rester anonyme'+
           '</label>'+
@@ -1298,7 +1298,7 @@ function selEtoileProd(idx, note) {
 }
 
 function selEtoileRecCmd(note) {
-  var wrap = document.getElementById('etoiles-rec');
+  var wrap = document.getElementById('etoiles-rec-cmd');
   if(!wrap) return;
   wrap.querySelectorAll('.etoile-sel').forEach(function(el, i) {
     el.textContent = i < note ? '★' : '☆';
@@ -1312,7 +1312,7 @@ function toggleAnonCmd() {
   var nomInput = document.getElementById('avis-cmd-nom');
   if(nomInput) {
     nomInput.disabled = cb && cb.checked;
-    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Marie R.)';
+    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean R.)';
   }
 }
 
@@ -1324,7 +1324,7 @@ async function soumettreAvisCmd() {
   var nomEl = document.getElementById('avis-cmd-nom');
   var anonEl = document.getElementById('avis-cmd-anon');
   var recTexte = document.getElementById('rec-texte-cmd');
-  var recWrap = document.getElementById('etoiles-rec');
+  var recWrap = document.getElementById('etoiles-rec-cmd');
 
   // Vérifications
   if(!telEl || !telEl.value.trim()) {
