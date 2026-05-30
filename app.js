@@ -1073,6 +1073,12 @@ function toggleMenu(){
 }
 
 function showPage(p){
+  // Toujours réafficher la nav et footer (cachés par la page avis-cmd)
+  var nav = document.querySelector('nav');
+  var footer = document.querySelector('footer');
+  if(nav) nav.style.display = '';
+  if(footer) footer.style.display = '';
+
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.querySelectorAll('.nav-links button').forEach(function(b){b.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
