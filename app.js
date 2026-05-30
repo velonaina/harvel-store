@@ -1218,7 +1218,7 @@ async function ouvrirFormulaireAvis(numCommande) {
     var data = JSON.parse(await res.text());
 
     if(!data.success || !data.items || !data.items.length) {
-      content.innerHTML = '<div class="avis-cmd-error"><p>⚠️ Commande introuvable ou déjà évaluée.</p><button class="avis-cmd-retour" onclick="goHome()">← Retour à la boutique</button></div>';
+      content.innerHTML = '<div class="avis-cmd-error"><p>⚠️ Commande introuvable ou déjà évaluée.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button></div>';
       return;
     }
 
@@ -1258,7 +1258,7 @@ async function ouvrirFormulaireAvis(numCommande) {
           '<div class="avis-cmd-produit">'+
             '<div class="avis-note-wrap">'+
               '<span class="avis-note-label">Note globale :</span>'+
-              '<div class="avis-etoiles-sel" id="etoiles-rec-cmd" data-note="0">'+
+              '<div class="avis-etoiles-sel" id="etoiles-rec" data-note="0">'+
                 [1,2,3,4,5].map(function(i){
                   return '<span class="etoile-sel" onclick="selEtoileRecCmd('+i+')">☆</span>';
                 }).join('')+
@@ -1270,7 +1270,7 @@ async function ouvrirFormulaireAvis(numCommande) {
 
         '<div class="avis-cmd-section">'+
           '<div class="avis-cmd-section-titre">👤 Vos informations</div>'+
-          '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean R.)"/>'+
+          '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Marie R.)"/>'+
           '<label class="avis-anon-label">'+
             '<input type="checkbox" id="avis-cmd-anon" onchange="toggleAnonCmd()"/> Rester anonyme'+
           '</label>'+
@@ -1279,11 +1279,11 @@ async function ouvrirFormulaireAvis(numCommande) {
 
         '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
         '<button class="avis-submit-btn" id="btn-envoyer-avis" onclick="soumettreAvisCmd()">✅ Envoyer mes avis</button>'+
-        '<button class="avis-cmd-retour" onclick="goHome()">← Retour à la boutique</button>'+
+        '<button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button>'+
       '</div>';
 
   } catch(e) {
-    content.innerHTML = '<div class="avis-cmd-error"><p>❌ Erreur de chargement. Veuillez réessayer.</p><button class="avis-cmd-retour" onclick="goHome()">← Retour</button></div>';
+    content.innerHTML = '<div class="avis-cmd-error"><p>❌ Erreur de chargement. Veuillez réessayer.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour</button></div>';
   }
 }
 
@@ -1298,7 +1298,7 @@ function selEtoileProd(idx, note) {
 }
 
 function selEtoileRecCmd(note) {
-  var wrap = document.getElementById('etoiles-rec-cmd');
+  var wrap = document.getElementById('etoiles-rec');
   if(!wrap) return;
   wrap.querySelectorAll('.etoile-sel').forEach(function(el, i) {
     el.textContent = i < note ? '★' : '☆';
@@ -1312,7 +1312,7 @@ function toggleAnonCmd() {
   var nomInput = document.getElementById('avis-cmd-nom');
   if(nomInput) {
     nomInput.disabled = cb && cb.checked;
-    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean R.)';
+    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Marie R.)';
   }
 }
 
@@ -1324,7 +1324,7 @@ async function soumettreAvisCmd() {
   var nomEl = document.getElementById('avis-cmd-nom');
   var anonEl = document.getElementById('avis-cmd-anon');
   var recTexte = document.getElementById('rec-texte-cmd');
-  var recWrap = document.getElementById('etoiles-rec-cmd');
+  var recWrap = document.getElementById('etoiles-rec');
 
   // Vérifications
   if(!telEl || !telEl.value.trim()) {
@@ -1397,6 +1397,14 @@ async function soumettreAvisCmd() {
     // Masquer le bouton envoyer
     var btn = document.querySelector('.avis-submit-btn');
     if(btn) btn.style.display = 'none';
+    // Marquer la commande comme soumise pour expirer le lien
+    try {
+      await fetch(API_URL, {
+        method:'POST', redirect:'follow',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'marquer_avis_soumis', token:SECRET_TOKEN, num:numCommande})
+      });
+    } catch(e) {}
   }
 }
 
