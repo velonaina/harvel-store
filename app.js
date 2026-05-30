@@ -1043,7 +1043,14 @@ async function submitOrder(){
   finally{btn.disabled=false;btn.textContent='✅ Confirmer la commande';}
 }
 
-function resetAndGoHome(){activeFilter='Tous';searchQuery='';showPage('home');}
+function resetAndGoHome(){
+  // Réafficher la nav et footer cachés par la page avis-cmd
+  var nav = document.querySelector('nav');
+  var footer = document.querySelector('footer');
+  if(nav) nav.style.display = '';
+  if(footer) footer.style.display = '';
+  activeFilter='Tous';searchQuery='';showPage('home');
+}
 
 function toggleMenu(){
   document.getElementById('mobile-menu').classList.toggle('open');
@@ -1258,7 +1265,7 @@ async function ouvrirFormulaireAvis(numCommande) {
           '<div class="avis-cmd-produit">'+
             '<div class="avis-note-wrap">'+
               '<span class="avis-note-label">Note globale :</span>'+
-              '<div class="avis-etoiles-sel" id="etoiles-rec" data-note="0">'+
+              '<div class="avis-etoiles-sel" id="etoiles-rec-cmd" data-note="0">'+
                 [1,2,3,4,5].map(function(i){
                   return '<span class="etoile-sel" onclick="selEtoileRecCmd('+i+')">☆</span>';
                 }).join('')+
@@ -1298,7 +1305,7 @@ function selEtoileProd(idx, note) {
 }
 
 function selEtoileRecCmd(note) {
-  var wrap = document.getElementById('etoiles-rec');
+  var wrap = document.getElementById('etoiles-rec-cmd');
   if(!wrap) return;
   wrap.querySelectorAll('.etoile-sel').forEach(function(el, i) {
     el.textContent = i < note ? '★' : '☆';
@@ -1324,7 +1331,7 @@ async function soumettreAvisCmd() {
   var nomEl = document.getElementById('avis-cmd-nom');
   var anonEl = document.getElementById('avis-cmd-anon');
   var recTexte = document.getElementById('rec-texte-cmd');
-  var recWrap = document.getElementById('etoiles-rec');
+  var recWrap = document.getElementById('etoiles-rec-cmd');
 
   // Vérifications
   if(!telEl || !telEl.value.trim()) {
