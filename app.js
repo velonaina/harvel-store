@@ -494,7 +494,7 @@ async function chargerAvis(produitId) {
           '</div>'+
         '</div>'+
         '<textarea id="avis-comment-'+produitId+'" class="avis-textarea" placeholder="Votre commentaire (optionnel)..."></textarea>'+
-        '<input id="avis-nom-'+produitId+'" class="avis-input" type="text" placeholder="Votre prénom (ex: Marie R.)"/>'+
+        '<input id="avis-nom-'+produitId+'" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean Rakoto)"/>'+
         '<label class="avis-anon-label">'+
           '<input type="checkbox" id="avis-anon-'+produitId+'" onchange="toggleAnon('+produitId+')"/> Rester anonyme'+
         '</label>'+
@@ -527,7 +527,7 @@ function toggleAnon(produitId) {
   var nomInput = document.getElementById('avis-nom-'+produitId);
   if(nomInput) {
     nomInput.disabled = cb && cb.checked;
-    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Marie R.)';
+    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean Rakoto)';
   }
 }
 
@@ -1058,6 +1058,7 @@ function showPage(p){
   if(p==='home') renderHome();
   if(p==='shop') renderShop();
   if(p==='cart') renderCart();
+  if(p==='avis-cmd') {} // contenu généré dynamiquement
   if(p !== 'product') window.location.hash = p==='home' ? '' : p;
   window.scrollTo(0,0);
 }
@@ -1149,7 +1150,7 @@ function toggleAnonRec() {
   var nomInput = document.getElementById('rec-nom');
   if(nomInput) {
     nomInput.disabled = cb && cb.checked;
-    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Marie R.)';
+    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean Rakoto)';
   }
 }
 
@@ -1191,6 +1192,214 @@ async function soumettreRec() {
   }
 }
 
+// ===== FORMULAIRE AVIS POST-LIVRAISON =====
+var avisFormData = {}; // stocke les notes et commentaires par produit
+
+async function ouvrirFormulaireAvis(numCommande) {
+  // Cacher nav et footer
+  var nav = document.querySelector('nav');
+  var footer = document.querySelector('footer');
+  if(nav) nav.style.display = 'none';
+  if(footer) footer.style.display = 'none';
+
+  // Afficher la page
+  document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
+  var page = document.getElementById('page-avis-cmd');
+  if(page) page.style.display = 'block';
+
+  var content = document.getElementById('avis-cmd-content');
+  if(!content) return;
+
+  content.innerHTML = '<div class="avis-cmd-loading">⏳ Chargement de votre formulaire...</div>';
+
+  try {
+    var url = API_URL + '?token=' + SECRET_TOKEN + '&action=commande_avis&num=' + encodeURIComponent(numCommande);
+    var res = await fetch(url, {redirect:'follow'});
+    var data = JSON.parse(await res.text());
+
+    if(!data.success || !data.items || !data.items.length) {
+      content.innerHTML = '<div class="avis-cmd-error"><p>⚠️ Commande introuvable ou déjà évaluée.</p><button class="avis-cmd-retour" onclick="goHome()">← Retour à la boutique</button></div>';
+      return;
+    }
+
+    avisFormData = { numCommande: numCommande, items: data.items, notes: {}, commentaires: {} };
+
+    // Générer les sections avis par produit
+    var produitsHtml = data.items.map(function(item, idx) {
+      return '<div class="avis-cmd-produit">'+
+        '<div class="avis-cmd-produit-nom">🛍️ '+item.nom+'</div>'+
+        '<div class="avis-note-wrap">'+
+          '<span class="avis-note-label">Votre note :</span>'+
+          '<div class="avis-etoiles-sel" id="etoiles-prod-'+idx+'" data-note="0">'+
+            [1,2,3,4,5].map(function(i){
+              return '<span class="etoile-sel" onclick="selEtoileProd('+idx+','+i+')">☆</span>';
+            }).join('')+
+          '</div>'+
+        '</div>'+
+        '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="Votre commentaire sur ce produit (optionnel)..."></textarea>'+
+      '</div>';
+    }).join('');
+
+    content.innerHTML =
+      '<div class="avis-cmd-wrap">'+
+        '<div class="avis-cmd-header">'+
+          '<div class="avis-cmd-logo">🛍️ Harvel Store</div>'+
+          '<h2 class="avis-cmd-titre">Votre avis compte !</h2>'+
+          '<p class="avis-cmd-sous-titre">Commande <strong>'+numCommande+'</strong> — Merci pour votre confiance 😊</p>'+
+        '</div>'+
+
+        '<div class="avis-cmd-section">'+
+          '<div class="avis-cmd-section-titre">⭐ Vos avis sur les produits</div>'+
+          produitsHtml+
+        '</div>'+
+
+        '<div class="avis-cmd-section">'+
+          '<div class="avis-cmd-section-titre">💬 Votre expérience avec Harvel Store</div>'+
+          '<div class="avis-cmd-produit">'+
+            '<div class="avis-note-wrap">'+
+              '<span class="avis-note-label">Note globale :</span>'+
+              '<div class="avis-etoiles-sel" id="etoiles-rec" data-note="0">'+
+                [1,2,3,4,5].map(function(i){
+                  return '<span class="etoile-sel" onclick="selEtoileRecCmd('+i+')">☆</span>';
+                }).join('')+
+              '</div>'+
+            '</div>'+
+            '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Partagez votre expérience globale avec Harvel Store..."></textarea>'+
+          '</div>'+
+        '</div>'+
+
+        '<div class="avis-cmd-section">'+
+          '<div class="avis-cmd-section-titre">👤 Vos informations</div>'+
+          '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Marie R.)"/>'+
+          '<label class="avis-anon-label">'+
+            '<input type="checkbox" id="avis-cmd-anon" onchange="toggleAnonCmd()"/> Rester anonyme'+
+          '</label>'+
+          '<input id="avis-cmd-tel" class="avis-input" type="tel" placeholder="Votre téléphone * (requis pour vérification)"/>'+
+        '</div>'+
+
+        '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
+        '<button class="avis-submit-btn" id="btn-envoyer-avis" onclick="soumettreAvisCmd()">✅ Envoyer mes avis</button>'+
+        '<button class="avis-cmd-retour" onclick="goHome()">← Retour à la boutique</button>'+
+      '</div>';
+
+  } catch(e) {
+    content.innerHTML = '<div class="avis-cmd-error"><p>❌ Erreur de chargement. Veuillez réessayer.</p><button class="avis-cmd-retour" onclick="goHome()">← Retour</button></div>';
+  }
+}
+
+function selEtoileProd(idx, note) {
+  var wrap = document.getElementById('etoiles-prod-'+idx);
+  if(!wrap) return;
+  wrap.querySelectorAll('.etoile-sel').forEach(function(el, i) {
+    el.textContent = i < note ? '★' : '☆';
+    el.classList.toggle('active', i < note);
+  });
+  wrap.dataset.note = note;
+}
+
+function selEtoileRecCmd(note) {
+  var wrap = document.getElementById('etoiles-rec');
+  if(!wrap) return;
+  wrap.querySelectorAll('.etoile-sel').forEach(function(el, i) {
+    el.textContent = i < note ? '★' : '☆';
+    el.classList.toggle('active', i < note);
+  });
+  wrap.dataset.note = note;
+}
+
+function toggleAnonCmd() {
+  var cb = document.getElementById('avis-cmd-anon');
+  var nomInput = document.getElementById('avis-cmd-nom');
+  if(nomInput) {
+    nomInput.disabled = cb && cb.checked;
+    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Marie R.)';
+  }
+}
+
+async function soumettreAvisCmd() {
+  var numCommande = avisFormData.numCommande;
+  var items = avisFormData.items || [];
+  var msgEl = document.getElementById('avis-cmd-msg');
+  var telEl = document.getElementById('avis-cmd-tel');
+  var nomEl = document.getElementById('avis-cmd-nom');
+  var anonEl = document.getElementById('avis-cmd-anon');
+  var recTexte = document.getElementById('rec-texte-cmd');
+  var recWrap = document.getElementById('etoiles-rec');
+
+  // Vérifications
+  if(!telEl || !telEl.value.trim()) {
+    msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return;
+  }
+
+  var hasNote = false;
+  items.forEach(function(item, idx) {
+    var wrap = document.getElementById('etoiles-prod-'+idx);
+    if(wrap && Number(wrap.dataset.note) > 0) hasNote = true;
+  });
+
+  if(!hasNote) {
+    msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez noter au moins un produit.'; return;
+  }
+
+  msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
+
+  var phone = telEl.value.trim();
+  var nom = nomEl ? nomEl.value.trim() : '';
+  var anonyme = anonEl ? anonEl.checked : false;
+  var erreurs = [];
+
+  // Soumettre les avis produits
+  for(var idx = 0; idx < items.length; idx++) {
+    var wrap = document.getElementById('etoiles-prod-'+idx);
+    var note = wrap ? Number(wrap.dataset.note) : 0;
+    if(note < 1) continue; // skip si pas de note
+
+    var commentEl = document.getElementById('comment-prod-'+idx);
+    var payload = {
+      action: 'avis', token: SECRET_TOKEN,
+      produit_id: String(items[idx].id || idx),
+      produit_nom: items[idx].nom,
+      note: note,
+      commentaire: commentEl ? commentEl.value.trim() : '',
+      nom: nom, anonyme: anonyme, phone: phone,
+    };
+
+    try {
+      var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+      var data = await res.json();
+      if(!data.success && data.error !== 'Vous avez déjà laissé un avis pour ce produit') {
+        erreurs.push(items[idx].nom + ' : ' + data.error);
+      }
+    } catch(e) { erreurs.push(items[idx].nom); }
+  }
+
+  // Soumettre la recommandation si remplie
+  var recNote = recWrap ? Number(recWrap.dataset.note) : 0;
+  var recTexteVal = recTexte ? recTexte.value.trim() : '';
+  if(recNote > 0 || recTexteVal) {
+    var recPayload = {
+      action: 'recommandation', token: SECRET_TOKEN,
+      note: recNote || 5,
+      texte: recTexteVal || 'Client satisfait ✅',
+      nom: nom, anonyme: anonyme, phone: phone,
+    };
+    try {
+      await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(recPayload)});
+    } catch(e) {}
+  }
+
+  if(erreurs.length) {
+    msgEl.className='avis-msg error';
+    msgEl.textContent='⚠️ Certains avis n\'ont pas pu être envoyés : '+erreurs.join(', ');
+  } else {
+    msgEl.className='avis-msg success';
+    msgEl.textContent='✅ Merci pour vos avis ! Ils seront affichés après validation. 😊';
+    // Masquer le bouton envoyer
+    var btn = document.querySelector('.avis-submit-btn');
+    if(btn) btn.style.display = 'none';
+  }
+}
+
 // ===== INIT =====
 function initFromHash(){
   var hash = window.location.hash.replace('#','');
@@ -1204,6 +1413,9 @@ function initFromHash(){
     showPage('suivi');
   } else if(hash==='cart'){
     showPage('cart');
+  } else if(hash.startsWith('avis-')){
+    var numCmd = hash.replace('avis-','');
+    ouvrirFormulaireAvis(numCmd);
   } else if(hash.startsWith('product-')){
     var id=hash.replace('product-','');
     var p=products.find(function(p){return p.id==id;});

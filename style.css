@@ -469,3 +469,20 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .ci-pack{display:flex;align-items:center;gap:8px;}
 .pack-label{font-size:.75rem;color:#6b8f5a;background:#edfae3;border:1px solid #c8edb8;border-radius:6px;padding:2px 8px;font-weight:600;}
 .pack-label-mini{font-size:.78rem;color:#6b8f5a;background:#edfae3;border:1px solid #c8edb8;border-radius:6px;padding:2px 8px;font-weight:700;}
+
+/* ===== FORMULAIRE AVIS POST-LIVRAISON ===== */
+#page-avis-cmd{min-height:100vh;background:var(--bg);padding:0;}
+.avis-cmd-wrap{max-width:520px;margin:0 auto;padding:24px 16px 40px;}
+.avis-cmd-header{text-align:center;padding:24px 0 16px;border-bottom:2px solid var(--border);margin-bottom:20px;}
+.avis-cmd-logo{font-size:2rem;margin-bottom:8px;}
+.avis-cmd-titre{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:6px;}
+.avis-cmd-sous-titre{font-size:.85rem;color:var(--muted);}
+.avis-cmd-section{margin-bottom:22px;}
+.avis-cmd-section-titre{font-size:1rem;font-weight:700;color:var(--primary-dark);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.avis-cmd-produit{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.avis-cmd-produit-nom{font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:12px;}
+.avis-cmd-loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:.95rem;}
+.avis-cmd-error{text-align:center;padding:40px 20px;}
+.avis-cmd-error p{color:#c0392b;margin-bottom:16px;}
+.avis-cmd-retour{display:block;width:100%;padding:11px;background:#fff;color:var(--muted);border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;cursor:pointer;margin-top:12px;transition:.2s;text-align:center;}
+.avis-cmd-retour:hover{border-color:var(--primary);color:var(--primary);}
