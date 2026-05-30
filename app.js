@@ -302,7 +302,7 @@ if(p.badge){
     var imgHtml=ph.length>0?'<img src="'+ph[0]+'" alt="'+p.name+'" onerror="this.parentElement.innerHTML=\'📦\'"/>':'<span>'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</span>';
     var stockHtml=p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ Plus que '+p.stock:'✅ En stock';
     var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct('+p.id+')">Voir le produit →</button>';
-    return '<div class="product-card" onclick="openProduct('+p.id+')">'+badge+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div><div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
+    return '<div class="product-card" onclick="openProduct('+p.id+')">'+badge+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div>'+(p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+'<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
   }).join('')+'</div>';
 }
 
@@ -414,7 +414,7 @@ function openProduct(id){
 (p.badge?'<div class="prod-badge-wrap" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:4px;">'+p.badge.split(',').map(function(b){b=b.trim();return '<div class="prod-badge badge-'+b.toLowerCase()+'">'+b+'</div>';}).join('')+'</div>':'')+
         '<div class="pd-category">'+p.cat+(p.sous_categorie?' — '+p.sous_categorie:'')+'</div>'+
         '<div class="pd-name">'+p.name+'</div>'+
-        '<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
+        (p.moyenne_avis?'<div class="pd-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="pd-nb-avis">('+p.moyenne_avis.count+' avis)</span></div>':'')+'<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
         (p.matiere?'<div class="pd-matiere">🧵 <strong>Matière :</strong> '+p.matiere+'</div>':'')+
         (p.description?'<div class="pd-desc">'+p.description+'</div>':'')+
         (p.prix_degressif ? renderPrixDegressifTable(parsePrixDegressif(p.prix_degressif), selectedQty) : '')+
@@ -454,6 +454,21 @@ function openProduct(id){
 }
 
 // ===== AVIS PRODUITS =====
+// Étoiles illustrées avec demi-étoile selon moyenne
+function etoilesMoyenne(moy) {
+  var html = '';
+  for(var i = 1; i <= 5; i++) {
+    if(moy >= i) {
+      html += '<span class="em-star full">★</span>';
+    } else if(moy >= i - 0.5) {
+      html += '<span class="em-star half">★</span>';
+    } else {
+      html += '<span class="em-star empty">☆</span>';
+    }
+  }
+  return '<span class="etoiles-moy-wrap">'+html+'</span>';
+}
+
 function etoiles(note) {
   var s = '';
   for(var i = 1; i <= 5; i++) s += i <= note ? '★' : '☆';
@@ -1277,7 +1292,7 @@ async function ouvrirFormulaireAvis(numCommande) {
 
         '<div class="avis-cmd-section">'+
           '<div class="avis-cmd-section-titre">👤 Vos informations</div>'+
-          '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Marie R.)"/>'+
+          '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean R.)"/>'+
           '<label class="avis-anon-label">'+
             '<input type="checkbox" id="avis-cmd-anon" onchange="toggleAnonCmd()"/> Rester anonyme'+
           '</label>'+
@@ -1319,7 +1334,7 @@ function toggleAnonCmd() {
   var nomInput = document.getElementById('avis-cmd-nom');
   if(nomInput) {
     nomInput.disabled = cb && cb.checked;
-    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Marie R.)';
+    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean R.)';
   }
 }
 

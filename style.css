@@ -486,3 +486,14 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .avis-cmd-error p{color:#c0392b;margin-bottom:16px;}
 .avis-cmd-retour{display:block;width:100%;padding:11px;background:#fff;color:var(--muted);border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;cursor:pointer;margin-top:12px;transition:.2s;text-align:center;}
 .avis-cmd-retour:hover{border-color:var(--primary);color:var(--primary);}
+
+/* ===== ÉTOILES MOYENNE PRODUIT ===== */
+.etoiles-moy-wrap{display:inline-flex;gap:1px;}
+.em-star{font-size:1rem;line-height:1;}
+.em-star.full{color:#f5a623;}
+.em-star.half{color:#f5a623;opacity:.6;}
+.em-star.empty{color:#ddd;}
+.prod-etoiles-moy{display:flex;align-items:center;gap:4px;margin:2px 0 4px;}
+.prod-nb-avis{font-size:.75rem;color:var(--muted);}
+.pd-etoiles-moy{display:flex;align-items:center;gap:6px;margin:6px 0 10px;}
+.pd-nb-avis{font-size:.82rem;color:var(--muted);}
