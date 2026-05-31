@@ -284,9 +284,42 @@ if(p.badge){
     return '<div class="product-card" onclick="openProduct('+p.id+')">'+badge+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div>'+(p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+'<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
   }).join('')+'</div>';
 }
-function renderHome(){renderCats('home-cats','filterHome');renderProductGrid('home-products',filteredProducts().slice(0,4));chargerRecommandations();}
+var homeLimit = 4;
+
+function renderHome(){
+  renderCats('home-cats','filterHome');
+  var all = filteredProducts();
+  renderProductGrid('home-products', all.slice(0, homeLimit));
+  renderVoirPlus(all);
+  chargerRecommandations();
+}
+
+function renderVoirPlus(all){
+  var container = document.getElementById('home-voir-plus');
+  if(!container) return;
+  var restant = all.length - homeLimit;
+  if(restant <= 0){ container.innerHTML = ''; return; }
+  container.innerHTML =
+    '<div class="voir-plus-wrapper">'+
+      '<p class="voir-plus-count">🛍️ '+restant+' autre'+(restant>1?'s':'')+' produit'+(restant>1?'s':'')+' à découvrir</p>'+
+      '<button class="voir-plus-btn" onclick="voirPlusProduits()">'+
+        'Voir plus de produits <span class="voir-plus-chevron">↓</span>'+
+      '</button>'+
+    '</div>';
+}
+
+function voirPlusProduits(){
+  homeLimit += 4;
+  var all = filteredProducts();
+  renderProductGrid('home-products', all.slice(0, homeLimit));
+  renderVoirPlus(all);
+  setTimeout(function(){
+    var grid = document.getElementById('home-products');
+    if(grid) grid.scrollIntoView({behavior:'smooth', block:'end'});
+  }, 100);
+}
 function renderShop(){renderCats('shop-cats','filterShop');renderProductGrid('shop-products',filteredAndSearched());}
-function filterHome(c){activeFilter=c;renderHome();}
+function filterHome(c){activeFilter=c;homeLimit=4;renderHome();}
 function filterShop(c){activeFilter=c;renderShop();}
 // ===== PRIX DÉGRESSIF =====
 function parsePrixDegressif(str) {

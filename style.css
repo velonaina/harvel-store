@@ -541,3 +541,11 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 @media(min-width:768px){
   .fab-cart{display:none!important;} /* Uniquement sur mobile */
 }
+
+/* ── Voir plus de produits ───────────────────────────────────── */
+.voir-plus-wrapper{text-align:center;padding:16px 0 24px;}
+.voir-plus-count{font-size:.85rem;color:var(--muted);margin:0 0 12px;}
+.voir-plus-btn{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;}
+.voir-plus-btn:hover{opacity:.88;}
+.voir-plus-btn:active{transform:scale(.97);}
+.voir-plus-chevron{font-size:1.1rem;}
