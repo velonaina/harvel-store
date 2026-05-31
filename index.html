@@ -106,7 +106,7 @@
     <button onclick="showPage('shop')" id="nav-shop">Boutique</button>
     <button onclick="showPage('about')" id="nav-about">À propos</button>
     <button onclick="showPage('suivi')" id="nav-suivi">📦 Suivi</button>
-    <button onclick="showPage('cart')" id="nav-cart" class="cart-btn">🛒 <span class="cart-count" id="cart-count">0</span></button>
+    <button onclick="showPage('cart')" id="nav-cart" class="cart-btn"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><span class="cart-count" id="cart-count">0</span></button>
   </div>
   <button class="hamburger" id="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
@@ -120,7 +120,7 @@
   <button onclick="showPage('shop');toggleMenu()">🛍️ Boutique</button>
   <button onclick="showPage('about');toggleMenu()">ℹ️ À propos</button>
   <button onclick="showPage('suivi');toggleMenu()">📦 Suivi de commande</button>
-  <button onclick="showPage('cart');toggleMenu()" style="color:var(--primary);">🛒 Panier (<span id="mobile-cart-count">0</span>)</button>
+  <button onclick="showPage('cart');toggleMenu()" style="color:var(--primary);display:flex;align-items:center;gap:8px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2d7a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg> Panier (<span id="mobile-cart-count">0</span>)</button>
   <a class="hero-btn-fb" href="https://www.facebook.com/harvelstore" target="_blank" style="margin-top:10px;">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.269h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
     Notre page Facebook
@@ -276,7 +276,7 @@
     <h2>📋 Finaliser la commande</h2>
     <div class="mini-cart" id="mini-cart">
       <div class="mini-cart-title">
-        <span>🛒 Mon panier</span>
+        <span style="display:flex;align-items:center;gap:6px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2d7a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg> Mon panier</span>
         <span id="mini-cart-count" style="color:var(--muted);font-size:.8rem;font-weight:400;"></span>
       </div>
       <div id="mini-cart-items"></div>
@@ -371,9 +371,13 @@
 </div>
 
 <div id="fab-cart" class="fab-cart" onclick="showPage('cart')" style="display:none;">
-  <span class="fab-cart-icon">🛒</span>
-  <span class="fab-cart-label">Voir mon panier</span>
-  <span class="fab-cart-count" id="fab-cart-count">0</span>
+  <div class="fab-cart-inner">
+    <div class="fab-cart-btn">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+      <span class="fab-cart-badge" id="fab-cart-count">0</span>
+    </div>
+    <div class="fab-cart-total" id="fab-cart-total">0 Ar</div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
