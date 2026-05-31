@@ -1471,6 +1471,9 @@ async function ouvrirSuiviAvecToken(numCommande, trackToken) {
   showPage('suivi');
   var result = document.getElementById('suivi-result');
   if(!result) return;
+  // Cacher le formulaire quand on arrive avec un lien token
+  var form = document.querySelector('.suivi-form');
+  if(form) form.style.display = 'none';
   result.innerHTML = '<div class="suivi-loading">⏳ Chargement de votre suivi...</div>';
 
   try {
