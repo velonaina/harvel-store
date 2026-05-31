@@ -4,13 +4,10 @@
 var MAINTENANCE = false;
 var MAINTENANCE_MSG = "Nous effectuons des améliorations pour mieux vous servir.";
 var GROS_COMMANDE_LIMITE = 10; // Au-delà → redirection WhatsApp
-
 var MAINTENANCE_DUREE = "30 minutes"; // Laisse vide "" pour ne pas afficher la durée
-
 var API_URL = "https://script.google.com/macros/s/AKfycbyr8QMDn_rG4FZE3Lu6tKTd-ozVRQLrlaZZxYmfR1q8zby8VY7BuAgIo2iM29GFWA4TkQ/exec";
 var SECRET_TOKEN = "HRV-2026-xK9mP3qL7nZ";
 var WA_NUMBER = "261346158199";
-
 var COLOR_MAP = {
   'vert':'#3dbd00','noir':'#222','rouge':'#e02020','bleu':'#1565c0',
   'violet':'#7b1fa2','gris':'#757575','blanc':'#f0f0f0','rose':'#e8748a',
@@ -18,15 +15,12 @@ var COLOR_MAP = {
   'bordeaux':'#7a1a2a','marine':'#1a2a5a','beige':'#f5e6c8','orange':'#f97316','jaune':'#eab308',
 };
 function getColorHex(n){return COLOR_MAP[n.toLowerCase().trim()]||'#888';}
-
 var products=[],cart=[],activeFilter="Tous",currentProduct=null;
 var selectedColor=null,selectedSize=null,selectedOption=null,selectedQty=1,selectedCodePromo=null,carouselIndex=0;
 var searchQuery='',chronoInterval=null;
 function fmt(n){return Number(n).toLocaleString('fr-MG')+' Ar';}
-
 // ===== NOTIFICATIONS =====
 var NOTIF_EMOJI={'vert':'🏷️','rouge':'⚠️','orange':'🔥','noir':'🖤','violet':'🎁','bleu':'🚚','rose':'💝','or':'⭐'};
-
 function renderNotifications(notifications){
   if(!notifications||!notifications.length) return;
   var defilants=notifications.filter(function(n){return n.type==='defilant';});
@@ -70,12 +64,10 @@ function renderNotifications(notifications){
     }
   }
 }
-
 function closeNotifBandeau(){
   document.getElementById('notif-bandeau').classList.remove('show');
   if(chronoInterval) clearInterval(chronoInterval);
 }
-
 // ===== COMPTEUR DE VUES =====
 var viewers={};
 function getViewers(id){
@@ -91,7 +83,6 @@ function getViewers(id){
   }
   return viewers[id];
 }
-
 // ===== ANIMATION PANIER =====
 function animateToCart(emoji){
   var addBtn=document.getElementById('add-cart-btn');
@@ -110,7 +101,6 @@ function animateToCart(emoji){
     setTimeout(function(){cartBtn.classList.remove('bounce');},400);
   },650);
 }
-
 // ===== WHATSAPP =====
 function getWhatsAppUrl(p){
   var variant=[selectedColor,selectedSize,selectedOption?selectedOption.name:null].filter(Boolean).join(', ');
@@ -121,7 +111,6 @@ function getWhatsAppUrl(p){
   msg+='💰 Prix : '+fmt(price)+'\n\nPouvez-vous me confirmer la disponibilité ? Merci !';
   return 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(msg);
 }
-
 // ===== SUIVI COMMANDE =====
 // Messages WhatsApp contextuels selon le statut
 function getWaSuiviUrl(num, statut) {
@@ -138,7 +127,6 @@ function getWaSuiviUrl(num, statut) {
 var STATUT_STEPS=['En attente','Confirmé','Expédié','Livré'];
 var STATUT_ICONS={'En attente':'⏳','Confirmé':'✅','Expédié':'🚚','Livré':'🎉','Annulé':'❌'};
 var STATUT_CLASS={'En attente':'statut-attente','Confirmé':'statut-confirme','Expédié':'statut-expedie','Livré':'statut-livre','Annulé':'statut-annule'};
-
 async function suivreCommande(){
   var num=document.getElementById('suivi-input').value.trim().toUpperCase();
   var phone=document.getElementById('suivi-phone').value.trim().replace(/\s/g,'');
@@ -167,7 +155,6 @@ async function suivreCommande(){
     var dateLivraisonHtml=statut!=='Annulé'&&statut!=='Livré'
       ?'<div class="suivi-livraison">🚚 Livraison estimée : <strong>'+(c.date_livraison||'En cours de planification...')+'</strong></div>'
       :'';
-
     var historique=c.historique||'';
     var historiqueParsed=historique?historique.split(' | ').map(function(h){
       var parts=h.split(' — ');
@@ -216,7 +203,6 @@ async function suivreCommande(){
     result.innerHTML='<div class="suivi-error">❌ Erreur lors de la recherche. Réessayez.</div>';
   }
 }
-
 // ===== LOAD PRODUCTS =====
 async function loadProducts(){
   showLoadingState('home-products');
@@ -239,17 +225,14 @@ async function loadProducts(){
     showToast('❌ Impossible de charger le catalogue','error');
   }
 }
-
 function showLoadingState(id){var el=document.getElementById(id);if(el)el.innerHTML='<div class="loading"><div class="spinner"></div><p>Chargement...</p></div>';}
 function showErrorState(id){var el=document.getElementById(id);if(el)el.innerHTML='<div class="error-box"><p>⚠️ Impossible de charger les produits.</p><button class="retry-btn" onclick="loadProducts()">🔄 Réessayer</button></div>';}
-
 function getCats(){return['Tous'].concat(Array.from(new Set(products.map(function(p){return p.cat;}))));}
 function filteredProducts(){return activeFilter==='Tous'?products:products.filter(function(p){return p.cat===activeFilter;});}
 function getPhotos(p){return p.emoji&&p.emoji.startsWith('http')?p.emoji.split(',').map(function(u){return u.trim();}).filter(Boolean):[];}
 function getColorPhotos(p,ci){var k=['photos_c1','photos_c2','photos_c3','photos_c4','photos_c5'][ci];if(p[k])return p[k].split(',').map(function(u){return u.trim();}).filter(Boolean);return getPhotos(p);}
 function getColors(p){return p.couleurs?p.couleurs.split(',').map(function(c){return c.trim();}).filter(Boolean):[];}
 function getSizes(p){return p.tailles?p.tailles.split(',').map(function(s){return s.trim();}).filter(Boolean):[];}
-
 function filteredAndSearched(){
   var list=filteredProducts();
   if(searchQuery) list=list.filter(function(p){return p.name.toLowerCase().includes(searchQuery)||p.cat.toLowerCase().includes(searchQuery);});
@@ -264,14 +247,12 @@ function filteredAndSearched(){
   }
   return list;
 }
-
 function onSearch(val){
   searchQuery=val.trim().toLowerCase();
   var cb=document.getElementById('search-clear');
   if(cb) cb.classList.toggle('show',searchQuery.length>0);
   renderShop();
 }
-
 function clearSearch(){
   searchQuery='';
   var inp=document.getElementById('search-input');
@@ -280,12 +261,10 @@ function clearSearch(){
   if(cb) cb.classList.remove('show');
   renderShop();
 }
-
 function renderCats(id,fn){
   var el=document.getElementById(id);if(!el)return;
   el.innerHTML=getCats().map(function(c){return '<button class="cat'+(activeFilter===c?' active':'')+'" onclick="'+fn+'(\''+c+'\')">'+c+'</button>';}).join('');
 }
-
 function renderProductGrid(id,list){
   var el=document.getElementById(id);if(!el)return;
   if(!list.length){el.innerHTML='<div class="loading"><p>Aucun produit trouvé.</p></div>';return;}
@@ -305,12 +284,10 @@ if(p.badge){
     return '<div class="product-card" onclick="openProduct('+p.id+')">'+badge+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div>'+(p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+'<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
   }).join('')+'</div>';
 }
-
 function renderHome(){renderCats('home-cats','filterHome');renderProductGrid('home-products',filteredProducts().slice(0,4));chargerRecommandations();}
 function renderShop(){renderCats('shop-cats','filterShop');renderProductGrid('shop-products',filteredAndSearched());}
 function filterHome(c){activeFilter=c;renderHome();}
 function filterShop(c){activeFilter=c;renderShop();}
-
 // ===== PRIX DÉGRESSIF =====
 function parsePrixDegressif(str) {
   // Parse "1:30000,2:27500,3:25000" → [{qty:1,prix:30000}, ...]
@@ -320,7 +297,6 @@ function parsePrixDegressif(str) {
     return { qty: Number(parts[0])||1, prix: Number(parts[1])||0 };
   }).filter(function(p){ return p.prix > 0; });
 }
-
 function getPrixDegressif(paliers, qty) {
   // Retourne le prix pour une quantité donnée
   if(!paliers || !paliers.length) return null;
@@ -332,7 +308,6 @@ function getPrixDegressif(paliers, qty) {
   }
   return prixActuel;
 }
-
 function renderPrixDegressifTable(paliers, qtyActuelle) {
   // Affiche le tableau des paliers
   if(!paliers || !paliers.length) return '';
@@ -350,7 +325,6 @@ function renderPrixDegressifTable(paliers, qtyActuelle) {
   }).join('');
   return '<div class="prix-degressif"><div class="degrv-title">🏷️ Prix selon quantité</div>'+rows+'</div>';
 }
-
 function openProduct(id){
   currentProduct=products.find(function(p){return p.id==id;});
   if(!currentProduct) return;
@@ -358,7 +332,6 @@ function openProduct(id){
   var p=currentProduct,colors=getColors(p),sizes=getSizes(p),mainPhotos=getPhotos(p);
   var v=getViewers(p.id);
   carouselIndex=0;
-
   var optHtml='';
   if(p.options){
     var opts=p.options.split(',').map(function(o){return o.trim();});
@@ -382,25 +355,21 @@ function openProduct(id){
     }).join('')+
     '</div></div>';
   }
-
   var colHtml='';
   if(colors.length){
     colHtml='<div class="option-group"><div class="option-label">🎨 Couleur : <span id="selected-color-label">— choisissez</span></div><div class="color-options">'+colors.map(function(c,i){return '<button class="color-btn-label" onclick="selectColor(\''+c+'\','+i+',this)"><span class="color-dot" style="background:'+getColorHex(c)+';"></span>'+c+'</button>';}).join('')+'</div></div>';
   }
-
   var szHtml='';
   if(sizes.length){
     var isOne=sizes.length===1&&sizes[0].toLowerCase().includes('one');
     szHtml='<div class="option-group"><div class="option-label">📏 Taille : <span id="selected-size-label">'+(isOne?'One Size':'— choisissez')+'</span></div><div class="size-options">'+sizes.map(function(s){return '<button class="size-btn'+(isOne?' one-size':'')+'" onclick="selectSize(\''+s+'\',this)">'+s+'</button>';}).join('')+'</div>'+(p.guide_tailles?'<button class="size-guide-toggle" onclick="toggleSizeGuide()">📏 Guide des tailles</button><div class="size-guide" id="size-guide"><table>'+p.guide_tailles.split(',').map(function(g){var parts=g.split(':');return '<tr><td>'+(parts[0]||'')+'</td><td>'+(parts[1]||'')+'</td></tr>';}).join('')+'</table></div>':'')+'</div>';
     if(isOne) selectedSize=sizes[0];
   }
-
   var carouselHtml=mainPhotos.length>0?mainPhotos.map(function(u,i){return '<img src="'+u+'" class="'+(i===0?'active':'')+'" onerror="this.style.display=\'none\'"/>';}).join(''):'<div class="no-img">'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</div>';
   var arrowHtml=mainPhotos.length>1?'<button class="carousel-arrow prev" onclick="carouselPrev()">‹</button><button class="carousel-arrow next" onclick="carouselNext()">›</button>':'';
   var dotsHtml=mainPhotos.map(function(_,i){return '<div class="carousel-dot '+(i===0?'active':'')+'" onclick="goToSlide('+i+')"></div>';}).join('');
   var thumbsHtml=mainPhotos.length>1?'<div class="carousel-thumbs" id="carousel-thumbs">'+mainPhotos.map(function(u,i){return '<img src="'+u+'" class="carousel-thumb '+(i===0?'active':'')+'" onclick="goToSlide('+i+')" onerror="this.style.display=\'none\'"/>';}).join('')+'</div>':'';
   var waUrl=getWhatsAppUrl(p);
-
   document.getElementById('product-detail').innerHTML=
     '<button class="back-to-shop" onclick="showPage(\'shop\')" style="margin-bottom:16px;width:auto;padding:8px 16px;">← Retour</button>'+
     '<div class="product-page">'+
@@ -452,7 +421,6 @@ function openProduct(id){
   initCarouselSwipe();
   chargerAvis(p.id);
 }
-
 // ===== AVIS PRODUITS =====
 // Étoiles illustrées avec demi-étoile selon moyenne
 function etoilesMoyenne(moy) {
@@ -468,13 +436,11 @@ function etoilesMoyenne(moy) {
   }
   return '<span class="etoiles-moy-wrap">'+html+'</span>';
 }
-
 function etoiles(note) {
   var s = '';
   for(var i = 1; i <= 5; i++) s += i <= note ? '★' : '☆';
   return '<span class="etoiles">'+s+'</span>';
 }
-
 async function chargerAvis(produitId) {
   var section = document.getElementById('avis-section');
   if(!section) return;
@@ -493,7 +459,6 @@ async function chargerAvis(produitId) {
           '</div>';
         }).join('')
       : '<div class="avis-empty">Aucun avis pour ce produit. Soyez le premier !</div>';
-
     section.innerHTML =
       '<div class="avis-titre">⭐ Avis clients'+(moy?' — <span class="avis-moy">'+moy+'/5</span> ('+avis.length+' avis)':'')+'</div>'+
       avisList+
@@ -521,12 +486,10 @@ async function chargerAvis(produitId) {
     section.innerHTML = '<div class="avis-empty">Impossible de charger les avis.</div>';
   }
 }
-
 function toggleFormulaireAvis(produitId) {
   var form = document.getElementById('avis-form-'+produitId);
   if(form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
-
 function selEtoile(produitId, note) {
   var wrap = document.getElementById('etoiles-sel-'+produitId);
   if(!wrap) return;
@@ -536,7 +499,6 @@ function selEtoile(produitId, note) {
   });
   wrap.dataset.note = note;
 }
-
 function toggleAnon(produitId) {
   var cb = document.getElementById('avis-anon-'+produitId);
   var nomInput = document.getElementById('avis-nom-'+produitId);
@@ -545,7 +507,6 @@ function toggleAnon(produitId) {
     nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean Rakoto)';
   }
 }
-
 async function soumettreAvis(produitId) {
   var wrap = document.getElementById('etoiles-sel-'+produitId);
   var note = wrap ? Number(wrap.dataset.note||0) : 0;
@@ -554,10 +515,8 @@ async function soumettreAvis(produitId) {
   var anonEl = document.getElementById('avis-anon-'+produitId);
   var telEl = document.getElementById('avis-tel-'+produitId);
   var msgEl = document.getElementById('avis-msg-'+produitId);
-
   if(note < 1) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez sélectionner une note.'; return; }
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
-
   var payload = {
     action: 'avis',
     token: SECRET_TOKEN,
@@ -569,9 +528,7 @@ async function soumettreAvis(produitId) {
     anonyme: anonEl ? anonEl.checked : false,
     phone: telEl.value.trim(),
   };
-
   msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
-
   try {
     var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
     var data = await res.json();
@@ -584,7 +541,6 @@ async function soumettreAvis(produitId) {
     msgEl.className='avis-msg error'; msgEl.textContent='❌ Erreur lors de l\'envoi.';
   }
 }
-
 // ===== CAROUSEL =====
 function goToSlide(index){
   var main=document.getElementById('carousel-main');
@@ -598,22 +554,17 @@ function goToSlide(index){
   var thumbs=document.getElementById('carousel-thumbs');
   if(thumbs) thumbs.querySelectorAll('.carousel-thumb').forEach(function(t,i){t.className='carousel-thumb'+(i===carouselIndex?' active':'');});
 }
-
 function carouselNext(){ goToSlide(carouselIndex+1); }
 function carouselPrev(){ goToSlide(carouselIndex-1); }
-
 // ===== QUANTITÉ + PRIX DÉGRESSIF =====
 function changeProductQty(delta) {
   if(!currentProduct) return;
   var paliers = parsePrixDegressif(currentProduct.prix_degressif);
   var maxQty = currentProduct.stock;
-
   // Vérifier limite grosse commande
   var newQty = selectedQty + delta;
-
   if(newQty < 1) return;
   if(newQty > maxQty){ showToast('⚠️ Stock maximum : '+maxQty+' articles','warning'); return; }
-
   // Redirection WhatsApp au-delà de la limite
   if(newQty > GROS_COMMANDE_LIMITE) {
     var waMsg = 'Bonjour Harvel Store ! 👋 Je souhaite commander *'+currentProduct.name+'* en grande quantité ('+newQty+' articles). Pouvez-vous me proposer un tarif personnalisé ? Merci !';
@@ -622,21 +573,17 @@ function changeProductQty(delta) {
     window.open(waUrl, '_blank');
     return;
   }
-
   selectedQty = newQty;
-
   // Mettre à jour l'affichage quantité
   var qtyDisplay = document.getElementById('qty-display');
   var qtyLabel = document.getElementById('selected-qty-label');
   if(qtyDisplay) qtyDisplay.textContent = selectedQty;
   if(qtyLabel) qtyLabel.textContent = selectedQty;
-
   // Mettre à jour le prix selon palier
   if(paliers.length) {
     var nouveauPrix = getPrixDegressif(paliers, selectedQty);
     var priceEl = document.getElementById('pd-price');
     if(priceEl) priceEl.textContent = fmt(nouveauPrix);
-
     // Mettre à jour le tableau dégressif (surligner le palier actif)
     var table = document.querySelector('.prix-degressif');
     if(table) {
@@ -649,13 +596,11 @@ function changeProductQty(delta) {
     }
   }
   updateSummary();
-
   // Mettre à jour l'état des options (griser/dégriser les coupons)
   if(currentProduct && currentProduct.options) {
     var hasDegrv = currentProduct.prix_degressif && parsePrixDegressif(currentProduct.prix_degressif).length > 0;
     var couponBloque = hasDegrv && selectedQty > 1;
     var blocMsg = document.querySelector('.option-bloque');
-
     // Afficher/masquer le message
     if(couponBloque) {
       if(!blocMsg) {
@@ -668,7 +613,6 @@ function changeProductQty(delta) {
     } else {
       if(blocMsg) blocMsg.remove();
     }
-
     // Griser/dégriser les boutons options
     document.querySelectorAll('.special-btn').forEach(function(btn){
       if(btn.dataset.qtyopt === '1' || !btn.dataset.qtyopt) {
@@ -685,20 +629,16 @@ function changeProductQty(delta) {
     });
   }
 }
-
 var swipeStartX = 0;
 var swipeStartY = 0;
-
 function initCarouselSwipe(){
   var carouselMain = document.getElementById('carousel-main');
   if (!carouselMain || carouselMain._swipeInit) return;
   carouselMain._swipeInit = true;
-
   carouselMain.addEventListener('touchstart', function(e) {
     swipeStartX = e.touches[0].clientX;
     swipeStartY = e.touches[0].clientY;
   }, { passive: true });
-
   carouselMain.addEventListener('touchend', function(e) {
     var diffX = swipeStartX - e.changedTouches[0].clientX;
     var diffY = swipeStartY - e.changedTouches[0].clientY;
@@ -708,7 +648,6 @@ function initCarouselSwipe(){
     }
   }, { passive: true });
 }
-
 function updateCarouselForColor(ci){
   if(!currentProduct) return;
   var photos=getColorPhotos(currentProduct,ci);
@@ -723,12 +662,10 @@ function updateCarouselForColor(ci){
   if(thumbs) thumbs.innerHTML=photos.map(function(u,i){return '<img src="'+u+'" class="carousel-thumb '+(i===0?'active':'')+'" onclick="goToSlide('+i+')" onerror="this.style.display=\'none\'"/>';}).join('');
   initCarouselSwipe();
 }
-
 function selectColor(c,i,btn){selectedColor=c;document.querySelectorAll('.color-btn-label').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-color-label');if(l)l.textContent=c;updateCarouselForColor(i);updateSummary();}
 function selectSize(s,btn){selectedSize=s;document.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-size-label');if(l)l.textContent=s;updateSummary();}
 function selectOption(opt,prix,qtyOpt,btn){selectedOption={name:opt,price:prix,qty:qtyOpt||1};document.querySelectorAll('.special-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-option-label');if(l)l.textContent=opt;var pe=document.getElementById('pd-price');if(pe&&prix>0)pe.textContent=fmt(prix);updateSummary();}
 function toggleSizeGuide(){var g=document.getElementById('size-guide');if(g)g.classList.toggle('show');}
-
 function updateSummary(){
   var s=document.getElementById('selection-summary'),t=document.getElementById('summary-text');if(!s||!t) return;
   var parts=[];if(selectedColor)parts.push('Couleur : '+selectedColor);if(selectedSize)parts.push('Taille : '+selectedSize);if(selectedOption)parts.push('Option : '+selectedOption.name);
@@ -736,25 +673,20 @@ function updateSummary(){
   var waBtn=document.getElementById('wa-btn');
   if(waBtn&&currentProduct) waBtn.href=getWhatsAppUrl(currentProduct);
 }
-
 // ===== CODE PROMO =====
 function appliquerCodePromo() {
   var p = currentProduct;
   if(!p) return;
-
   // Bloquer si prix dégressif actif et qty > 1
   if(p.prix_degressif && parsePrixDegressif(p.prix_degressif).length > 0 && selectedQty > 1) {
     showToast('⚠️ Code promo non applicable avec le prix dégressif','warning');
     return;
   }
-
   var input = document.getElementById('code-promo-input');
   var msg = document.getElementById('code-promo-msg');
   if(!input || !msg) return;
-
   var code = input.value.trim().toUpperCase();
   if(!code) { showToast('⚠️ Entrez un code promo','warning'); return; }
-
   // Parser les codes disponibles pour ce produit
   var codesDispos = p.codes_promo ? p.codes_promo.split(',').map(function(c){ return c.trim(); }) : [];
   var found = null;
@@ -766,14 +698,12 @@ function appliquerCodePromo() {
       break;
     }
   }
-
   if(!found) {
     msg.className = 'code-promo-error';
     msg.textContent = '❌ Code promo invalide';
     selectedCodePromo = null;
     return;
   }
-
   // Vérifier expiration côté client
   if(found.expire) {
     var parts = found.expire.split('/');
@@ -785,16 +715,13 @@ function appliquerCodePromo() {
       return;
     }
   }
-
   // Calculer le prix avec remise
   var prixBase = document.getElementById('pd-price');
   var paliers = parsePrixDegressif(p.prix_degressif);
   var prixActuel = paliers.length ? getPrixDegressif(paliers, selectedQty) : p.price;
-
   var remise = found.remise;
   var prixRemise;
   var remiseLabel;
-
   if(remise.includes('%')) {
     var pct = parseFloat(remise);
     prixRemise = Math.round(prixActuel * (1 - pct/100));
@@ -804,21 +731,17 @@ function appliquerCodePromo() {
     prixRemise = Math.max(0, prixActuel - montant);
     remiseLabel = '-' + fmt(montant);
   }
-
   // Appliquer
   selectedCodePromo = { code: found.nom, remise: remise, prixFinal: prixRemise };
-
   if(prixBase) {
     prixBase.innerHTML = '<span class="prix-barre">'+fmt(prixActuel)+'</span>'+
       '<span class="prix-promo">'+fmt(prixRemise)+'</span>'+
       '<span class="promo-badge">'+remiseLabel+'</span>';
   }
-
   msg.className = 'code-promo-success';
   msg.textContent = '✅ Code ' + found.nom + ' appliqué ! ' + remiseLabel;
   updateSummary();
 }
-
 function resetCodePromo() {
   selectedCodePromo = null;
   var input = document.getElementById('code-promo-input');
@@ -826,7 +749,6 @@ function resetCodePromo() {
   if(input) input.value = '';
   if(msg) { msg.textContent = ''; msg.className = ''; }
 }
-
 function addToCartFromProduct(){
   var p=currentProduct;if(!p) return;
   var colors=getColors(p),sizes=getSizes(p),isOne=sizes.length===1&&sizes[0].toLowerCase().includes('one');
@@ -836,7 +758,6 @@ function addToCartFromProduct(){
   var paliers = parsePrixDegressif(p.prix_degressif);
   var prixDegressif = paliers.length ? getPrixDegressif(paliers, selectedQty) : null;
   var couponBloque = paliers.length > 0 && selectedQty > 1;
-
   var price, qtyReelle;
   if(selectedOption && selectedOption.qty > 1) {
     // Option multi-paires (Deux paires, Trois paires) — prix de l'option
@@ -872,13 +793,11 @@ function addToCartFromProduct(){
   }
   updateCartCount();
 }
-
 function updateCartCount(){
   var count=cart.reduce(function(s,i){return s+i.qty;},0);
   document.getElementById('cart-count').textContent=count;
   var mc=document.getElementById('mobile-cart-count');
   if(mc) mc.textContent=count;
-
   // Bouton panier flottant
   var fab = document.getElementById('fab-cart');
   var fabCount = document.getElementById('fab-cart-count');
@@ -891,7 +810,6 @@ function updateCartCount(){
     if(fabCount) fabCount.textContent = count;
   }
 }
-
 function renderCart(){
   var el=document.getElementById('cart-content');
   if(!cart.length){
@@ -908,7 +826,6 @@ function renderCart(){
   }).join('');
   el.innerHTML='<div class="section-title">Mon Panier</div><div class="cart-items">'+itemsHtml+'</div><div class="cart-summary"><div class="summary-row"><span>Articles ('+cart.reduce(function(s,i){return s+i.qty;},0)+')</span><span>'+fmt(sub)+'</span></div><div class="summary-row"><span>Livraison</span><span>Selon votre zone</span></div><div class="summary-row summary-total"><span>Total produits</span><span>'+fmt(sub)+'</span></div><button class="checkout-btn" onclick="goToOrder()">🛍️ Passer la commande</button></div>';
 }
-
 function changeQty(key,d){
   var item=cart.find(function(x){return x.cartKey===key;});
   if(!item) return;
@@ -928,7 +845,6 @@ function changeQty(key,d){
   updateCartCount();renderCart();
 }
 function removeFromCart(key){cart=cart.filter(function(x){return x.cartKey!==key;});updateCartCount();renderCart();}
-
 // ===== MINI PANIER =====
 function renderMiniCart(){
   var itemsEl=document.getElementById('mini-cart-items');
@@ -956,7 +872,6 @@ function renderMiniCart(){
     return '<div class="mini-cart-item"><div class="mini-ci-img">'+thumb+'</div><div class="mini-ci-info"><div class="mini-ci-name">'+i.name+'</div>'+variant+'<div class="mini-ci-price">'+fmt(i.price*i.qty)+'</div></div>'+miniQtyControls+'<button class="mini-remove-btn" onclick="miniRemove(\''+i.cartKey+'\')">🗑️</button></div>';
   }).join('');
 }
-
 function miniChangeQty(key,d){
   var item=cart.find(function(x){return x.cartKey===key;});
   if(!item) return;
@@ -976,16 +891,13 @@ function miniChangeQty(key,d){
   updateCartCount();
   renderMiniCart();
 }
-
 function miniRemove(key){
   cart=cart.filter(function(x){return x.cartKey!==key;});
   updateCartCount();
   renderMiniCart();
   if(!cart.length) showToast('🛒 Panier vide — ajoutez des articles','warning');
 }
-
 function goToOrder(){showPage('order');renderMiniCart();}
-
 function copyOrderNum(){
   var num=document.getElementById('success-order-num').textContent.replace('📋 ','').trim();
   if(navigator.clipboard && navigator.clipboard.writeText){
@@ -1001,7 +913,6 @@ function copyOrderNum(){
     fallbackCopy(num);
   }
 }
-
 function fallbackCopy(text){
   var ta=document.createElement('textarea');
   ta.value=text;
@@ -1015,7 +926,6 @@ function fallbackCopy(text){
   }catch(e){showToast('⚠️ Copie impossible, notez le manuellement','warning');}
   document.body.removeChild(ta);
 }
-
 async function submitOrder(){
   var name=document.getElementById('f-name').value.trim();
   var phone=document.getElementById('f-phone').value.trim();
@@ -1050,7 +960,6 @@ async function submitOrder(){
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
     cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-item.qty);});
-
     // ── Résumé commande dans page success ───────────────────────
     var resumeItems = cart.map(function(i){
       var nom = i.name;
@@ -1073,13 +982,11 @@ async function submitOrder(){
         '<div class="suivi-adresse">📍 '+resumeAdresse+'</div>';
       resumeEl.style.display = 'block';
     }
-
     ['f-name','f-phone','f-address','f-note'].forEach(function(id){document.getElementById(id).value='';});
     cart=[];updateCartCount();showPage('success');
   }catch(err){showToast('❌ Erreur lors de l\'envoi. Réessayez.','error');}
   finally{btn.disabled=false;btn.textContent='✅ Confirmer la commande';}
 }
-
 function resetAndGoHome(){
   // Réafficher la nav et footer cachés par la page avis-cmd
   var nav = document.querySelector('nav');
@@ -1088,19 +995,16 @@ function resetAndGoHome(){
   if(footer) footer.style.display = '';
   activeFilter='Tous';searchQuery='';showPage('home');
 }
-
 function toggleMenu(){
   document.getElementById('mobile-menu').classList.toggle('open');
   document.getElementById('hamburger').classList.toggle('open');
 }
-
 function showPage(p){
   // Toujours réafficher la nav et footer (cachés par la page avis-cmd)
   var nav = document.querySelector('nav');
   var footer = document.querySelector('footer');
   if(nav) nav.style.display = '';
   if(footer) footer.style.display = '';
-
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.querySelectorAll('.nav-links button').forEach(function(b){b.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
@@ -1124,17 +1028,14 @@ function showPage(p){
   }
   window.scrollTo(0,0);
 }
-
 function showToast(msg,type){
   var t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(type||'');
   setTimeout(function(){t.classList.remove('show');},2800);
 }
-
 // ===== RECOMMANDATIONS =====
 var recIndex = 0;
 var recData = [];
 var recTimer = null;
-
 async function chargerRecommandations() {
   var wrap = document.getElementById('recommandations-carrousel');
   if(!wrap) return;
@@ -1152,14 +1053,12 @@ async function chargerRecommandations() {
     wrap.innerHTML = '';
   }
 }
-
 function renderCarrouselRec() {
   var wrap = document.getElementById('recommandations-carrousel');
   if(!wrap || !recData.length) return;
   var r = recData[recIndex];
   var etoiles = '';
   for(var i=1;i<=5;i++) etoiles += i<=r.note ? '★' : '☆';
-
   wrap.innerHTML =
     '<div class="rec-card">'+
       '<div class="rec-etoiles">'+etoiles+'</div>'+
@@ -1181,22 +1080,18 @@ function renderCarrouselRec() {
     '<div style="text-align:center;margin-top:12px;">'+
       '<button class="rec-btn-temoigner" onclick="showPage(\'about\')">✍️ Laissez votre témoignage</button>'+
     '</div>';
-
   // Auto-défilement toutes les 4 secondes
   if(recTimer) clearInterval(recTimer);
   recTimer = setInterval(function(){ recNavigue(1); }, 4000);
 }
-
 function recNavigue(dir) {
   recIndex = (recIndex + dir + recData.length) % recData.length;
   renderCarrouselRec();
 }
-
 function recGoTo(i) {
   recIndex = i;
   renderCarrouselRec();
 }
-
 function selEtoileRec(note) {
   var wrap = document.getElementById('etoiles-rec');
   if(!wrap) return;
@@ -1206,7 +1101,6 @@ function selEtoileRec(note) {
   });
   wrap.dataset.note = note;
 }
-
 function toggleAnonRec() {
   var cb = document.getElementById('rec-anon');
   var nomInput = document.getElementById('rec-nom');
@@ -1215,7 +1109,6 @@ function toggleAnonRec() {
     nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean Rakoto)';
   }
 }
-
 async function soumettreRec() {
   var wrap = document.getElementById('etoiles-rec');
   var note = wrap ? Number(wrap.dataset.note||5) : 5;
@@ -1224,10 +1117,8 @@ async function soumettreRec() {
   var anonEl  = document.getElementById('rec-anon');
   var telEl   = document.getElementById('rec-tel');
   var msgEl   = document.getElementById('rec-msg');
-
   if(!texteEl||!texteEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez écrire un témoignage.'; return; }
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
-
   var payload = {
     action: 'recommandation',
     token: SECRET_TOKEN,
@@ -1237,9 +1128,7 @@ async function soumettreRec() {
     anonyme: anonEl ? anonEl.checked : false,
     phone: telEl.value.trim(),
   };
-
   msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
-
   try {
     var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
     var data = await res.json();
@@ -1253,39 +1142,30 @@ async function soumettreRec() {
     msgEl.className='avis-msg error'; msgEl.textContent='❌ Erreur lors de l\'envoi.';
   }
 }
-
 // ===== FORMULAIRE AVIS POST-LIVRAISON =====
 var avisFormData = {}; // stocke les notes et commentaires par produit
-
 async function ouvrirFormulaireAvis(numCommande) {
   // Cacher nav et footer
   var nav = document.querySelector('nav');
   var footer = document.querySelector('footer');
   if(nav) nav.style.display = 'none';
   if(footer) footer.style.display = 'none';
-
   // Afficher la page
   document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
   var page = document.getElementById('page-avis-cmd');
   if(page) page.style.display = 'block';
-
   var content = document.getElementById('avis-cmd-content');
   if(!content) return;
-
   content.innerHTML = '<div class="avis-cmd-loading">⏳ Chargement de votre formulaire...</div>';
-
   try {
     var url = API_URL + '?token=' + SECRET_TOKEN + '&action=commande_avis&num=' + encodeURIComponent(numCommande);
     var res = await fetch(url, {redirect:'follow'});
     var data = JSON.parse(await res.text());
-
     if(!data.success || !data.items || !data.items.length) {
       content.innerHTML = '<div class="avis-cmd-error"><p>⚠️ Commande introuvable ou déjà évaluée.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button></div>';
       return;
     }
-
     avisFormData = { numCommande: numCommande, items: data.items, notes: {}, commentaires: {} };
-
     // Générer les sections avis par produit
     var produitsHtml = data.items.map(function(item, idx) {
       return '<div class="avis-cmd-produit">'+
@@ -1301,7 +1181,6 @@ async function ouvrirFormulaireAvis(numCommande) {
         '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="Votre commentaire sur ce produit (optionnel)..."></textarea>'+
       '</div>';
     }).join('');
-
     content.innerHTML =
       '<div class="avis-cmd-wrap">'+
         '<div class="avis-cmd-header">'+
@@ -1309,12 +1188,10 @@ async function ouvrirFormulaireAvis(numCommande) {
           '<h2 class="avis-cmd-titre">Votre avis compte !</h2>'+
           '<p class="avis-cmd-sous-titre">Commande <strong>'+numCommande+'</strong> — Merci pour votre confiance 😊</p>'+
         '</div>'+
-
         '<div class="avis-cmd-section">'+
           '<div class="avis-cmd-section-titre">⭐ Vos avis sur les produits</div>'+
           produitsHtml+
         '</div>'+
-
         '<div class="avis-cmd-section">'+
           '<div class="avis-cmd-section-titre">💬 Votre expérience avec Harvel Store</div>'+
           '<div class="avis-cmd-produit">'+
@@ -1329,7 +1206,6 @@ async function ouvrirFormulaireAvis(numCommande) {
             '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Partagez votre expérience globale avec Harvel Store..."></textarea>'+
           '</div>'+
         '</div>'+
-
         '<div class="avis-cmd-section">'+
           '<div class="avis-cmd-section-titre">👤 Vos informations</div>'+
           '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean R.)"/>'+
@@ -1338,17 +1214,14 @@ async function ouvrirFormulaireAvis(numCommande) {
           '</label>'+
           '<input id="avis-cmd-tel" class="avis-input" type="tel" placeholder="Votre téléphone * (requis pour vérification)"/>'+
         '</div>'+
-
         '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
         '<button class="avis-submit-btn" id="btn-envoyer-avis" onclick="soumettreAvisCmd()">✅ Envoyer mes avis</button>'+
         '<button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button>'+
       '</div>';
-
   } catch(e) {
     content.innerHTML = '<div class="avis-cmd-error"><p>❌ Erreur de chargement. Veuillez réessayer.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour</button></div>';
   }
 }
-
 function selEtoileProd(idx, note) {
   var wrap = document.getElementById('etoiles-prod-'+idx);
   if(!wrap) return;
@@ -1358,7 +1231,6 @@ function selEtoileProd(idx, note) {
   });
   wrap.dataset.note = note;
 }
-
 function selEtoileRecCmd(note) {
   var wrap = document.getElementById('etoiles-rec-cmd');
   if(!wrap) return;
@@ -1368,7 +1240,6 @@ function selEtoileRecCmd(note) {
   });
   wrap.dataset.note = note;
 }
-
 function toggleAnonCmd() {
   var cb = document.getElementById('avis-cmd-anon');
   var nomInput = document.getElementById('avis-cmd-nom');
@@ -1377,7 +1248,6 @@ function toggleAnonCmd() {
     nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean R.)';
   }
 }
-
 async function soumettreAvisCmd() {
   var numCommande = avisFormData.numCommande;
   var items = avisFormData.items || [];
@@ -1387,35 +1257,28 @@ async function soumettreAvisCmd() {
   var anonEl = document.getElementById('avis-cmd-anon');
   var recTexte = document.getElementById('rec-texte-cmd');
   var recWrap = document.getElementById('etoiles-rec-cmd');
-
   // Vérifications
   if(!telEl || !telEl.value.trim()) {
     msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return;
   }
-
   var hasNote = false;
   items.forEach(function(item, idx) {
     var wrap = document.getElementById('etoiles-prod-'+idx);
     if(wrap && Number(wrap.dataset.note) > 0) hasNote = true;
   });
-
   if(!hasNote) {
     msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez noter au moins un produit.'; return;
   }
-
   msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
-
   var phone = telEl.value.trim();
   var nom = nomEl ? nomEl.value.trim() : '';
   var anonyme = anonEl ? anonEl.checked : false;
   var erreurs = [];
-
   // Soumettre les avis produits
   for(var idx = 0; idx < items.length; idx++) {
     var wrap = document.getElementById('etoiles-prod-'+idx);
     var note = wrap ? Number(wrap.dataset.note) : 0;
     if(note < 1) continue; // skip si pas de note
-
     var commentEl = document.getElementById('comment-prod-'+idx);
     var payload = {
       action: 'avis', token: SECRET_TOKEN,
@@ -1425,7 +1288,6 @@ async function soumettreAvisCmd() {
       commentaire: commentEl ? commentEl.value.trim() : '',
       nom: nom, anonyme: anonyme, phone: phone,
     };
-
     try {
       var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
       var data = await res.json();
@@ -1434,7 +1296,6 @@ async function soumettreAvisCmd() {
       }
     } catch(e) { erreurs.push(items[idx].nom); }
   }
-
   // Soumettre la recommandation si remplie
   var recNote = recWrap ? Number(recWrap.dataset.note) : 0;
   var recTexteVal = recTexte ? recTexte.value.trim() : '';
@@ -1449,7 +1310,6 @@ async function soumettreAvisCmd() {
       await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(recPayload)});
     } catch(e) {}
   }
-
   if(erreurs.length) {
     msgEl.className='avis-msg error';
     msgEl.textContent='⚠️ Certains avis n\'ont pas pu être envoyés : '+erreurs.join(', ');
@@ -1469,48 +1329,45 @@ async function soumettreAvisCmd() {
     } catch(e) {}
   }
 }
-
 // ===== SUIVI AVEC TOKEN =====
 async function ouvrirSuiviAvecToken(numCommande, trackToken) {
-  showPage('suivi');
-  var result = document.getElementById('suivi-result');
+  // Activer la page suivi sans passer par showPage() pour ne pas ecraser le hash
+  document.querySelectorAll(".page").forEach(function(el){el.classList.remove("active");});
+  document.querySelectorAll(".nav-links button").forEach(function(b){b.classList.remove("active");});
+  var pageSuivi = document.getElementById("page-suivi");
+  if(pageSuivi) pageSuivi.classList.add("active");
+  var navSuivi = document.getElementById("nav-suivi");
+  if(navSuivi) navSuivi.classList.add("active");
+  window.scrollTo(0,0);
+  var result = document.getElementById("suivi-result");
   if(!result) return;
-  // Cacher le formulaire quand on arrive avec un lien token
-  var form = document.querySelector('.suivi-form');
-  if(form) form.style.display = 'none';
-  result.innerHTML = '<div class="suivi-loading">⏳ Chargement de votre suivi...</div>';
-
+  var form = document.querySelector(".suivi-form");
+  if(form) form.style.display = "none";
+  result.innerHTML = "<div class=\"suivi-loading\">⏳ Chargement de votre suivi...</div>";
   try {
     var url = API_URL+'?token='+SECRET_TOKEN+'&action=suivi&commande='+encodeURIComponent(numCommande)+'&track_token='+encodeURIComponent(trackToken);
     var res = await fetch(url, {redirect:'follow'});
     var data = JSON.parse(await res.text());
-
     if(!data.success) {
       result.innerHTML = '<div class="suivi-error">❌ '+data.error+'</div>';
       return;
     }
-
     // Pré-remplir les champs du formulaire suivi
     var inputNum = document.getElementById('suivi-input');
     if(inputNum) inputNum.value = numCommande;
-
     // Déclencher l'affichage du résultat directement
     afficherResultatSuivi(data.commande);
-
   } catch(e) {
     result.innerHTML = '<div class="suivi-error">❌ Erreur de chargement. Veuillez réessayer.</div>';
   }
 }
-
 function afficherResultatSuivi(c) {
   var result = document.getElementById('suivi-result');
   if(!result || !c) return;
-
   var statut = c.statut || 'En attente';
   var STATUTS = ['En attente','Confirmé','Expédié','Livré','Annulé'];
   var STATUT_ICONS = {'En attente':'⏳','Confirmé':'✅','Expédié':'🚚','Livré':'🎉','Annulé':'❌'};
   var STATUT_CLASS = {'En attente':'statut-attente','Confirmé':'statut-confirme','Expédié':'statut-expedie','Livré':'statut-livre','Annulé':'statut-annule'};
-
   var stepsHtml = STATUTS.filter(function(s){return s!=='Annulé';}).map(function(s){
     var isDone = STATUTS.indexOf(statut) > STATUTS.indexOf(s) && statut !== 'Annulé';
     var isActive = s === statut;
@@ -1519,19 +1376,16 @@ function afficherResultatSuivi(c) {
       (isDone?'✓':(STATUT_ICONS[s]||'○'))+'</div>'+
       '<div class="step-info"><div class="step-label '+cls+'">'+s+'</div></div></div>';
   }).join('');
-
   var raisonHtml = c.raison && statut==='Annulé'
     ? '<div class="suivi-raison">❌ Motif : '+c.raison+'</div>' : '';
   var dateLivraisonHtml = statut !== 'Annulé' && statut !== 'Livré'
     ? '<div class="suivi-livraison">🚚 Livraison estimée : <strong>'+(c.date_livraison||'En cours de planification...')+'</strong></div>'
     : '';
-
   var historiqueParsed = c.historique
     ? c.historique.split(' | ').map(function(h){ return '<div class="hist-item">'+h+'</div>'; }).join('')
     : '';
   var historiqueHtml = historiqueParsed
     ? '<div class="suivi-historique"><div class="hist-title">📋 Historique</div>'+historiqueParsed+'</div>' : '';
-
   result.innerHTML = '<div class="suivi-card">'+
     '<div class="suivi-num">Commande '+c.num+' — '+c.date+'</div>'+
     '<div class="suivi-statut '+(STATUT_CLASS[statut]||'statut-attente')+'">'+(STATUT_ICONS[statut]||'⏳')+' '+statut+'</div>'+
@@ -1540,7 +1394,6 @@ function afficherResultatSuivi(c) {
     historiqueHtml+
     '</div>';
 }
-
 // ===== INIT =====
 function initFromHash(){
   var hash = window.location.hash.replace('#','');
@@ -1573,13 +1426,11 @@ function initFromHash(){
     showPage('home');
   }
 }
-
 // ===== BOUTON RETOUR EN HAUT =====
 window.addEventListener('scroll', function(){
   var btn = document.getElementById('back-to-top');
   if(btn) btn.classList.toggle('show', window.scrollY > 300);
 });
-
 // ===== COOKIES =====
 function initCookieBanner(){
   if(!localStorage.getItem('cookie_consent')){
@@ -1589,19 +1440,15 @@ function initCookieBanner(){
     },1000);
   }
 }
-
 function acceptCookies(){
   localStorage.setItem('cookie_consent','accepted');
   document.getElementById('cookie-banner').classList.remove('show');
 }
-
 function refuseCookies(){
   localStorage.setItem('cookie_consent','refused');
   document.getElementById('cookie-banner').classList.remove('show');
 }
-
 initCookieBanner();
-
 // ===== GESTION MAINTENANCE =====
 function showMaintenance() {
   // Cacher toutes les pages et la nav
@@ -1616,12 +1463,10 @@ function showMaintenance() {
   if(backTop) backTop.style.display='none';
   var cookie = document.getElementById('cookie-banner');
   if(cookie) cookie.style.display='none';
-
   // Afficher la page maintenance
   var dureeHtml = MAINTENANCE_DUREE
     ? '<p class="maint-duree">⏱️ Durée estimée : <strong>'+MAINTENANCE_DUREE+'</strong></p>'
     : '';
-
   var maint = document.getElementById('page-maintenance');
   if(maint){
     maint.style.display='flex';
@@ -1648,7 +1493,6 @@ function showMaintenance() {
       '</div>';
   }
 }
-
 if(MAINTENANCE){
   // Mode maintenance — on n'initialise rien d'autre
   document.addEventListener('DOMContentLoaded', showMaintenance);
