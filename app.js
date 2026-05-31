@@ -5,8 +5,8 @@ var MAINTENANCE = false;
 var MAINTENANCE_MSG = "Nous effectuons des améliorations pour mieux vous servir.";
 var GROS_COMMANDE_LIMITE = 10; // Au-delà → redirection WhatsApp
 var MAINTENANCE_DUREE = "30 minutes"; // Laisse vide "" pour ne pas afficher la durée
-var API_URL = "https://script.google.com/macros/s/AKfycbyr8QMDn_rG4FZE3Lu6tKTd-ozVRQLrlaZZxYmfR1q8zby8VY7BuAgIo2iM29GFWA4TkQ/exec";
-var SECRET_TOKEN = "HRV-2026-xK9mP3qL7nZ";
+var API_URL = "https://harvel-proxy.herryharivelo.workers.dev";
+// Token supprimé — géré côté serveur par le proxy Cloudflare
 var WA_NUMBER = "261346158199";
 var COLOR_MAP = {
   'vert':'#3dbd00','noir':'#222','rouge':'#e02020','bleu':'#1565c0',
@@ -136,7 +136,7 @@ async function suivreCommande(){
   result.innerHTML='<div class="loading"><div class="spinner"></div><p>Recherche en cours...</p></div>';
   result.classList.add('show');
   try{
-    var url=API_URL+'?token='+SECRET_TOKEN+'&action=suivi&commande='+encodeURIComponent(num)+'&phone='+encodeURIComponent(phone);
+    var url=API_URL+'?action=suivi&commande='+encodeURIComponent(num)+'&phone='+encodeURIComponent(phone);
     var res=await fetch(url,{redirect:'follow'});
     var data=JSON.parse(await res.text());
     if(!data.success||!data.commande){
@@ -208,7 +208,7 @@ async function loadProducts(){
   showLoadingState('home-products');
   showLoadingState('shop-products');
   try{
-    var url=API_URL+'?token='+SECRET_TOKEN+'&t='+Date.now();
+    var url=API_URL+'?t='+Date.now();
     var res=await fetch(url,{redirect:'follow'});
     var data=JSON.parse(await res.text());
     if(!data.success) throw new Error(data.error);
@@ -446,7 +446,7 @@ async function chargerAvis(produitId) {
   if(!section) return;
   section.innerHTML = '<div class="avis-loading">Chargement des avis...</div>';
   try {
-    var url = API_URL+'?token='+SECRET_TOKEN+'&action=avis&produit_id='+produitId;
+    var url = API_URL+'?action=avis&produit_id='+produitId;
     var res = await fetch(url, {redirect:'follow'});
     var data = JSON.parse(await res.text());
     var avis = data.avis || [];
@@ -519,7 +519,6 @@ async function soumettreAvis(produitId) {
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
   var payload = {
     action: 'avis',
-    token: SECRET_TOKEN,
     produit_id: String(produitId),
     produit_nom: currentProduct ? currentProduct.name : '',
     note: note,
@@ -939,7 +938,6 @@ async function submitOrder(){
     items:cart.map(function(i){return {id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty};}),
     code_promo:cart.length>0&&cart[0].code_promo?cart[0].code_promo:undefined,
     total:cart.reduce(function(s,i){return s+i.price*i.qty;},0),
-    token:SECRET_TOKEN
   };
   try{
     var res=await fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
@@ -1040,7 +1038,7 @@ async function chargerRecommandations() {
   var wrap = document.getElementById('recommandations-carrousel');
   if(!wrap) return;
   try {
-    var url = API_URL+'?token='+SECRET_TOKEN+'&action=recommandations';
+    var url = API_URL+'?action=recommandations';
     var res = await fetch(url, {redirect:'follow'});
     var data = JSON.parse(await res.text());
     recData = data.recommandations || [];
@@ -1121,7 +1119,6 @@ async function soumettreRec() {
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
   var payload = {
     action: 'recommandation',
-    token: SECRET_TOKEN,
     note: note,
     texte: texteEl.value.trim(),
     nom: nomEl ? nomEl.value.trim() : '',
@@ -1158,7 +1155,7 @@ async function ouvrirFormulaireAvis(numCommande) {
   if(!content) return;
   content.innerHTML = '<div class="avis-cmd-loading">⏳ Chargement de votre formulaire...</div>';
   try {
-    var url = API_URL + '?token=' + SECRET_TOKEN + '&action=commande_avis&num=' + encodeURIComponent(numCommande);
+    var url = API_URL + '?action=commande_avis&num=' + encodeURIComponent(numCommande);
     var res = await fetch(url, {redirect:'follow'});
     var data = JSON.parse(await res.text());
     if(!data.success || !data.items || !data.items.length) {
@@ -1281,7 +1278,7 @@ async function soumettreAvisCmd() {
     if(note < 1) continue; // skip si pas de note
     var commentEl = document.getElementById('comment-prod-'+idx);
     var payload = {
-      action: 'avis', token: SECRET_TOKEN,
+      action: 'avis', 
       produit_id: String(items[idx].id || idx),
       produit_nom: items[idx].nom,
       note: note,
@@ -1301,7 +1298,7 @@ async function soumettreAvisCmd() {
   var recTexteVal = recTexte ? recTexte.value.trim() : '';
   if(recNote > 0 || recTexteVal) {
     var recPayload = {
-      action: 'recommandation', token: SECRET_TOKEN,
+      action: 'recommandation', 
       note: recNote || 5,
       texte: recTexteVal || 'Client satisfait ✅',
       nom: nom, anonyme: anonyme, phone: phone,
@@ -1324,7 +1321,7 @@ async function soumettreAvisCmd() {
       await fetch(API_URL, {
         method:'POST', redirect:'follow',
         headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({action:'marquer_avis_soumis', token:SECRET_TOKEN, num:numCommande})
+        body:JSON.stringify({action:'marquer_avis_soumis',  num:numCommande})
       });
     } catch(e) {}
   }
@@ -1345,7 +1342,7 @@ async function ouvrirSuiviAvecToken(numCommande, trackToken) {
   if(form) form.style.display = "none";
   result.innerHTML = "<div class=\"suivi-loading\">⏳ Chargement de votre suivi...</div>";
   try {
-    var url = API_URL+'?token='+SECRET_TOKEN+'&action=suivi&commande='+encodeURIComponent(numCommande)+'&track_token='+encodeURIComponent(trackToken);
+    var url = API_URL+'?action=suivi&commande='+encodeURIComponent(numCommande)+'&track_token='+encodeURIComponent(trackToken);
     var res = await fetch(url, {redirect:'follow'});
     var data = JSON.parse(await res.text());
     if(!data.success) {
