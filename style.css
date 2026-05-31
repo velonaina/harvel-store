@@ -497,3 +497,47 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .prod-nb-avis{font-size:.75rem;color:var(--muted);}
 .pd-etoiles-moy{display:flex;align-items:center;gap:6px;margin:6px 0 10px;}
 .pd-nb-avis{font-size:.82rem;color:var(--muted);}
+
+/* ===== BOUTON PANIER FLOTTANT ===== */
+.fab-cart{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--primary);
+  color:#fff;
+  padding:12px 22px;
+  border-radius:50px;
+  box-shadow:0 4px 20px rgba(61,189,0,0.4);
+  cursor:pointer;
+  z-index:999;
+  font-weight:700;
+  font-size:.92rem;
+  transition:transform .2s, box-shadow .2s;
+  white-space:nowrap;
+  animation:fabSlideUp .3s ease;
+}
+.fab-cart:hover{transform:translateX(-50%) translateY(-3px);box-shadow:0 6px 24px rgba(61,189,0,0.5);}
+.fab-cart-icon{font-size:1.2rem;}
+.fab-cart-count{
+  background:#fff;
+  color:var(--primary);
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:.75rem;
+  font-weight:800;
+}
+@keyframes fabSlideUp{
+  from{opacity:0;transform:translateX(-50%) translateY(20px);}
+  to{opacity:1;transform:translateX(-50%) translateY(0);}
+}
+@media(min-width:768px){
+  .fab-cart{display:none!important;} /* Uniquement sur mobile */
+}

@@ -878,6 +878,18 @@ function updateCartCount(){
   document.getElementById('cart-count').textContent=count;
   var mc=document.getElementById('mobile-cart-count');
   if(mc) mc.textContent=count;
+
+  // Bouton panier flottant
+  var fab = document.getElementById('fab-cart');
+  var fabCount = document.getElementById('fab-cart-count');
+  if(fab) {
+    var currentPage = document.querySelector('.page.active');
+    var isCartPage = currentPage && currentPage.id === 'page-cart';
+    var isAvisPage = currentPage && currentPage.id === 'page-avis-cmd';
+    // Afficher seulement si panier non vide et pas sur la page panier/avis
+    fab.style.display = (count > 0 && !isCartPage && !isAvisPage) ? 'flex' : 'none';
+    if(fabCount) fabCount.textContent = count;
+  }
 }
 
 function renderCart(){
@@ -1085,7 +1097,15 @@ function showPage(p){
   var nb=document.getElementById('nav-'+p);if(nb)nb.classList.add('active');
   if(p==='home') renderHome();
   if(p==='shop') renderShop();
-  if(p==='cart') renderCart();
+  if(p==='cart') {
+    renderCart();
+    // Cacher le bouton flottant sur la page panier
+    var fab = document.getElementById('fab-cart');
+    if(fab) fab.style.display = 'none';
+  } else {
+    // Réafficher le bouton flottant si panier non vide
+    updateCartCount();
+  }
   if(p==='avis-cmd') {} // contenu généré dynamiquement
   if(p !== 'product') window.location.hash = p==='home' ? '' : p;
   window.scrollTo(0,0);
