@@ -1386,12 +1386,27 @@ function afficherResultatSuivi(c) {
     : '';
   var historiqueHtml = historiqueParsed
     ? '<div class="suivi-historique"><div class="hist-title">📋 Historique</div>'+historiqueParsed+'</div>' : '';
+  var items = c.produits ? c.produits.split(' | ') : [];
+  var itemsHtml = items.map(function(item){
+    var match = item.match(/^(.+?)\s*x(\d+)\s*=\s*(.+)$/);
+    if(!match) return '<div class="suivi-item"><span class="suivi-item-nom">'+item+'</span></div>';
+    var nomComplet = match[1].trim();
+    var qty = match[2].trim();
+    var prix = match[3].trim();
+    var nomMatch = nomComplet.match(/^(.+?)\s*\((.+)\)$/);
+    var nom = nomMatch ? nomMatch[1].trim() : nomComplet;
+    var option = nomMatch ? nomMatch[2].trim() : '';
+    return '<div class="suivi-item">'+'<div class="suivi-item-nom">'+nom+'</div>'+(option ? '<div class="suivi-item-option">📌 '+option+'</div>' : '')+'<div class="suivi-item-prix">'+qty+' × '+prix+'</div>'+'</div>';
+  }).join('');
+  var totalHtml = c.total ? '<div class="suivi-total">Total : <strong>'+Number(c.total).toLocaleString('fr-MG')+' Ar</strong></div>' : '';
+  var adresseHtml = c.adresse ? '<div class="suivi-adresse">📍 '+c.adresse+'</div>' : '';
+  var resumeHtml = itemsHtml ? '<div class="suivi-resume"><div class="suivi-resume-title">🛍️ Détail de la commande</div>'+itemsHtml+totalHtml+adresseHtml+'</div>' : '';
   result.innerHTML = '<div class="suivi-card">'+
     '<div class="suivi-num">Commande '+c.num+' — '+c.date+'</div>'+
     '<div class="suivi-statut '+(STATUT_CLASS[statut]||'statut-attente')+'">'+(STATUT_ICONS[statut]||'⏳')+' '+statut+'</div>'+
     raisonHtml+dateLivraisonHtml+
     '<div class="suivi-steps">'+stepsHtml+'</div>'+
-    historiqueHtml+
+    historiqueHtml+resumeHtml+
     '</div>';
 }
 // ===== INIT =====
