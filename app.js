@@ -1037,6 +1037,16 @@ async function submitOrder(){
     if(!data.success) throw new Error(data.error);
     var orderNum=data.commande;
     document.getElementById('success-order-num').textContent='📋 '+orderNum;
+    // Stocker le token pour le lien de suivi
+    if(data.track_token) {
+      var lienSuivi = window.location.origin + '/#suivi-' + orderNum + '-' + data.track_token;
+      var lienEl = document.getElementById('success-lien-suivi');
+      if(lienEl) {
+        lienEl.href = lienSuivi;
+        lienEl.style.display = 'inline-flex';
+        lienEl.dataset.lien = lienSuivi;
+      }
+    }
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
     cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-item.qty);});
@@ -1456,6 +1466,74 @@ async function soumettreAvisCmd() {
   }
 }
 
+// ===== SUIVI AVEC TOKEN =====
+async function ouvrirSuiviAvecToken(numCommande, trackToken) {
+  showPage('suivi');
+  var result = document.getElementById('suivi-result');
+  if(!result) return;
+  result.innerHTML = '<div class="suivi-loading">⏳ Chargement de votre suivi...</div>';
+
+  try {
+    var url = API_URL+'?token='+SECRET_TOKEN+'&action=suivi&commande='+encodeURIComponent(numCommande)+'&track_token='+encodeURIComponent(trackToken);
+    var res = await fetch(url, {redirect:'follow'});
+    var data = JSON.parse(await res.text());
+
+    if(!data.success) {
+      result.innerHTML = '<div class="suivi-error">❌ '+data.error+'</div>';
+      return;
+    }
+
+    // Pré-remplir les champs du formulaire suivi
+    var inputNum = document.getElementById('suivi-input');
+    if(inputNum) inputNum.value = numCommande;
+
+    // Déclencher l'affichage du résultat directement
+    afficherResultatSuivi(data.commande);
+
+  } catch(e) {
+    result.innerHTML = '<div class="suivi-error">❌ Erreur de chargement. Veuillez réessayer.</div>';
+  }
+}
+
+function afficherResultatSuivi(c) {
+  var result = document.getElementById('suivi-result');
+  if(!result || !c) return;
+
+  var statut = c.statut || 'En attente';
+  var STATUTS = ['En attente','Confirmé','Expédié','Livré','Annulé'];
+  var STATUT_ICONS = {'En attente':'⏳','Confirmé':'✅','Expédié':'🚚','Livré':'🎉','Annulé':'❌'};
+  var STATUT_CLASS = {'En attente':'statut-attente','Confirmé':'statut-confirme','Expédié':'statut-expedie','Livré':'statut-livre','Annulé':'statut-annule'};
+
+  var stepsHtml = STATUTS.filter(function(s){return s!=='Annulé';}).map(function(s){
+    var isDone = STATUTS.indexOf(statut) > STATUTS.indexOf(s) && statut !== 'Annulé';
+    var isActive = s === statut;
+    var cls = isDone?'done':isActive?'active':'';
+    return '<div class="suivi-step"><div class="step-dot '+(isDone?'done':isActive?'active':'')+'">'+
+      (isDone?'✓':(STATUT_ICONS[s]||'○'))+'</div>'+
+      '<div class="step-info"><div class="step-label '+cls+'">'+s+'</div></div></div>';
+  }).join('');
+
+  var raisonHtml = c.raison && statut==='Annulé'
+    ? '<div class="suivi-raison">❌ Motif : '+c.raison+'</div>' : '';
+  var dateLivraisonHtml = statut !== 'Annulé' && statut !== 'Livré'
+    ? '<div class="suivi-livraison">🚚 Livraison estimée : <strong>'+(c.date_livraison||'En cours de planification...')+'</strong></div>'
+    : '';
+
+  var historiqueParsed = c.historique
+    ? c.historique.split(' | ').map(function(h){ return '<div class="hist-item">'+h+'</div>'; }).join('')
+    : '';
+  var historiqueHtml = historiqueParsed
+    ? '<div class="suivi-historique"><div class="hist-title">📋 Historique</div>'+historiqueParsed+'</div>' : '';
+
+  result.innerHTML = '<div class="suivi-card">'+
+    '<div class="suivi-num">Commande '+c.num+' — '+c.date+'</div>'+
+    '<div class="suivi-statut '+(STATUT_CLASS[statut]||'statut-attente')+'">'+(STATUT_ICONS[statut]||'⏳')+' '+statut+'</div>'+
+    raisonHtml+dateLivraisonHtml+
+    '<div class="suivi-steps">'+stepsHtml+'</div>'+
+    historiqueHtml+
+    '</div>';
+}
+
 // ===== INIT =====
 function initFromHash(){
   var hash = window.location.hash.replace('#','');
@@ -1467,6 +1545,13 @@ function initFromHash(){
     showPage('about');
   } else if(hash==='suivi'){
     showPage('suivi');
+  } else if(hash.startsWith('suivi-') && hash.split('-').length >= 3){
+    // Lien unique de suivi : #suivi-CMD-XXXXXX-TOKEN
+    var parts = hash.split('-');
+    // Format: suivi-CMD-XXXXXX-TOKEN
+    var cmdNum = parts[0]+'-'+parts[1]+'-'+parts[2]; // suivi-CMD-XXXXXX → CMD-XXXXXX
+    var trackToken = parts.slice(3).join('-');
+    ouvrirSuiviAvecToken(parts[1]+'-'+parts[2], trackToken);
   } else if(hash==='cart'){
     showPage('cart');
   } else if(hash.startsWith('avis-')){
