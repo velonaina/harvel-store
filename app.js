@@ -1117,7 +1117,11 @@ function showPage(p){
     updateCartCount();
   }
   if(p==='avis-cmd') {} // contenu généré dynamiquement
-  if(p !== 'product') window.location.hash = p==='home' ? '' : p;
+  // Ne pas écraser le hash si on est sur un lien suivi avec token
+  var currentHash = window.location.hash.replace('#','');
+  if(p !== 'product' && !currentHash.startsWith('suivi-')) {
+    window.location.hash = p==='home' ? '' : p;
+  }
   window.scrollTo(0,0);
 }
 
