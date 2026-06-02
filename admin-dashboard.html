@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Harvel Store Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; }
+
+    /* NAVBAR */
+    .navbar {
+      background: #1F3864;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    .navbar h1 { color: white; font-size: 1.1rem; font-weight: 700; }
+    .navbar span { color: #a0b4d0; font-size: 0.85rem; }
+    .btn-logout {
+      background: transparent;
+      border: 1.5px solid #a0b4d0;
+      color: #a0b4d0;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { background: white; color: #1F3864; border-color: white; }
+
+    /* CONTENU */
+    .container { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+    .welcome {
+      margin-bottom: 2rem;
+    }
+    .welcome h2 { font-size: 1.4rem; color: #1F3864; }
+    .welcome p { color: #888; font-size: 0.9rem; margin-top: 4px; }
+
+    /* CARDS KPI */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .kpi-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      border: 1px solid #e8ecf0;
+    }
+    .kpi-card .label {
+      font-size: 0.8rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .kpi-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1F3864;
+    }
+    .kpi-card .sub {
+      font-size: 0.8rem;
+      color: #2E75B6;
+      margin-top: 4px;
+    }
+
+    /* SECTION */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1F3864;
+      margin-bottom: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e8ecf0;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .coming-soon {
+      text-align: center;
+      padding: 2rem;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <h1>Harvel Store — Admin</h1>
+    <span id="user-email"></span>
+    <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
+  </nav>
+
+  <div class="container">
+    <div class="welcome">
+      <h2 id="welcome-msg">Chargement...</h2>
+      <p>Tableau de bord administration</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">Produits actifs</div>
+        <div class="value" id="kpi-produits">—</div>
+        <div class="sub">dans la boutique</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Commandes</div>
+        <div class="value" id="kpi-commandes">—</div>
+        <div class="sub">total</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Clients</div>
+        <div class="value" id="kpi-clients">—</div>
+        <div class="sub">enregistrés</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Partenaires</div>
+        <div class="value" id="kpi-partenaires">—</div>
+        <div class="sub">actifs</div>
+      </div>
+    </div>
+
+    <p class="section-title">Gestion produits</p>
+    <div class="card">
+      <div class="coming-soon">
+        Gestion des produits — disponible Semaine 5
+      </div>
+    </div>
+
+    <p class="section-title">Commandes récentes</p>
+    <div class="card">
+      <div class="coming-soon">
+        Suivi des commandes — disponible Semaine 5
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { requireAuth, logout, getUser } from './admin.js'
+    import { supabase } from './supabase-client.js'
+
+    // Vérifie l'auth — redirige si pas connecté
+    const session = await requireAuth()
+    if (!session) throw new Error('Not authenticated')
+
+    // Affiche l'email
+    const user = await getUser()
+    document.getElementById('user-email').textContent = user.email
+    document.getElementById('welcome-msg').textContent = 'Bonjour, ' + user.email
+
+    // Charge les KPIs
+    async function loadKPIs() {
+      const [produits, commandes, clients, partenaires] = await Promise.all([
+        supabase.from('produits').select('id', { count: 'exact' }).eq('actif', true),
+        supabase.from('commandes').select('id', { count: 'exact' }),
+        supabase.from('clients').select('id', { count: 'exact' }),
+        supabase.from('partenaires').select('id', { count: 'exact' }).eq('statut', 'actif'),
+      ])
+      document.getElementById('kpi-produits').textContent = produits.count ?? '0'
+      document.getElementById('kpi-commandes').textContent = commandes.count ?? '0'
+      document.getElementById('kpi-clients').textContent = clients.count ?? '0'
+      document.getElementById('kpi-partenaires').textContent = partenaires.count ?? '0'
+    }
+
+    loadKPIs()
+
+    window.handleLogout = logout
+  </script>
+
+</body>
+</html>
