@@ -1,3 +1,6 @@
 supabase-client.js
 .env
 .env.local
+Code.gs
+cel/
+copy-message.html
