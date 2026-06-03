@@ -485,7 +485,7 @@ function openProduct(id){
   window.location.hash = 'product-'+id;
   showPage('product');
   initCarouselSwipe();
-  chargerAvis(p.id);
+  chargerAvis(p.sheet_id || p.id);
 }
 // ===== AVIS PRODUITS =====
 // Étoiles illustrées avec demi-étoile selon moyenne
@@ -585,7 +585,7 @@ async function soumettreAvis(produitId) {
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
   var payload = {
     action: 'avis',
-    produit_id: String(produitId),
+    produit_id: String(currentProduct.sheet_id || produitId),
     produit_nom: currentProduct ? currentProduct.name : '',
     note: note,
     commentaire: comment ? comment.value.trim() : '',
