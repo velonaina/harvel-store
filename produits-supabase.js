@@ -11,6 +11,7 @@ export async function getProduitsActifs() {
       id, nom, description, prix, prix_barre,
       stock, categorie, sous_categorie, badge,
       tailles, couleurs, options, prix_degressif,
+      codes_promo, matiere, guide_tailles,
       produit_images ( url, type, ordre )
     `)
     .eq('actif', true)
@@ -44,4 +45,19 @@ export async function getProduitById(id) {
 
   if (error) { console.error('getProduitById error:', error); return null }
   return data
+}
+
+// Charge les notifications actives pour la barre de nav
+export async function getNotifsSite() {
+  const { data, error } = await supabase
+    .from('notifs_site')
+    .select('message, type, couleur, date_fin')
+    .eq('actif', true)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('getNotifsSite error:', error);
+    return [];
+  }
+  return data;
 }

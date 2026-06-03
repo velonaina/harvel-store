@@ -207,22 +207,55 @@ async function suivreCommande(){
 async function loadProducts(){
   showLoadingState('home-products');
   showLoadingState('shop-products');
-  try{
-    var url=API_URL+'?t='+Date.now();
-    var res=await fetch(url,{redirect:'follow'});
-    var data=JSON.parse(await res.text());
-    if(!data.success) throw new Error(data.error);
-    products=data.produits;
-    renderNotifications(data.notifications);
+  try {
+    const { getProduitsActifs, getNotifsSite } = await import('./produits-supabase.js');
+    const [data, notifs] = await Promise.all([getProduitsActifs(), getNotifsSite()]);
+    if(!data || !data.length) throw new Error('Aucun produit retourné');
+
+    products = data.map(function(p) {
+      var imgs_principales = (p.produit_images || [])
+        .filter(function(img){ return img.type === 'principale'; })
+        .sort(function(a,b){ return a.ordre - b.ordre; });
+
+      var imgs_couleur = (p.produit_images || [])
+        .filter(function(img){ return img.type === 'couleur'; })
+        .sort(function(a,b){ return a.ordre - b.ordre; });
+
+      var emoji = imgs_principales.map(function(img){ return img.url; }).join(',');
+
+      var photos = {};
+      imgs_couleur.forEach(function(img, i){
+        photos['photos_c' + (i+1)] = img.url;
+      });
+
+      return Object.assign({}, p, {
+        name:          p.nom,
+        cat:           p.categorie,
+        price:         p.prix,
+        prix_barre:    p.prix_barre || null,
+        sous_categorie: p.sous_categorie || null,
+        emoji:         emoji,
+        couleurs:      Array.isArray(p.couleurs) ? p.couleurs.join(',') : (p.couleurs || ''),
+        tailles:       Array.isArray(p.tailles)  ? p.tailles.join(',')  : (p.tailles  || ''),
+        photos_c1:     photos.photos_c1 || null,
+        photos_c2:     photos.photos_c2 || null,
+        photos_c3:     photos.photos_c3 || null,
+        photos_c4:     photos.photos_c4 || null,
+        photos_c5:     photos.photos_c5 || null,
+        stock:         p.stock || 0,
+      });
+    });
+
+    renderNotifications(notifs);
     renderHome();
     renderShop();
-    showToast('✅ '+products.length+' produits chargés');
+    showToast('✅ ' + products.length + ' produits chargés');
     return true;
-  }catch(err){
+  } catch(err) {
     console.error(err);
     showErrorState('home-products');
     showErrorState('shop-products');
-    showToast('❌ Impossible de charger le catalogue','error');
+    showToast('❌ Impossible de charger le catalogue', 'error');
   }
 }
 function showLoadingState(id){var el=document.getElementById(id);if(el)el.innerHTML='<div class="loading"><div class="spinner"></div><p>Chargement...</p></div>';}
@@ -280,8 +313,8 @@ if(p.badge){
 }
     var imgHtml=ph.length>0?'<img src="'+ph[0]+'" alt="'+p.name+'" onerror="this.parentElement.innerHTML=\'📦\'"/>':'<span>'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</span>';
     var stockHtml=p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ Plus que '+p.stock:'✅ En stock';
-    var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct('+p.id+')">Voir le produit →</button>';
-    return '<div class="product-card" onclick="openProduct('+p.id+')">'+badge+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div>'+(p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+'<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
+    var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Voir le produit →</button>';
+    return '<div class="product-card" onclick="openProduct(\''+p.id+'\')">'+badge+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div>'+(p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+'<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
   }).join('')+'</div>';
 }
 var homeLimit = 4;
