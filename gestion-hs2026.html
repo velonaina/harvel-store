@@ -282,11 +282,38 @@
   </div>
 </div>
 
+<!-- ECRAN CODE SECRET -->
+<div id="ecran-secret" style="display:none;position:fixed;inset:0;background:#1F3864;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+  <h2 style="color:white;font-family:Arial;">🔐 Accès sécurisé</h2>
+  <input type="password" id="input-secret" placeholder="Code d'accès..." style="padding:12px 20px;border-radius:8px;border:none;font-size:1rem;width:250px;text-align:center;" />
+  <button onclick="verifierSecret()" style="background:#2E7D32;color:white;border:none;padding:12px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;">Accéder →</button>
+  <p id="secret-error" style="color:#ff8a80;font-size:.85rem;"></p>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
   import { requireAuth, logout, getUser } from './admin.js'
   import { supabase } from './supabase-client.js'
+
+  // Afficher l'écran code secret
+  const ecran = document.getElementById('ecran-secret')
+  ecran.style.display = 'flex'
+  await new Promise((resolve, reject) => {
+    window.verifierSecret = function() {
+      const val = document.getElementById('input-secret').value.trim()
+      if (val === 'HS2026@Harvel') {
+        ecran.style.display = 'none'
+        resolve()
+      } else {
+        document.getElementById('secret-error').textContent = '⛔ Code incorrect — réessayez'
+        document.getElementById('input-secret').value = ''
+      }
+    }
+    document.getElementById('input-secret').addEventListener('keydown', e => {
+      if (e.key === 'Enter') window.verifierSecret()
+    })
+  })
 
   const session = await requireAuth()
   if (!session) throw new Error('Not authenticated')
