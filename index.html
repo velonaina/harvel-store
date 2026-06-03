@@ -408,8 +408,6 @@
 
 <script>
 function afficherPopup() {
-  var deja = localStorage.getItem('popup_fety26');
-  if (deja) return;
   var el = document.getElementById('popup-promo');
   el.style.display = 'flex';
   el.style.alignItems = 'center';
@@ -418,7 +416,6 @@ function afficherPopup() {
 
 function fermerPopup() {
   document.getElementById('popup-promo').style.display = 'none';
-  localStorage.setItem('popup_fety26', '1');
 }
 
 function copierCode() {
