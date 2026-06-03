@@ -100,7 +100,7 @@
 
   // Si déjà connecté → rediriger direct vers dashboard
   supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.href = '/admin-dashboard.html'
+    if (session) window.location.href = '/gestion-hs2026.html'
   })
 
   window.handleLogin = async function() {
@@ -116,7 +116,7 @@
     const result = await login(email, password)
 
     if (result.success) {
-      window.location.href = '/admin-dashboard.html'
+      window.location.href = '/gestion-hs2026.html'
     } else {
       errorEl.textContent = 'Email ou mot de passe incorrect.'
       errorEl.style.display = 'block'
