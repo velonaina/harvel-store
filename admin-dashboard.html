@@ -6,175 +6,686 @@
   <title>Dashboard — Harvel Store Admin</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f0f2f5; }
-
-    /* NAVBAR */
-    .navbar {
-      background: #1F3864;
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-    }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; }
+    .navbar { background: #1F3864; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
     .navbar h1 { color: white; font-size: 1.1rem; font-weight: 700; }
     .navbar span { color: #a0b4d0; font-size: 0.85rem; }
-    .btn-logout {
-      background: transparent;
-      border: 1.5px solid #a0b4d0;
-      color: #a0b4d0;
-      padding: 6px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s;
-    }
+    .btn-logout { background: transparent; border: 1.5px solid #a0b4d0; color: #a0b4d0; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
     .btn-logout:hover { background: white; color: #1F3864; border-color: white; }
-
-    /* CONTENU */
-    .container { padding: 2rem; max-width: 1100px; margin: 0 auto; }
-    .welcome {
-      margin-bottom: 2rem;
-    }
-    .welcome h2 { font-size: 1.4rem; color: #1F3864; }
-    .welcome p { color: #888; font-size: 0.9rem; margin-top: 4px; }
-
-    /* CARDS KPI */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .kpi-card {
-      background: white;
-      border-radius: 10px;
-      padding: 1.5rem;
-      border: 1px solid #e8ecf0;
-    }
-    .kpi-card .label {
-      font-size: 0.8rem;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
-    .kpi-card .value {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #1F3864;
-    }
-    .kpi-card .sub {
-      font-size: 0.8rem;
-      color: #2E75B6;
-      margin-top: 4px;
-    }
-
-    /* SECTION */
-    .section-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #1F3864;
-      margin-bottom: 1rem;
-    }
-    .card {
-      background: white;
-      border-radius: 10px;
-      border: 1px solid #e8ecf0;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    .coming-soon {
-      text-align: center;
-      padding: 2rem;
-      color: #aaa;
-      font-size: 0.9rem;
-    }
+    .tabs { background: white; border-bottom: 2px solid #e8ecf0; padding: 0 2rem; display: flex; gap: 0; overflow-x: auto; }
+    .tab-btn { padding: 14px 20px; border: none; background: transparent; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #888; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.2s; }
+    .tab-btn:hover { color: #1F3864; }
+    .tab-btn.active { color: #1F3864; border-bottom-color: #1F3864; }
+    .container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .kpi-card { background: white; border-radius: 10px; padding: 1.5rem; border: 1px solid #e8ecf0; border-left: 4px solid #2E75B6; }
+    .kpi-card.vert { border-left-color: #2E7D32; }
+    .kpi-card.orange { border-left-color: #e65100; }
+    .kpi-card.violet { border-left-color: #6a1b9a; }
+    .kpi-card.rose { border-left-color: #c2185b; }
+    .kpi-card .label { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .kpi-card .value { font-size: 2rem; font-weight: 700; color: #1F3864; }
+    .kpi-card .sub { font-size: 0.78rem; color: #2E75B6; margin-top: 4px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #1F3864; }
+    .btn-primary { background: #1F3864; color: white; border: none; padding: 8px 18px; border-radius: 7px; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: background 0.2s; }
+    .btn-primary:hover { background: #2E75B6; }
+    .btn-success { background: #2E7D32; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; }
+    .btn-success:hover { background: #388e3c; }
+    .btn-danger { background: #c62828; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; }
+    .btn-danger:hover { background: #e53935; }
+    .btn-warning { background: #e65100; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; }
+    .btn-edit { background: #1565c0; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; }
+    .btn-edit:hover { background: #1976d2; }
+    .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; border: 1px solid #e8ecf0; }
+    thead { background: #1F3864; }
+    thead th { color: white; padding: 12px 14px; font-size: 0.82rem; font-weight: 600; text-align: left; }
+    tbody tr { border-bottom: 1px solid #f0f2f5; transition: background 0.15s; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody td { padding: 10px 14px; font-size: 0.85rem; vertical-align: middle; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-actif { background: #e8f5e9; color: #2E7D32; }
+    .badge-inactif { background: #fce4ec; color: #c62828; }
+    .badge-attente { background: #fff3e0; color: #e65100; }
+    .badge-valide { background: #e8f5e9; color: #2E7D32; }
+    .card { background: white; border-radius: 10px; border: 1px solid #e8ecf0; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.82rem; font-weight: 600; color: #555; }
+    .form-group input, .form-group select, .form-group textarea { padding: 8px 12px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 0.88rem; outline: none; transition: border 0.2s; font-family: Arial, sans-serif; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #2E75B6; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; border-radius: 12px; padding: 2rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { font-size: 1.1rem; color: #1F3864; margin-bottom: 1.5rem; font-weight: 700; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 1.5rem; justify-content: flex-end; }
+    .toast { position: fixed; bottom: 2rem; right: 2rem; background: #1F3864; color: white; padding: 12px 20px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 9999; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #2E7D32; }
+    .toast.error { background: #c62828; }
+    .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 22px; transition: 0.3s; }
+    .toggle-slider:before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    .toggle input:checked + .toggle-slider { background: #2E7D32; }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+    .inline-input { width: 80px; padding: 4px 8px; border: 1.5px solid #2E75B6; border-radius: 5px; font-size: 0.82rem; text-align: right; }
+    .loading-row td { text-align: center; padding: 2rem; color: #aaa; }
+    .spinner-sm { display: inline-block; width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: #1F3864; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .img-preview { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
+    .stock-ok { color: #2E7D32; font-weight: 600; }
+    .stock-low { color: #e65100; font-weight: 600; }
+    .stock-zero { color: #c62828; font-weight: 600; }
+    .stars { color: #f59e0b; font-size: 1rem; letter-spacing: 1px; }
+    .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+    @media (max-width: 600px) { .container { padding: 1rem; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } .tabs { padding: 0 1rem; } }
   </style>
 </head>
 <body>
 
-  <nav class="navbar">
-    <h1>Harvel Store — Admin</h1>
-    <span id="user-email"></span>
-    <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
-  </nav>
+<nav class="navbar">
+  <h1>🛍️ Harvel Store — Admin</h1>
+  <span id="user-email"></span>
+  <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
+</nav>
 
-  <div class="container">
-    <div class="welcome">
-      <h2 id="welcome-msg">Chargement...</h2>
-      <p>Tableau de bord administration</p>
-    </div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('overview')">📊 Vue d'ensemble</button>
+  <button class="tab-btn" onclick="switchTab('produits')">🛍️ Produits</button>
+  <button class="tab-btn" onclick="switchTab('avis')">⭐ Avis <span id="badge-avis"></span></button>
+  <button class="tab-btn" onclick="switchTab('notifs')">🔔 Notifications</button>
+  <button class="tab-btn" onclick="switchTab('promos')">🎟️ Codes promo</button>
+  <button class="tab-btn" onclick="switchTab('recs')">💬 Recommandations</button>
+</div>
 
+<div class="container">
+
+  <!-- VUE D'ENSEMBLE -->
+  <div id="tab-overview" class="tab-content active">
     <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="label">Produits actifs</div>
-        <div class="value" id="kpi-produits">—</div>
-        <div class="sub">dans la boutique</div>
-      </div>
-      <div class="kpi-card">
-        <div class="label">Commandes</div>
-        <div class="value" id="kpi-commandes">—</div>
-        <div class="sub">total</div>
-      </div>
-      <div class="kpi-card">
-        <div class="label">Clients</div>
-        <div class="value" id="kpi-clients">—</div>
-        <div class="sub">enregistrés</div>
-      </div>
-      <div class="kpi-card">
-        <div class="label">Partenaires</div>
-        <div class="value" id="kpi-partenaires">—</div>
-        <div class="sub">actifs</div>
+      <div class="kpi-card vert"><div class="label">Produits actifs</div><div class="value" id="kpi-produits">—</div><div class="sub">dans la boutique</div></div>
+      <div class="kpi-card"><div class="label">Stock total</div><div class="value" id="kpi-stock">—</div><div class="sub">articles disponibles</div></div>
+      <div class="kpi-card orange"><div class="label">Avis en attente</div><div class="value" id="kpi-avis">—</div><div class="sub">à valider</div></div>
+      <div class="kpi-card violet"><div class="label">Notifications</div><div class="value" id="kpi-notifs">—</div><div class="sub">actives sur le site</div></div>
+      <div class="kpi-card rose"><div class="label">Témoignages</div><div class="value" id="kpi-recs">—</div><div class="sub">en attente</div></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:1rem;">⚡ Accès rapides</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="switchTab('produits')">🛍️ Produits</button>
+        <button class="btn-primary" onclick="switchTab('avis')">⭐ Avis</button>
+        <button class="btn-primary" onclick="switchTab('notifs')">🔔 Notifications</button>
+        <button class="btn-primary" onclick="switchTab('promos')">🎟️ Codes promo</button>
+        <button class="btn-primary" onclick="switchTab('recs')">💬 Recommandations</button>
+        <a href="https://docs.google.com/spreadsheets" target="_blank"><button class="btn-warning">📦 Commandes (Sheets)</button></a>
       </div>
     </div>
-
-    <p class="section-title">Gestion produits</p>
     <div class="card">
-      <div class="coming-soon">
-        Gestion des produits — disponible Semaine 5
-      </div>
-    </div>
-
-    <p class="section-title">Commandes récentes</p>
-    <div class="card">
-      <div class="coming-soon">
-        Suivi des commandes — disponible Semaine 5
-      </div>
+      <div class="section-title" style="margin-bottom:1rem;">🛍️ Stock critique</div>
+      <div id="stock-critique">Chargement...</div>
     </div>
   </div>
 
-  <script type="module">
-    import { requireAuth, logout, getUser } from './admin.js'
-    import { supabase } from './supabase-client.js'
+  <!-- PRODUITS -->
+  <div id="tab-produits" class="tab-content">
+    <div class="section-header">
+      <div class="section-title">🛍️ Gestion des produits</div>
+      <button class="btn-primary" onclick="ouvrirModalAjoutProduit()">+ Nouveau produit</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Image</th><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="produits-tbody"><tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 
-    // Vérifie l'auth — redirige si pas connecté
-    const session = await requireAuth()
-    if (!session) throw new Error('Not authenticated')
+  <!-- AVIS -->
+  <div id="tab-avis" class="tab-content">
+    <div class="section-header">
+      <div class="section-title">⭐ Avis clients</div>
+      <select id="filtre-avis" onchange="filtrerAvis()" style="padding:6px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:0.85rem;">
+        <option value="tous">Tous les avis</option>
+        <option value="attente">En attente</option>
+        <option value="valide">Validés</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Produit</th><th>Client</th><th>Note</th><th>Commentaire</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="avis-tbody"><tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 
-    // Affiche l'email
-    const user = await getUser()
-    document.getElementById('user-email').textContent = user.email
-    document.getElementById('welcome-msg').textContent = 'Bonjour, ' + user.email
+  <!-- NOTIFICATIONS -->
+  <div id="tab-notifs" class="tab-content">
+    <div class="section-header">
+      <div class="section-title">🔔 Notifications barre de nav</div>
+      <button class="btn-primary" onclick="ouvrirModalNotif()">+ Nouvelle notification</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Message</th><th>Type</th><th>Couleur</th><th>Date fin</th><th>Actif</th><th>Actions</th></tr></thead>
+        <tbody id="notifs-tbody"><tr class="loading-row"><td colspan="6"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 
-    // Charge les KPIs
-    async function loadKPIs() {
-      const [produits, commandes, clients, partenaires] = await Promise.all([
-        supabase.from('produits').select('id', { count: 'exact' }).eq('actif', true),
-        supabase.from('commandes').select('id', { count: 'exact' }),
-        supabase.from('clients').select('id', { count: 'exact' }),
-        supabase.from('partenaires').select('id', { count: 'exact' }).eq('statut', 'actif'),
-      ])
-      document.getElementById('kpi-produits').textContent = produits.count ?? '0'
-      document.getElementById('kpi-commandes').textContent = commandes.count ?? '0'
-      document.getElementById('kpi-clients').textContent = clients.count ?? '0'
-      document.getElementById('kpi-partenaires').textContent = partenaires.count ?? '0'
+  <!-- CODES PROMO -->
+  <div id="tab-promos" class="tab-content">
+    <div class="section-header">
+      <div class="section-title">🎟️ Codes promo globaux</div>
+      <button class="btn-primary" onclick="ouvrirModalPromo()">+ Nouveau code</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Code</th><th>Remise</th><th>Type</th><th>Expiration</th><th>Utilisations</th><th>Actif</th><th>Actions</th></tr></thead>
+        <tbody id="promos-tbody"><tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:1.5rem;">
+      <div class="section-title" style="margin-bottom:1rem;">ℹ️ Codes promo par produit</div>
+      <p style="color:#666;font-size:0.88rem;">Les codes par produit se gèrent depuis la fiche produit (bouton ✏️ Modifier).</p>
+    </div>
+  </div>
+
+  <!-- RECOMMANDATIONS -->
+  <div id="tab-recs" class="tab-content">
+    <div class="section-header">
+      <div class="section-title">💬 Témoignages clients</div>
+      <select id="filtre-recs" onchange="filtrerRecs()" style="padding:6px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:0.85rem;">
+        <option value="tous">Tous</option>
+        <option value="attente">En attente</option>
+        <option value="valide">Validés</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Client</th><th>Note</th><th>Témoignage</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="recs-tbody"><tr class="loading-row"><td colspan="6"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL PRODUIT -->
+<div class="modal-overlay" id="modal-produit">
+  <div class="modal">
+    <h3 id="modal-produit-titre">Modifier le produit</h3>
+    <input type="hidden" id="edit-produit-id" />
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1;"><label>Nom du produit</label><input type="text" id="edit-nom" placeholder="Nom du produit" /></div>
+      <div class="form-group"><label>Prix (Ar)</label><input type="number" id="edit-prix" placeholder="30000" /></div>
+      <div class="form-group"><label>Prix barré (Ar)</label><input type="number" id="edit-prix-barre" placeholder="Optionnel" /></div>
+      <div class="form-group"><label>Stock</label><input type="number" id="edit-stock" placeholder="0" /></div>
+      <div class="form-group"><label>Badge</label><input type="text" id="edit-badge" placeholder="Nouveau, Promo" /></div>
+      <div class="form-group"><label>Catégorie</label><input type="text" id="edit-categorie" /></div>
+      <div class="form-group"><label>Matière</label><input type="text" id="edit-matiere" /></div>
+      <div class="form-group"><label>Tailles (virgule)</label><input type="text" id="edit-tailles" placeholder="S, M, L, XL" /></div>
+      <div class="form-group"><label>Couleurs (virgule)</label><input type="text" id="edit-couleurs" placeholder="Noir, Blanc, Gris" /></div>
+      <div class="form-group"><label>Prix dégressif</label><input type="text" id="edit-prix-degressif" placeholder="1:30000,2:27500,3:25000" /></div>
+      <div class="form-group"><label>Code promo produit</label><input type="text" id="edit-codes-promo" placeholder="CODE:10%:30/06/2026" /></div>
+      <div class="form-group" style="grid-column:1/-1;"><label>Description</label><textarea id="edit-description" placeholder="Description du produit..."></textarea></div>
+      <div class="form-group"><label>Produit actif</label><select id="edit-actif"><option value="true">✅ Actif</option><option value="false">❌ Inactif</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="fermerModal('modal-produit')">Annuler</button>
+      <button class="btn-success" onclick="sauvegarderProduit()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTIFICATION -->
+<div class="modal-overlay" id="modal-notif">
+  <div class="modal">
+    <h3 id="modal-notif-titre">🔔 Notification</h3>
+    <input type="hidden" id="notif-id" />
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1;"><label>Message</label><input type="text" id="notif-message" placeholder="🎉 Promo -10% ce weekend !" /></div>
+      <div class="form-group"><label>Type</label><select id="notif-type"><option value="defilant">Défilant (barre)</option><option value="bandeau">Bandeau fixe</option></select></div>
+      <div class="form-group"><label>Couleur</label><select id="notif-couleur"><option value="vert">🟢 Vert</option><option value="rouge">🔴 Rouge</option><option value="orange">🟠 Orange</option><option value="bleu">🔵 Bleu</option><option value="violet">🟣 Violet</option><option value="noir">⚫ Noir</option><option value="or">🟡 Or</option></select></div>
+      <div class="form-group"><label>Date de fin (optionnel)</label><input type="datetime-local" id="notif-date-fin" /></div>
+      <div class="form-group"><label>Actif</label><select id="notif-actif"><option value="true">✅ Actif</option><option value="false">❌ Inactif</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="fermerModal('modal-notif')">Annuler</button>
+      <button class="btn-success" onclick="sauvegarderNotif()">💾 Publier</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CODE PROMO -->
+<div class="modal-overlay" id="modal-promo">
+  <div class="modal">
+    <h3 id="modal-promo-titre">🎟️ Code promo</h3>
+    <input type="hidden" id="promo-id" />
+    <div class="form-grid">
+      <div class="form-group"><label>Code</label><input type="text" id="promo-code" placeholder="FETY26" style="text-transform:uppercase;" /></div>
+      <div class="form-group"><label>Type</label><select id="promo-type"><option value="pourcentage">Pourcentage (%)</option><option value="montant">Montant fixe (Ar)</option></select></div>
+      <div class="form-group"><label>Valeur</label><input type="number" id="promo-valeur" placeholder="10" /></div>
+      <div class="form-group"><label>Date d'expiration</label><input type="date" id="promo-expiration" /></div>
+      <div class="form-group"><label>Limite (0 = illimité)</label><input type="number" id="promo-limite" placeholder="0" value="0" /></div>
+      <div class="form-group"><label>Actif</label><select id="promo-actif"><option value="true">✅ Actif</option><option value="false">❌ Inactif</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="fermerModal('modal-promo')">Annuler</button>
+      <button class="btn-success" onclick="sauvegarderPromo()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { requireAuth, logout, getUser } from './admin.js'
+  import { supabase } from './supabase-client.js'
+
+  const session = await requireAuth()
+  if (!session) throw new Error('Not authenticated')
+  const user = await getUser()
+  document.getElementById('user-email').textContent = user.email
+  window.handleLogout = logout
+
+  window.showToast = function(msg, type = '') {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.className = 'toast show ' + type
+    setTimeout(() => t.classList.remove('show'), 3000)
+  }
+
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'))
+    document.getElementById('tab-' + tab).classList.add('active')
+    const tabs = ['overview','produits','avis','notifs','promos','recs']
+    const idx = tabs.indexOf(tab)
+    if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active')
+    if (tab === 'produits') chargerProduits()
+    if (tab === 'avis') chargerAvis()
+    if (tab === 'notifs') chargerNotifs()
+    if (tab === 'promos') chargerPromos()
+    if (tab === 'recs') chargerRecs()
+  }
+
+  // KPIs
+  async function chargerKPIs() {
+    const [produits, stock, avis, notifs, recs] = await Promise.all([
+      supabase.from('produits').select('id', { count: 'exact' }).eq('actif', true),
+      supabase.from('produits').select('stock').eq('actif', true),
+      supabase.from('avis').select('id', { count: 'exact' }).eq('valide', false),
+      supabase.from('notifs_site').select('id', { count: 'exact' }).eq('actif', true),
+      supabase.from('recommandations').select('id', { count: 'exact' }).eq('valide', false),
+    ])
+    document.getElementById('kpi-produits').textContent = produits.count ?? '0'
+    document.getElementById('kpi-stock').textContent = stock.data ? stock.data.reduce((s, p) => s + (p.stock || 0), 0) : '0'
+    const avisCount = avis.count ?? 0
+    document.getElementById('kpi-avis').textContent = avisCount
+    if (avisCount > 0) document.getElementById('badge-avis').textContent = ' 🔴'
+    document.getElementById('kpi-notifs').textContent = notifs.count ?? '0'
+    document.getElementById('kpi-recs').textContent = recs.count ?? '0'
+  }
+
+  async function chargerStockCritique() {
+    const { data } = await supabase.from('produits').select('nom, stock').eq('actif', true).lte('stock', 5).order('stock')
+    const el = document.getElementById('stock-critique')
+    if (!data || !data.length) { el.innerHTML = '<p style="color:#2E7D32;font-size:.88rem;">✅ Tous les stocks sont corrects.</p>'; return }
+    el.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+      data.map(p => '<tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:8px 0;font-size:.85rem;font-weight:600;">' + p.nom + '</td><td style="padding:8px 0;font-size:.85rem;text-align:right;" class="' + (p.stock === 0 ? 'stock-zero' : 'stock-low') + '">' + (p.stock === 0 ? '❌ Rupture' : '⚠️ ' + p.stock + ' restants') + '</td></tr>').join('') + '</table>'
+  }
+
+  // PRODUITS
+  let tousLesProduits = []
+
+  async function chargerProduits() {
+    const tbody = document.getElementById('produits-tbody')
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr>'
+    const { data, error } = await supabase.from('produits').select('id, nom, categorie, prix, prix_barre, stock, actif, badge, image_url').order('nom')
+    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur de chargement</td></tr>'; return }
+    tousLesProduits = data
+    tbody.innerHTML = data.map(p => '<tr>' +
+      '<td><img src="' + (p.image_url || '') + '" class="img-preview" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect width=%2248%22 height=%2248%22 fill=%22%23eee%22/><text x=%2224%22 y=%2230%22 text-anchor=%22middle%22 font-size=%2220%22>📦</text></svg>\'"/></td>' +
+      '<td><strong>' + p.nom + '</strong>' + (p.badge ? '<br><small style="color:#e65100;">' + p.badge + '</small>' : '') + '</td>' +
+      '<td style="color:#666;font-size:.82rem;">' + (p.categorie || '—') + '</td>' +
+      '<td><input type="number" class="inline-input" value="' + p.prix + '" id="prix-' + p.id + '" />' + (p.prix_barre ? '<br><small style="color:#aaa;text-decoration:line-through;">' + p.prix_barre.toLocaleString('fr') + ' Ar</small>' : '') + '</td>' +
+      '<td><input type="number" class="inline-input" value="' + p.stock + '" id="stock-' + p.id + '" style="width:60px;" /></td>' +
+      '<td><label class="toggle"><input type="checkbox" ' + (p.actif ? 'checked' : '') + ' onchange="toggleActif(\'' + p.id + '\', this.checked)" /><span class="toggle-slider"></span></label></td>' +
+      '<td><div class="actions-cell"><button class="btn-success btn-sm" onclick="sauvegarderStockPrix(\'' + p.id + '\')">💾 Sauver</button><button class="btn-edit btn-sm" onclick="ouvrirModifierProduit(\'' + p.id + '\')">✏️ Modifier</button><button class="btn-danger btn-sm" onclick="confirmerSuppression(\'' + p.id + '\', \'' + p.nom.replace(/'/g, "\\'") + '\')">🗑️</button></div></td>' +
+      '</tr>').join('')
+  }
+
+  window.toggleActif = async function(id, val) {
+    const { error } = await supabase.from('produits').update({ actif: val }).eq('id', id)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast(val ? '✅ Produit activé' : '⚠️ Produit désactivé', val ? 'success' : '')
+  }
+
+  window.sauvegarderStockPrix = async function(id) {
+    const prix = Number(document.getElementById('prix-' + id).value)
+    const stock = Number(document.getElementById('stock-' + id).value)
+    const { error } = await supabase.from('produits').update({ prix, stock }).eq('id', id)
+    if (error) { showToast('❌ Erreur lors de la sauvegarde', 'error'); return }
+    showToast('✅ Prix et stock mis à jour', 'success')
+    chargerKPIs()
+    chargerStockCritique()
+  }
+
+  window.ouvrirModifierProduit = function(id) {
+    supabase.from('produits').select('*').eq('id', id).single().then(({ data }) => {
+      if (!data) return
+      document.getElementById('edit-produit-id').value = data.id
+      document.getElementById('edit-nom').value = data.nom || ''
+      document.getElementById('edit-prix').value = data.prix || ''
+      document.getElementById('edit-prix-barre').value = data.prix_barre || ''
+      document.getElementById('edit-stock').value = data.stock || ''
+      document.getElementById('edit-badge').value = data.badge || ''
+      document.getElementById('edit-categorie').value = data.categorie || ''
+      document.getElementById('edit-matiere').value = data.matiere || ''
+      document.getElementById('edit-tailles').value = Array.isArray(data.tailles) ? data.tailles.join(', ') : (data.tailles || '')
+      document.getElementById('edit-couleurs').value = Array.isArray(data.couleurs) ? data.couleurs.join(', ') : (data.couleurs || '')
+      document.getElementById('edit-prix-degressif').value = data.prix_degressif || ''
+      document.getElementById('edit-codes-promo').value = data.codes_promo || ''
+      document.getElementById('edit-description').value = data.description || ''
+      document.getElementById('edit-actif').value = data.actif ? 'true' : 'false'
+      document.getElementById('modal-produit-titre').textContent = '✏️ Modifier : ' + data.nom
+      document.getElementById('modal-produit').classList.add('show')
+    })
+  }
+
+  window.ouvrirModalAjoutProduit = function() {
+    document.getElementById('edit-produit-id').value = ''
+    ;['edit-nom','edit-prix','edit-prix-barre','edit-stock','edit-badge','edit-categorie','edit-matiere','edit-tailles','edit-couleurs','edit-prix-degressif','edit-codes-promo','edit-description'].forEach(id => { document.getElementById(id).value = '' })
+    document.getElementById('edit-actif').value = 'true'
+    document.getElementById('modal-produit-titre').textContent = '+ Nouveau produit'
+    document.getElementById('modal-produit').classList.add('show')
+  }
+
+  window.sauvegarderProduit = async function() {
+    const id = document.getElementById('edit-produit-id').value
+    const payload = {
+      nom: document.getElementById('edit-nom').value.trim(),
+      prix: Number(document.getElementById('edit-prix').value) || 0,
+      prix_barre: Number(document.getElementById('edit-prix-barre').value) || null,
+      stock: Number(document.getElementById('edit-stock').value) || 0,
+      badge: document.getElementById('edit-badge').value.trim() || null,
+      categorie: document.getElementById('edit-categorie').value.trim(),
+      matiere: document.getElementById('edit-matiere').value.trim() || null,
+      tailles: document.getElementById('edit-tailles').value.split(',').map(s => s.trim()).filter(Boolean),
+      couleurs: document.getElementById('edit-couleurs').value.split(',').map(s => s.trim()).filter(Boolean),
+      prix_degressif: document.getElementById('edit-prix-degressif').value.trim() || null,
+      codes_promo: document.getElementById('edit-codes-promo').value.trim() || null,
+      description: document.getElementById('edit-description').value.trim() || null,
+      actif: document.getElementById('edit-actif').value === 'true',
+      valide_admin: true,
     }
+    let error
+    if (id) { ({ error } = await supabase.from('produits').update(payload).eq('id', id)) }
+    else { ({ error } = await supabase.from('produits').insert(payload)) }
+    if (error) { showToast('❌ Erreur : ' + error.message, 'error'); return }
+    showToast(id ? '✅ Produit mis à jour' : '✅ Produit ajouté', 'success')
+    fermerModal('modal-produit')
+    chargerProduits()
+    chargerKPIs()
+  }
 
-    loadKPIs()
+  window.confirmerSuppression = function(id, nom) {
+    if (!confirm('Supprimer "' + nom + '" ? Cette action est irréversible.')) return
+    supabase.from('produits').delete().eq('id', id).then(({ error }) => {
+      if (error) { showToast('❌ Erreur suppression', 'error'); return }
+      showToast('🗑️ Produit supprimé')
+      chargerProduits()
+      chargerKPIs()
+    })
+  }
 
-    window.handleLogout = logout
-  </script>
+  // AVIS
+  let tousLesAvis = []
+
+  async function chargerAvis() {
+    const tbody = document.getElementById('avis-tbody')
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr>'
+    const { data, error } = await supabase.from('avis').select('*').order('created_at', { ascending: false })
+    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur de chargement</td></tr>'; return }
+    tousLesAvis = data
+    afficherAvis(data)
+  }
+
+  function afficherAvis(data) {
+    const tbody = document.getElementById('avis-tbody')
+    if (!data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">Aucun avis.</td></tr>'; return }
+    tbody.innerHTML = data.map(function(a) {
+      var etoiles = '★'.repeat(a.note) + '☆'.repeat(5 - a.note)
+      var nom = a.anonyme ? 'Anonyme' : (a.nom || '—')
+      var date = a.date || new Date(a.created_at).toLocaleDateString('fr')
+      var statut = a.valide ? '<span class="badge badge-valide">Validé</span>' : '<span class="badge badge-attente">En attente</span>'
+      var actions = (!a.valide ? '<button class="btn-success btn-sm" onclick="validerAvis(\'' + a.id + '\')">✅ Valider</button>' : '') + '<button class="btn-danger btn-sm" onclick="supprimerAvis(\'' + a.id + '\')">🗑️</button>'
+      return '<tr><td style="font-size:.82rem;">' + (a.produit_nom || '—') + '</td><td style="font-size:.82rem;">' + nom + '</td><td><span class="stars">' + etoiles + '</span></td><td style="font-size:.82rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.commentaire || '—') + '</td><td style="font-size:.78rem;color:#888;">' + date + '</td><td>' + statut + '</td><td><div class="actions-cell">' + actions + '</div></td></tr>'
+    }).join('')
+  }
+
+  window.filtrerAvis = function() {
+    const f = document.getElementById('filtre-avis').value
+    if (f === 'tous') afficherAvis(tousLesAvis)
+    else if (f === 'attente') afficherAvis(tousLesAvis.filter(a => !a.valide))
+    else afficherAvis(tousLesAvis.filter(a => a.valide))
+  }
+
+  window.validerAvis = async function(id) {
+    const { error } = await supabase.from('avis').update({ valide: true }).eq('id', id)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast('✅ Avis validé', 'success')
+    chargerAvis()
+    chargerKPIs()
+  }
+
+  window.supprimerAvis = async function(id) {
+    if (!confirm('Supprimer cet avis ?')) return
+    const { error } = await supabase.from('avis').delete().eq('id', id)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast('🗑️ Avis supprimé')
+    chargerAvis()
+    chargerKPIs()
+  }
+
+  // NOTIFICATIONS
+  async function chargerNotifs() {
+    const tbody = document.getElementById('notifs-tbody')
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><span class="spinner-sm"></span> Chargement...</td></tr>'
+    const { data, error } = await supabase.from('notifs_site').select('*').order('created_at', { ascending: false })
+    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="6">❌ Erreur</td></tr>'; return }
+    tbody.innerHTML = data.map(function(n) {
+      var dot = '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + couleurHex(n.couleur) + ';margin-right:6px;vertical-align:middle;"></span>'
+      var actions = '<button class="btn-edit btn-sm" onclick="ouvrirModifierNotif(\'' + n.id + '\',\'' + n.message.replace(/'/g,"\\'") + '\',\'' + n.type + '\',\'' + n.couleur + '\',\'' + (n.date_fin || '') + '\',' + n.actif + ')">✏️</button><button class="btn-danger btn-sm" onclick="supprimerNotif(\'' + n.id + '\')">🗑️</button>'
+      return '<tr><td style="font-size:.85rem;max-width:280px;">' + n.message + '</td><td><span class="badge badge-' + (n.type === 'bandeau' ? 'attente' : 'valide') + '">' + n.type + '</span></td><td>' + dot + n.couleur + '</td><td style="font-size:.78rem;color:#888;">' + (n.date_fin ? new Date(n.date_fin).toLocaleDateString('fr') : '—') + '</td><td><label class="toggle"><input type="checkbox" ' + (n.actif ? 'checked' : '') + ' onchange="toggleNotif(\'' + n.id + '\', this.checked)" /><span class="toggle-slider"></span></label></td><td><div class="actions-cell">' + actions + '</div></td></tr>'
+    }).join('')
+  }
+
+  function couleurHex(c) {
+    const map = { vert:'#2E7D32', rouge:'#c62828', orange:'#e65100', bleu:'#1565c0', violet:'#6a1b9a', noir:'#222', or:'#d4a017' }
+    return map[c] || '#888'
+  }
+
+  window.toggleNotif = async function(id, val) {
+    await supabase.from('notifs_site').update({ actif: val }).eq('id', id)
+    showToast(val ? '✅ Notification activée' : '⚠️ Désactivée', val ? 'success' : '')
+    chargerKPIs()
+  }
+
+  window.supprimerNotif = async function(id) {
+    if (!confirm('Supprimer cette notification ?')) return
+    await supabase.from('notifs_site').delete().eq('id', id)
+    showToast('🗑️ Notification supprimée')
+    chargerNotifs()
+    chargerKPIs()
+  }
+
+  window.ouvrirModalNotif = function() {
+    document.getElementById('notif-id').value = ''
+    document.getElementById('notif-message').value = ''
+    document.getElementById('notif-type').value = 'defilant'
+    document.getElementById('notif-couleur').value = 'vert'
+    document.getElementById('notif-date-fin').value = ''
+    document.getElementById('notif-actif').value = 'true'
+    document.getElementById('modal-notif-titre').textContent = '🔔 Nouvelle notification'
+    document.getElementById('modal-notif').classList.add('show')
+  }
+
+  window.ouvrirModifierNotif = function(id, message, type, couleur, dateFin, actif) {
+    document.getElementById('notif-id').value = id
+    document.getElementById('notif-message').value = message
+    document.getElementById('notif-type').value = type
+    document.getElementById('notif-couleur').value = couleur
+    document.getElementById('notif-date-fin').value = dateFin ? dateFin.slice(0, 16) : ''
+    document.getElementById('notif-actif').value = actif ? 'true' : 'false'
+    document.getElementById('modal-notif-titre').textContent = '✏️ Modifier la notification'
+    document.getElementById('modal-notif').classList.add('show')
+  }
+
+  window.sauvegarderNotif = async function() {
+    const id = document.getElementById('notif-id').value
+    const message = document.getElementById('notif-message').value.trim()
+    if (!message) { showToast('⚠️ Message requis', 'error'); return }
+    const payload = { message, type: document.getElementById('notif-type').value, couleur: document.getElementById('notif-couleur').value, date_fin: document.getElementById('notif-date-fin').value || null, actif: document.getElementById('notif-actif').value === 'true' }
+    let error
+    if (id) { ({ error } = await supabase.from('notifs_site').update(payload).eq('id', id)) }
+    else { ({ error } = await supabase.from('notifs_site').insert(payload)) }
+    if (error) { showToast('❌ Erreur : ' + error.message, 'error'); return }
+    showToast(id ? '✅ Notification mise à jour' : '✅ Notification publiée', 'success')
+    fermerModal('modal-notif')
+    chargerNotifs()
+    chargerKPIs()
+  }
+
+  // CODES PROMO
+  async function chargerPromos() {
+    const tbody = document.getElementById('promos-tbody')
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr>'
+    const { data, error } = await supabase.from('codes_promo').select('*').order('created_at', { ascending: false })
+    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur ou table vide</td></tr>'; return }
+    if (!data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">Aucun code promo.</td></tr>'; return }
+    tbody.innerHTML = data.map(function(c) {
+      var actions = '<button class="btn-edit btn-sm" onclick="ouvrirModifierPromo(\'' + c.id + '\',\'' + c.code + '\',\'' + c.type + '\',' + c.valeur + ',\'' + (c.date_expiration || '') + '\',' + (c.usage_max || 0) + ',' + c.actif + ')">✏️</button><button class="btn-danger btn-sm" onclick="supprimerPromo(\'' + c.id + '\')">🗑️</button>'
+      return '<tr><td><strong style="font-family:monospace;">' + c.code + '</strong></td><td style="color:#2E7D32;font-weight:600;">' + c.valeur + (c.type === 'pourcentage' ? '%' : ' Ar') + '</td><td style="font-size:.82rem;color:#666;">' + (c.type || '—') + '</td><td style="font-size:.82rem;color:#888;">' + (c.date_expiration ? new Date(c.date_expiration).toLocaleDateString('fr') : '—') + '</td><td style="font-size:.82rem;">' + (c.usage_count || 0) + ' / ' + (c.usage_max || '∞') + '</td><td><label class="toggle"><input type="checkbox" ' + (c.actif ? 'checked' : '') + ' onchange="togglePromo(\'' + c.id + '\', this.checked)" /><span class="toggle-slider"></span></label></td><td><div class="actions-cell">' + actions + '</div></td></tr>'
+    }).join('')
+  }
+
+  window.togglePromo = async function(id, val) {
+    await supabase.from('codes_promo').update({ actif: val }).eq('id', id)
+    showToast(val ? '✅ Code activé' : '⚠️ Code désactivé', val ? 'success' : '')
+  }
+
+  window.supprimerPromo = async function(id) {
+    if (!confirm('Supprimer ce code promo ?')) return
+    await supabase.from('codes_promo').delete().eq('id', id)
+    showToast('🗑️ Code supprimé')
+    chargerPromos()
+  }
+
+  window.ouvrirModalPromo = function() {
+    document.getElementById('promo-id').value = ''
+    document.getElementById('promo-code').value = ''
+    document.getElementById('promo-type').value = 'pourcentage'
+    document.getElementById('promo-valeur').value = ''
+    document.getElementById('promo-expiration').value = ''
+    document.getElementById('promo-limite').value = '0'
+    document.getElementById('promo-actif').value = 'true'
+    document.getElementById('modal-promo-titre').textContent = '🎟️ Nouveau code promo'
+    document.getElementById('modal-promo').classList.add('show')
+  }
+
+  window.ouvrirModifierPromo = function(id, code, type, valeur, dateExpiration, usageMax, actif) {
+    document.getElementById('promo-id').value = id
+    document.getElementById('promo-code').value = code
+    document.getElementById('promo-type').value = type || 'pourcentage'
+    document.getElementById('promo-valeur').value = valeur || ''
+    document.getElementById('promo-expiration').value = dateExpiration || ''
+    document.getElementById('promo-limite').value = usageMax || 0
+    document.getElementById('promo-actif').value = actif ? 'true' : 'false'
+    document.getElementById('modal-promo-titre').textContent = '✏️ Modifier le code promo'
+    document.getElementById('modal-promo').classList.add('show')
+  }
+
+  window.sauvegarderPromo = async function() {
+    const id = document.getElementById('promo-id').value
+    const code = document.getElementById('promo-code').value.trim().toUpperCase()
+    const valeur = document.getElementById('promo-valeur').value.trim()
+    if (!code || !valeur) { showToast('⚠️ Code et valeur requis', 'error'); return }
+    const payload = { code, type: document.getElementById('promo-type').value, valeur: Number(valeur) || 0, date_expiration: document.getElementById('promo-expiration').value || null, usage_max: Number(document.getElementById('promo-limite').value) || null, actif: document.getElementById('promo-actif').value === 'true' }
+    let error
+    if (id) { ({ error } = await supabase.from('codes_promo').update(payload).eq('id', id)) }
+    else { payload.usage_count = 0; ({ error } = await supabase.from('codes_promo').insert(payload)) }
+    if (error) { showToast('❌ Erreur : ' + error.message, 'error'); return }
+    showToast(id ? '✅ Code mis à jour' : '✅ Code promo créé', 'success')
+    fermerModal('modal-promo')
+    chargerPromos()
+  }
+
+  // RECOMMANDATIONS
+  let toutesLesRecs = []
+
+  async function chargerRecs() {
+    const tbody = document.getElementById('recs-tbody')
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><span class="spinner-sm"></span> Chargement...</td></tr>'
+    const { data, error } = await supabase.from('recommandations').select('*').order('created_at', { ascending: false })
+    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="6">❌ Erreur de chargement</td></tr>'; return }
+    toutesLesRecs = data
+    afficherRecs(data)
+  }
+
+  function afficherRecs(data) {
+    const tbody = document.getElementById('recs-tbody')
+    if (!data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Aucun témoignage.</td></tr>'; return }
+    tbody.innerHTML = data.map(function(r) {
+      var etoiles = '★'.repeat(r.note) + '☆'.repeat(5 - r.note)
+      var nom = r.anonyme ? 'Anonyme' : (r.nom || '—')
+      var date = r.date || new Date(r.created_at).toLocaleDateString('fr')
+      var statut = r.valide ? '<span class="badge badge-valide">Validé</span>' : '<span class="badge badge-attente">En attente</span>'
+      var actions = (!r.valide ? '<button class="btn-success btn-sm" onclick="validerRec(\'' + r.id + '\')">✅ Valider</button>' : '') + '<button class="btn-danger btn-sm" onclick="supprimerRec(\'' + r.id + '\')">🗑️</button>'
+      return '<tr><td style="font-size:.82rem;">' + nom + '</td><td><span class="stars">' + etoiles + '</span></td><td style="font-size:.82rem;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (r.texte || '—') + '</td><td style="font-size:.78rem;color:#888;">' + date + '</td><td>' + statut + '</td><td><div class="actions-cell">' + actions + '</div></td></tr>'
+    }).join('')
+  }
+
+  window.filtrerRecs = function() {
+    const f = document.getElementById('filtre-recs').value
+    if (f === 'tous') afficherRecs(toutesLesRecs)
+    else if (f === 'attente') afficherRecs(toutesLesRecs.filter(r => !r.valide))
+    else afficherRecs(toutesLesRecs.filter(r => r.valide))
+  }
+
+  window.validerRec = async function(id) {
+    const { error } = await supabase.from('recommandations').update({ valide: true }).eq('id', id)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast('✅ Témoignage validé', 'success')
+    chargerRecs()
+    chargerKPIs()
+  }
+
+  window.supprimerRec = async function(id) {
+    if (!confirm('Supprimer ce témoignage ?')) return
+    const { error } = await supabase.from('recommandations').delete().eq('id', id)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast('🗑️ Témoignage supprimé')
+    chargerRecs()
+    chargerKPIs()
+  }
+
+  // MODAL
+  window.fermerModal = function(id) { document.getElementById(id).classList.remove('show') }
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show') })
+  })
+
+  // INIT
+  chargerKPIs()
+  chargerStockCritique()
+</script>
 
 </body>
 </html>

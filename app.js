@@ -584,7 +584,6 @@ async function soumettreAvis(produitId) {
   if(note < 1) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez sélectionner une note.'; return; }
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
   var payload = {
-    action: 'avis',
     produit_id: String(currentProduct.sheet_id || produitId),
     produit_nom: currentProduct ? currentProduct.name : '',
     note: note,
@@ -592,15 +591,16 @@ async function soumettreAvis(produitId) {
     nom: nomEl ? nomEl.value.trim() : '',
     anonyme: anonEl ? anonEl.checked : false,
     phone: telEl.value.trim(),
+    date: new Date().toLocaleDateString('fr'),
+    valide: false,
   };
   msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
   try {
-    var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
-    var data = await res.json();
-    if(!data.success) { msgEl.className='avis-msg error'; msgEl.textContent='❌ '+data.error; return; }
+    const { supabase: sb } = await import('./supabase-client.js');
+    const { error: sbError } = await sb.from('avis').insert(payload);
+    if(sbError) throw new Error(sbError.message);
     msgEl.className='avis-msg success';
     msgEl.textContent='✅ Merci ! Votre avis sera affiché après validation.';
-    // Réinitialiser le formulaire
     setTimeout(function(){ toggleFormulaireAvis(produitId); }, 2000);
   } catch(e) {
     msgEl.className='avis-msg error'; msgEl.textContent='❌ Erreur lors de l\'envoi.';
@@ -1027,7 +1027,16 @@ async function submitOrder(){
     }
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
-    cart.forEach(function(item){var prod=products.find(function(p){return p.id==item.id;});if(prod)prod.stock=Math.max(0,prod.stock-item.qty);});
+    cart.forEach(async function(item){
+      var prod=products.find(function(p){return p.id==item.id;});
+      if(prod){
+        prod.stock=Math.max(0,prod.stock-item.qty);
+        try {
+          const { supabase: sb } = await import('./supabase-client.js');
+          await sb.from('produits').update({ stock: prod.stock }).eq('id', prod.id);
+        } catch(e) { console.error('Stock update error:', e); }
+      }
+    });
     // ── Résumé commande dans page success ───────────────────────
     var resumeItems = cart.map(function(i){
       var nom = i.name;
@@ -1108,10 +1117,20 @@ async function chargerRecommandations() {
   var wrap = document.getElementById('recommandations-carrousel');
   if(!wrap) return;
   try {
-    var url = API_URL+'?action=recommandations';
-    var res = await fetch(url, {redirect:'follow'});
-    var data = JSON.parse(await res.text());
-    recData = data.recommandations || [];
+    const { supabase: sb } = await import('./supabase-client.js');
+    const { data, error } = await sb.from('recommandations')
+      .select('note, texte, nom, anonyme, date')
+      .eq('valide', true)
+      .order('created_at', { ascending: false });
+    if(error) throw new Error(error.message);
+    recData = (data || []).map(function(r) {
+      return {
+        note: r.note,
+        texte: r.texte,
+        nom: r.anonyme ? 'Anonyme' : (r.nom || 'Client'),
+        date: r.date || '',
+      };
+    });
     if(!recData.length) {
       wrap.innerHTML = '<div class="rec-empty">Soyez le premier à témoigner ! <button class="rec-btn-temoigner" onclick="showPage(\'about\')">✍️ Laisser un témoignage</button></div>';
       return;
@@ -1188,18 +1207,19 @@ async function soumettreRec() {
   if(!texteEl||!texteEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez écrire un témoignage.'; return; }
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
   var payload = {
-    action: 'recommandation',
     note: note,
     texte: texteEl.value.trim(),
     nom: nomEl ? nomEl.value.trim() : '',
     anonyme: anonEl ? anonEl.checked : false,
     phone: telEl.value.trim(),
+    date: new Date().toLocaleDateString('fr'),
+    valide: false,
   };
   msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
   try {
-    var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
-    var data = await res.json();
-    if(!data.success) { msgEl.className='avis-msg error'; msgEl.textContent='❌ '+data.error; return; }
+    const { supabase: sb } = await import('./supabase-client.js');
+    const { error: sbError } = await sb.from('recommandations').insert(payload);
+    if(sbError) throw new Error(sbError.message);
     msgEl.className='avis-msg success';
     msgEl.textContent='✅ Merci ! Votre témoignage sera affiché après validation.';
     if(texteEl) texteEl.value='';
@@ -1341,40 +1361,42 @@ async function soumettreAvisCmd() {
   var nom = nomEl ? nomEl.value.trim() : '';
   var anonyme = anonEl ? anonEl.checked : false;
   var erreurs = [];
-  // Soumettre les avis produits
+  // Soumettre les avis produits via Supabase
+  const { supabase: sb } = await import('./supabase-client.js');
   for(var idx = 0; idx < items.length; idx++) {
     var wrap = document.getElementById('etoiles-prod-'+idx);
     var note = wrap ? Number(wrap.dataset.note) : 0;
-    if(note < 1) continue; // skip si pas de note
+    if(note < 1) continue;
     var commentEl = document.getElementById('comment-prod-'+idx);
     var payload = {
-      action: 'avis', 
       produit_id: String(items[idx].id || idx),
       produit_nom: items[idx].nom,
       note: note,
       commentaire: commentEl ? commentEl.value.trim() : '',
       nom: nom, anonyme: anonyme, phone: phone,
+      date: new Date().toLocaleDateString('fr'),
+      valide: false,
     };
     try {
-      var res = await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
-      var data = await res.json();
-      if(!data.success && data.error !== 'Vous avez déjà laissé un avis pour ce produit') {
-        erreurs.push(items[idx].nom + ' : ' + data.error);
+      const { error: sbError } = await sb.from('avis').insert(payload);
+      if(sbError && sbError.message !== 'Vous avez déjà laissé un avis pour ce produit') {
+        erreurs.push(items[idx].nom + ' : ' + sbError.message);
       }
     } catch(e) { erreurs.push(items[idx].nom); }
   }
-  // Soumettre la recommandation si remplie
+  // Soumettre la recommandation si remplie via Supabase
   var recNote = recWrap ? Number(recWrap.dataset.note) : 0;
   var recTexteVal = recTexte ? recTexte.value.trim() : '';
   if(recNote > 0 || recTexteVal) {
     var recPayload = {
-      action: 'recommandation', 
       note: recNote || 5,
       texte: recTexteVal || 'Client satisfait ✅',
       nom: nom, anonyme: anonyme, phone: phone,
+      date: new Date().toLocaleDateString('fr'),
+      valide: false,
     };
     try {
-      await fetch(API_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(recPayload)});
+      await sb.from('recommandations').insert(recPayload);
     } catch(e) {}
   }
   if(erreurs.length) {
