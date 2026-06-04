@@ -23,14 +23,37 @@ export async function getProduitsActifs() {
     return []
   }
 
-  // Normalise : ajoute image_url principale (compatible avec le code existant)
-  return data.map(p => ({
-    ...p,
-    image_url: p.produit_images
-      ?.find(img => img.type === 'principale')?.url
-      ?? p.produit_images?.[0]?.url
-      ?? null
-  }))
+  // Charger les avis validés pour calculer les moyennes
+  const { data: avisData } = await supabase
+    .from('avis')
+    .select('produit_id, note')
+    .eq('valide', true)
+
+  // Calculer moyenne par produit_id
+  const moyennes = {}
+  if (avisData) {
+    avisData.forEach(a => {
+      if (!moyennes[a.produit_id]) moyennes[a.produit_id] = { total: 0, count: 0 }
+      moyennes[a.produit_id].total += a.note
+      moyennes[a.produit_id].count++
+    })
+  }
+
+  // Normalise : ajoute image_url principale + moyenne_avis
+  return data.map(p => {
+    const moy = moyennes[String(p.sheet_id)] || moyennes[p.id] || null
+    return {
+      ...p,
+      image_url: p.produit_images
+        ?.find(img => img.type === 'principale')?.url
+        ?? p.produit_images?.[0]?.url
+        ?? null,
+      moyenne_avis: moy ? {
+        moyenne: Math.round((moy.total / moy.count) * 10) / 10,
+        count: moy.count
+      } : null
+    }
+  })
 }
 
 /**
