@@ -482,7 +482,7 @@ function openProduct(id){
       '</div>'+
     '</div>'+
     '<div id="avis-section" class="avis-section"></div>';
-  window.location.hash = 'product-'+id;
+  window.location.hash = 'product-'+(currentProduct.slug || id);
   showPage('product');
   initCarouselSwipe();
   chargerAvis(p.sheet_id || p.id);
@@ -1551,8 +1551,8 @@ function initFromHash(){
     ouvrirFormulaireAvis(numCmd);
   } else if(hash.startsWith('product-')){
     var id=hash.replace('product-','');
-    var p=products.find(function(p){return p.id==id;});
-    if(p) openProduct(id);
+    var p=products.find(function(p){return p.id==id || p.slug==id;});
+    if(p) openProduct(p.id);
     else showPage('home');
   } else {
     showPage('home');

@@ -268,6 +268,10 @@
       <div class="form-group"><label>Tailles (virgule)</label><input type="text" id="edit-tailles" placeholder="S, M, L, XL" /></div>
       <div class="form-group"><label>Couleurs (virgule)</label><input type="text" id="edit-couleurs" placeholder="Noir, Blanc, Gris" /></div>
       <div class="form-group"><label>Prix dégressif</label><input type="text" id="edit-prix-degressif" placeholder="1:30000,2:27500,3:25000" /></div>
+      <div class="form-group">
+        <label>Slug URL</label>
+        <input type="text" id="edit-slug" placeholder="manchon-jambe" />
+      </div>
       <div class="form-group"><label>Code promo produit</label><input type="text" id="edit-codes-promo" placeholder="CODE:10%:30/06/2026" /></div>
       <div class="form-group" style="grid-column:1/-1;"><label>Description</label><textarea id="edit-description" placeholder="Description du produit..."></textarea></div>
       <div class="form-group"><label>Produit actif</label><select id="edit-actif"><option value="true">✅ Actif</option><option value="false">❌ Inactif</option></select></div>
@@ -455,6 +459,7 @@
       document.getElementById('edit-tailles').value = Array.isArray(data.tailles) ? data.tailles.join(', ') : (data.tailles || '')
       document.getElementById('edit-couleurs').value = Array.isArray(data.couleurs) ? data.couleurs.join(', ') : (data.couleurs || '')
       document.getElementById('edit-prix-degressif').value = data.prix_degressif || ''
+      document.getElementById('edit-slug').value = data.slug || ''
       document.getElementById('edit-codes-promo').value = data.codes_promo || ''
       document.getElementById('edit-description').value = data.description || ''
       document.getElementById('edit-actif').value = data.actif ? 'true' : 'false'
@@ -465,7 +470,7 @@
 
   window.ouvrirModalAjoutProduit = function() {
     document.getElementById('edit-produit-id').value = ''
-    ;['edit-nom','edit-prix','edit-prix-barre','edit-stock','edit-badge','edit-categorie','edit-matiere','edit-tailles','edit-couleurs','edit-prix-degressif','edit-codes-promo','edit-description'].forEach(id => { document.getElementById(id).value = '' })
+    ;['edit-nom','edit-prix','edit-prix-barre','edit-stock','edit-badge','edit-categorie','edit-matiere','edit-tailles','edit-couleurs','edit-prix-degressif','edit-slug','edit-codes-promo','edit-description'].forEach(id => { document.getElementById(id).value = '' })
     document.getElementById('edit-actif').value = 'true'
     document.getElementById('modal-produit-titre').textContent = '+ Nouveau produit'
     document.getElementById('modal-produit').classList.add('show')
@@ -484,6 +489,7 @@
       tailles: document.getElementById('edit-tailles').value.split(',').map(s => s.trim()).filter(Boolean),
       couleurs: document.getElementById('edit-couleurs').value.split(',').map(s => s.trim()).filter(Boolean),
       prix_degressif: document.getElementById('edit-prix-degressif').value.trim() || null,
+      slug: document.getElementById('edit-slug').value.trim().toLowerCase().replace(/\s+/g,'-') || null,
       codes_promo: document.getElementById('edit-codes-promo').value.trim() || null,
       description: document.getElementById('edit-description').value.trim() || null,
       actif: document.getElementById('edit-actif').value === 'true',

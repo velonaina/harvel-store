@@ -8,7 +8,7 @@ export async function getProduitsActifs() {
   const { data, error } = await supabase
     .from('produits')
     .select(`
-      id, sheet_id, nom, description, prix, prix_barre,
+      id, sheet_id, slug, nom, description, prix, prix_barre,
       stock, categorie, sous_categorie, badge,
       tailles, couleurs, options, prix_degressif,
       codes_promo, matiere, guide_tailles,
