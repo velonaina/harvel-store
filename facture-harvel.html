@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reçu de commande — Harvel Store</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 2rem; min-height: 100vh; }
+
+    /* BARRE D'OUTILS */
+    .toolbar {
+      background: #1F3864; color: white; padding: 1rem 2rem;
+      border-radius: 10px; margin-bottom: 2rem; display: flex;
+      gap: 1rem; align-items: center; flex-wrap: wrap;
+      width: 100%; max-width: 800px;
+    }
+    .toolbar h2 { font-size: 1rem; flex: 1; }
+    .toolbar button {
+      padding: 8px 18px; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 0.88rem; font-weight: 600;
+    }
+    .btn-print { background: #2E7D32; color: white; }
+    .btn-print:hover { background: #388e3c; }
+    .btn-reset { background: #e65100; color: white; }
+    .btn-reset:hover { background: #f57c00; }
+
+    /* FACTURE */
+    .facture {
+      background: white; width: 100%; max-width: 800px;
+      padding: 3rem; border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    /* EN-TÊTE */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 3px solid #3dbd00; }
+    .logo-section { display: flex; align-items: center; gap: 1rem; }
+    .logo-svg { width: 60px; height: 60px; }
+    .logo-text h1 { font-size: 1.8rem; color: #1F3864; font-weight: 800; }
+    .logo-text p { color: #666; font-size: 0.82rem; margin-top: 2px; }
+    .header-right { text-align: right; }
+    .receipt-title { font-size: 1.4rem; font-weight: 800; color: #3dbd00; text-transform: uppercase; letter-spacing: 2px; }
+    .receipt-num { font-size: 0.9rem; color: #666; margin-top: 4px; }
+    .receipt-date { font-size: 0.85rem; color: #888; margin-top: 2px; }
+
+    /* INFOS CLIENT */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    .info-box { background: #f8fafc; border-radius: 8px; padding: 1rem; border-left: 3px solid #3dbd00; }
+    .info-box h3 { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .info-box p { font-size: 0.9rem; color: #333; line-height: 1.6; }
+
+    /* TABLEAU ARTICLES */
+    .articles-title { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    thead tr { background: #1F3864; }
+    thead th { color: white; padding: 10px 12px; font-size: 0.82rem; font-weight: 600; text-align: left; }
+    thead th:last-child { text-align: right; }
+    tbody tr { border-bottom: 1px solid #f0f2f5; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody td { padding: 10px 12px; font-size: 0.88rem; color: #333; }
+    tbody td:last-child { text-align: right; font-weight: 600; color: #1F3864; }
+    .variant-cell { font-size: 0.78rem; color: #888; margin-top: 2px; }
+
+    /* TOTAUX */
+    .totaux { margin-left: auto; width: 320px; }
+    .totaux-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; color: #555; border-bottom: 1px solid #f0f2f5; }
+    .totaux-row span:last-child { font-weight: 600; color: #333; }
+    .totaux-row.remise span:last-child { color: #e65100; }
+    .totaux-total { display: flex; justify-content: space-between; padding: 12px 16px; background: #1F3864; border-radius: 8px; margin-top: 8px; }
+    .totaux-total span { color: white; font-weight: 700; font-size: 1.1rem; }
+
+    /* CHAMPS EDITABLES */
+    .edit-field {
+      border: 1.5px dashed #3dbd00; border-radius: 5px;
+      padding: 3px 8px; font-size: 0.88rem; font-weight: 600;
+      color: #333; background: #f0fff0; width: 120px; text-align: right;
+      font-family: Arial, sans-serif;
+    }
+    .edit-field:focus { outline: none; border-color: #1F3864; background: #e3f2fd; }
+    .edit-select {
+      border: 1.5px dashed #3dbd00; border-radius: 5px;
+      padding: 3px 8px; font-size: 0.82rem; color: #333;
+      background: #f0fff0; font-family: Arial, sans-serif;
+      cursor: pointer;
+    }
+    .edit-select:focus { outline: none; border-color: #1F3864; }
+
+    /* PIED DE PAGE */
+    .footer { margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #f0f2f5; display: flex; justify-content: space-between; align-items: flex-end; }
+    .footer-left p { font-size: 0.82rem; color: #888; line-height: 1.8; }
+    .footer-right { text-align: right; }
+    .footer-right p { font-size: 0.82rem; color: #888; }
+    .merci { font-size: 1rem; font-weight: 700; color: #3dbd00; margin-bottom: 4px; }
+    .footer-contact { font-size: 0.8rem; color: #666; }
+
+    /* IMPRESSION */
+    @media print {
+      body { background: white; padding: 0; }
+      .toolbar { display: none; }
+      .facture { box-shadow: none; border-radius: 0; max-width: 100%; }
+      .edit-field, .edit-select { border: none; background: transparent; }
+      @page { margin: 1cm; size: A4; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- BARRE D'OUTILS -->
+<div class="toolbar">
+  <h2>🖨️ Aperçu du reçu — modifiez les champs avant impression</h2>
+  <button class="btn-reset" onclick="resetFacture()">🔄 Réinitialiser</button>
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimer / Sauvegarder PDF</button>
+</div>
+
+<!-- FACTURE -->
+<div class="facture" id="facture">
+
+  <!-- EN-TÊTE -->
+  <div class="header">
+    <div class="logo-section">
+      <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="100" rx="20" fill="#3dbd00"/>
+        <path d="M 32 28 L 42 14" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/>
+        <path d="M 68 28 L 58 14" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/>
+        <rect x="18" y="28" width="64" height="14" rx="7" fill="#fff"/>
+        <path d="M 22 44 L 78 44 L 72 82 L 28 82 Z" fill="#fff"/>
+        <rect x="36" y="50" width="5" height="26" rx="2.5" fill="#3dbd00"/>
+        <rect x="48" y="50" width="5" height="26" rx="2.5" fill="#3dbd00"/>
+        <rect x="60" y="50" width="5" height="26" rx="2.5" fill="#3dbd00"/>
+      </svg>
+      <div class="logo-text">
+        <h1>Harvel Store</h1>
+        <p>Nanisana, Antananarivo</p>
+        <p>harvel-store.com</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="receipt-title">Reçu de commande</div>
+      <div class="receipt-num" id="receipt-num">N° —</div>
+      <div class="receipt-date" id="receipt-date">Date : —</div>
+    </div>
+  </div>
+
+  <!-- INFOS CLIENT + BOUTIQUE -->
+  <div class="info-grid">
+    <div class="info-box">
+      <h3>👤 Client</h3>
+      <p id="client-info">—</p>
+    </div>
+    <div class="info-box">
+      <h3>🛍️ Harvel Store</h3>
+      <p>Nanisana, Antananarivo<br>📱 +261 34 61 581 99<br>🌐 harvel-store.com<br>📘 Harvel Store</p>
+    </div>
+  </div>
+
+  <!-- ARTICLES -->
+  <div class="articles-title">🛒 Détail de la commande</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Article</th>
+        <th style="text-align:center;">Qté</th>
+        <th style="text-align:right;">Prix unitaire</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="articles-tbody">
+      <tr><td colspan="4" style="text-align:center;color:#aaa;padding:2rem;">Aucun article</td></tr>
+    </tbody>
+  </table>
+
+  <!-- TOTAUX -->
+  <div class="totaux">
+    <div class="totaux-row">
+      <span>Sous-total</span>
+      <span id="sous-total">0 Ar</span>
+    </div>
+    <div class="totaux-row remise" id="row-remise" style="display:none;">
+      <span>
+        Remise —
+        <select class="edit-select" id="raison-remise" onchange="recalculer()">
+          <option value="Code promo">Code promo</option>
+          <option value="Offre spéciale">Offre spéciale</option>
+          <option value="Client fidèle">Client fidèle</option>
+          <option value="Promotion">Promotion</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </span>
+      <span>− <input type="number" class="edit-field" id="montant-remise" value="0" min="0" oninput="recalculer()" style="width:100px;" /> Ar</span>
+    </div>
+    <div class="totaux-row">
+      <span>Frais de livraison</span>
+      <span><input type="number" class="edit-field" id="frais-livraison" value="0" min="0" oninput="recalculer()" /> Ar</span>
+    </div>
+    <div class="totaux-total">
+      <span>TOTAL NET</span>
+      <span id="total-net">0 Ar</span>
+    </div>
+  </div>
+
+  <!-- PIED DE PAGE -->
+  <div class="footer">
+    <div class="footer-left">
+      <p>📋 Conservez ce reçu comme preuve d'achat.</p>
+      <p>⚠️ Tout article vendu ne peut être ni repris ni échangé.</p>
+      <p>💬 Pour toute réclamation, contactez-nous via WhatsApp.</p>
+    </div>
+    <div class="footer-right">
+      <p class="merci">Merci pour votre confiance ! 😊</p>
+      <p class="footer-contact">📱 +261 34 61 581 99</p>
+      <p class="footer-contact">harvel-store.com</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Données de la commande (injectées depuis le dashboard)
+var commande = null;
+
+function fmt(n) {
+  return Number(n).toLocaleString('fr-MG') + ' Ar';
+}
+
+function chargerCommande(data) {
+  commande = data;
+
+  // En-tête
+  document.getElementById('receipt-num').textContent = 'N° ' + (data.num || '—');
+  document.getElementById('receipt-date').textContent = 'Date : ' + (data.date || new Date().toLocaleDateString('fr'));
+
+  // Client
+  var clientHtml = (data.nom || '—') + '<br>📱 ' + (data.phone || '—');
+  if (data.adresse) clientHtml += '<br>📍 ' + data.adresse;
+  document.getElementById('client-info').innerHTML = clientHtml;
+
+  // Articles
+  var items = data.items || [];
+  var sousTotal = 0;
+  var tbody = document.getElementById('articles-tbody');
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:2rem;">Aucun article</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map(function(item) {
+    var total = item.prix * item.qty;
+    sousTotal += total;
+    return '<tr>' +
+      '<td><strong>' + item.nom + '</strong>' + (item.variant ? '<div class="variant-cell">📌 ' + item.variant + '</div>' : '') + '</td>' +
+      '<td style="text-align:center;">' + item.qty + '</td>' +
+      '<td style="text-align:right;">' + fmt(item.prix) + '</td>' +
+      '<td>' + fmt(total) + '</td>' +
+      '</tr>';
+  }).join('');
+
+  document.getElementById('sous-total').textContent = fmt(sousTotal);
+
+  // Afficher remise si code promo
+  if (data.code_promo) {
+    document.getElementById('row-remise').style.display = 'flex';
+  }
+
+  recalculer();
+}
+
+function recalculer() {
+  var sousTotal = 0;
+  var items = commande ? (commande.items || []) : [];
+  items.forEach(function(item) { sousTotal += item.prix * item.qty; });
+
+  var remise = Number(document.getElementById('montant-remise').value) || 0;
+  var livraison = Number(document.getElementById('frais-livraison').value) || 0;
+  var total = sousTotal - remise + livraison;
+
+  document.getElementById('sous-total').textContent = fmt(sousTotal);
+  document.getElementById('total-net').textContent = fmt(Math.max(0, total));
+}
+
+function resetFacture() {
+  document.getElementById('frais-livraison').value = 0;
+  document.getElementById('montant-remise').value = 0;
+  recalculer();
+}
+
+function formatPhone(tel) {
+  if (!tel) return '—';
+  var t = String(tel).replace(/\s/g, '');
+  // Si commence par 261 → ajouter +
+  if (t.startsWith('261')) t = '+' + t;
+  // Si commence par 0 → remplacer par +261
+  else if (t.startsWith('0')) t = '+261 ' + t.substring(1);
+  // Si nombre pur sans 0 ni 261 → ajouter 0 devant
+  else if (!t.startsWith('+')) t = '0' + t;
+  // Formater : 034 XX XXX XX
+  // Formater le numéro local : 034 XX XXX XX
+  var local = t.replace(/^\+261\s?/, '0');
+  local = local.replace(/(\d{3})(\d{2})(\d{3})(\d{2})/, '$1 $2 $3 $4');
+  t = local;
+  return t;
+}
+
+// ===== LECTURE DES PARAMÈTRES URL =====
+function getParams() {
+  const params = new URLSearchParams(window.location.search);
+  const produits = params.get('produits') || '';
+  const items = produits.split(' | ').map(function(p) {
+    const m = p.match(/^(.+?)\s*x(\d+)\s*=\s*([\d\s]+)\s*Ar$/);
+    if (!m) return null;
+    const nomComplet = m[1].trim();
+    const qty = Number(m[2]);
+    const prix = Number(m[3].replace(/\s/g, ''));
+    const varMatch = nomComplet.match(/^(.+?)\s*\((.+)\)$/);
+    return {
+      nom: varMatch ? varMatch[1].trim() : nomComplet,
+      variant: varMatch ? varMatch[2].trim() : '',
+      prix: prix,
+      qty: qty
+    };
+  }).filter(Boolean);
+
+  chargerCommande({
+    num: params.get('num') || '—',
+    date: params.get('date') || new Date().toLocaleDateString('fr'),
+    nom: params.get('nom') || '—',
+    phone: formatPhone(params.get('phone') || ''),
+    adresse: params.get('adresse') || '—',
+    items: items,
+    code_promo: null,
+  });
+}
+
+getParams();
+</script>
+
+</body>
+</html>
