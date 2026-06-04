@@ -84,6 +84,10 @@
     .stock-zero { color: #c62828; font-weight: 600; }
     .stars { color: #f59e0b; font-size: 1rem; letter-spacing: 1px; }
     .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+    .img-card { text-align: center; }
+    .img-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; }
+    .img-card .img-info { font-size: .75rem; color: #666; margin-top: 4px; }
+    .img-card button { margin-top: 4px; width: 100%; }
     @media (max-width: 600px) { .container { padding: 1rem; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } .tabs { padding: 0 1rem; } }
   </style>
 </head>
@@ -124,7 +128,7 @@
         <button class="btn-primary" onclick="switchTab('notifs')">🔔 Notifications</button>
         <button class="btn-primary" onclick="switchTab('promos')">🎟️ Codes promo</button>
         <button class="btn-primary" onclick="switchTab('recs')">💬 Recommandations</button>
-        <a href="https://docs.google.com/spreadsheets" target="_blank"><button class="btn-warning">📦 Commandes (Sheets)</button></a>
+        <button class="btn-primary" onclick="switchTab('commandes')">📦 Commandes</button>
       </div>
     </div>
     <div class="card">
@@ -191,10 +195,6 @@
         <tbody id="promos-tbody"><tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
       </table>
     </div>
-    <div class="card" style="margin-top:1.5rem;">
-      <div class="section-title" style="margin-bottom:1rem;">ℹ️ Codes promo par produit</div>
-      <p style="color:#666;font-size:0.88rem;">Les codes par produit se gèrent depuis la fiche produit (bouton ✏️ Modifier).</p>
-    </div>
   </div>
 
   <!-- RECOMMANDATIONS -->
@@ -215,7 +215,7 @@
     </div>
   </div>
 
-<!-- COMMANDES -->
+  <!-- COMMANDES -->
   <div id="tab-commandes" class="tab-content">
     <div class="section-header">
       <div class="section-title">📦 Commandes clients</div>
@@ -233,21 +233,33 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>N° Commande</th>
-            <th>Date</th>
-            <th>Client</th>
-            <th>Produits</th>
-            <th>Total</th>
-            <th>Statut</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="commandes-tbody">
-          <tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr>
-        </tbody>
+        <thead><tr><th>N° Commande</th><th>Date</th><th>Client</th><th>Produits</th><th>Total</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="commandes-tbody"><tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
       </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL IMAGES -->
+<div class="modal-overlay" id="modal-images">
+  <div class="modal" style="max-width:700px;">
+    <h3 id="modal-images-titre">📷 Gérer les images</h3>
+    <div id="images-liste" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem;min-height:60px;"></div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="section-title" style="margin-bottom:1rem;">➕ Ajouter une image</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Fichier image</label><input type="file" id="upload-file" accept="image/*" onchange="previewUpload(this)" /></div>
+        <div class="form-group"><label>Nom fichier R2</label><input type="text" id="upload-filename" placeholder="manchon-jambe-noir-1.png" /></div>
+        <div class="form-group"><label>Type</label><select id="upload-type"><option value="principale">🖼️ Principale</option><option value="couleur">🎨 Couleur</option></select></div>
+        <div class="form-group"><label>Ordre</label><input type="number" id="upload-ordre" value="1" min="1" /></div>
+      </div>
+      <div id="upload-preview" style="margin-top:1rem;display:none;"><img id="upload-preview-img" style="max-height:120px;border-radius:8px;border:1px solid #eee;" /></div>
+      <div id="upload-progress" style="margin-top:1rem;font-size:.85rem;color:#666;"></div>
+      <div class="modal-actions" style="margin-top:1rem;">
+        <button class="btn-danger" onclick="fermerModal('modal-images')">Fermer</button>
+        <button class="btn-success" onclick="uploadImage()" id="btn-upload">⬆️ Uploader</button>
+      </div>
     </div>
   </div>
 </div>
@@ -268,10 +280,7 @@
       <div class="form-group"><label>Tailles (virgule)</label><input type="text" id="edit-tailles" placeholder="S, M, L, XL" /></div>
       <div class="form-group"><label>Couleurs (virgule)</label><input type="text" id="edit-couleurs" placeholder="Noir, Blanc, Gris" /></div>
       <div class="form-group"><label>Prix dégressif</label><input type="text" id="edit-prix-degressif" placeholder="1:30000,2:27500,3:25000" /></div>
-      <div class="form-group">
-        <label>Slug URL</label>
-        <input type="text" id="edit-slug" placeholder="manchon-jambe" />
-      </div>
+      <div class="form-group"><label>Slug URL</label><input type="text" id="edit-slug" placeholder="manchon-jambe" /></div>
       <div class="form-group"><label>Code promo produit</label><input type="text" id="edit-codes-promo" placeholder="CODE:10%:30/06/2026" /></div>
       <div class="form-group" style="grid-column:1/-1;"><label>Description</label><textarea id="edit-description" placeholder="Description du produit..."></textarea></div>
       <div class="form-group"><label>Produit actif</label><select id="edit-actif"><option value="true">✅ Actif</option><option value="false">❌ Inactif</option></select></div>
@@ -336,23 +345,15 @@
   import { requireAuth, logout, getUser } from './admin.js'
   import { supabase } from './supabase-client.js'
 
-  // Afficher l'écran code secret
   const ecran = document.getElementById('ecran-secret')
   ecran.style.display = 'flex'
-  await new Promise((resolve, reject) => {
+  await new Promise((resolve) => {
     window.verifierSecret = function() {
       const val = document.getElementById('input-secret').value.trim()
-      if (val === 'HS2026@Harvel') {
-        ecran.style.display = 'none'
-        resolve()
-      } else {
-        document.getElementById('secret-error').textContent = '⛔ Code incorrect — réessayez'
-        document.getElementById('input-secret').value = ''
-      }
+      if (val === 'HS2026@Harvel') { ecran.style.display = 'none'; resolve() }
+      else { document.getElementById('secret-error').textContent = '⛔ Code incorrect'; document.getElementById('input-secret').value = '' }
     }
-    document.getElementById('input-secret').addEventListener('keydown', e => {
-      if (e.key === 'Enter') window.verifierSecret()
-    })
+    document.getElementById('input-secret').addEventListener('keydown', e => { if (e.key === 'Enter') window.verifierSecret() })
   })
 
   const session = await requireAuth()
@@ -363,8 +364,7 @@
 
   window.showToast = function(msg, type = '') {
     const t = document.getElementById('toast')
-    t.textContent = msg
-    t.className = 'toast show ' + type
+    t.textContent = msg; t.className = 'toast show ' + type
     setTimeout(() => t.classList.remove('show'), 3000)
   }
 
@@ -383,7 +383,6 @@
     if (tab === 'commandes') chargerCommandes()
   }
 
-  // KPIs
   async function chargerKPIs() {
     const [produits, stock, avis, notifs, recs] = await Promise.all([
       supabase.from('produits').select('id', { count: 'exact' }).eq('actif', true),
@@ -418,14 +417,20 @@
     const { data, error } = await supabase.from('produits').select('id, nom, categorie, prix, prix_barre, stock, actif, badge, image_url').order('nom')
     if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur de chargement</td></tr>'; return }
     tousLesProduits = data
+    const NO_IMG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="48" height="48" fill="#eee"/><text x="24" y="30" text-anchor="middle" font-size="20">📦</text></svg>')
     tbody.innerHTML = data.map(p => '<tr>' +
-      '<td><img src="' + (p.image_url || '') + '" class="img-preview" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2248%22 height=%2248%22><rect width=%2248%22 height=%2248%22 fill=%22%23eee%22/><text x=%2224%22 y=%2230%22 text-anchor=%22middle%22 font-size=%2220%22>📦</text></svg>\'"/></td>' +
+      '<td><img src="' + (p.image_url || NO_IMG) + '" class="img-preview" onerror="this.src=\'' + NO_IMG + '\'"/></td>' +
       '<td><strong>' + p.nom + '</strong>' + (p.badge ? '<br><small style="color:#e65100;">' + p.badge + '</small>' : '') + '</td>' +
       '<td style="color:#666;font-size:.82rem;">' + (p.categorie || '—') + '</td>' +
       '<td><input type="number" class="inline-input" value="' + p.prix + '" id="prix-' + p.id + '" />' + (p.prix_barre ? '<br><small style="color:#aaa;text-decoration:line-through;">' + p.prix_barre.toLocaleString('fr') + ' Ar</small>' : '') + '</td>' +
       '<td><input type="number" class="inline-input" value="' + p.stock + '" id="stock-' + p.id + '" style="width:60px;" /></td>' +
       '<td><label class="toggle"><input type="checkbox" ' + (p.actif ? 'checked' : '') + ' onchange="toggleActif(\'' + p.id + '\', this.checked)" /><span class="toggle-slider"></span></label></td>' +
-      '<td><div class="actions-cell"><button class="btn-success btn-sm" onclick="sauvegarderStockPrix(\'' + p.id + '\')">💾 Sauver</button><button class="btn-edit btn-sm" onclick="ouvrirModifierProduit(\'' + p.id + '\')">✏️ Modifier</button><button class="btn-danger btn-sm" onclick="confirmerSuppression(\'' + p.id + '\', \'' + p.nom.replace(/'/g, "\\'") + '\')">🗑️</button></div></td>' +
+      '<td><div class="actions-cell">' +
+        '<button class="btn-success btn-sm" onclick="sauvegarderStockPrix(\'' + p.id + '\')">💾 Sauver</button>' +
+        '<button class="btn-edit btn-sm" onclick="ouvrirModifierProduit(\'' + p.id + '\')">✏️ Modifier</button>' +
+        '<button class="btn-primary btn-sm" onclick="ouvrirGestionImages(\'' + p.id + '\', \'' + p.nom.replace(/'/g, "\\'") + '\')">📷</button>' +
+        '<button class="btn-danger btn-sm" onclick="confirmerSuppression(\'' + p.id + '\', \'' + p.nom.replace(/'/g, "\\'") + '\')">🗑️</button>' +
+      '</div></td>' +
       '</tr>').join('')
   }
 
@@ -441,8 +446,7 @@
     const { error } = await supabase.from('produits').update({ prix, stock }).eq('id', id)
     if (error) { showToast('❌ Erreur lors de la sauvegarde', 'error'); return }
     showToast('✅ Prix et stock mis à jour', 'success')
-    chargerKPIs()
-    chargerStockCritique()
+    chargerKPIs(); chargerStockCritique()
   }
 
   window.ouvrirModifierProduit = function(id) {
@@ -500,19 +504,101 @@
     else { ({ error } = await supabase.from('produits').insert(payload)) }
     if (error) { showToast('❌ Erreur : ' + error.message, 'error'); return }
     showToast(id ? '✅ Produit mis à jour' : '✅ Produit ajouté', 'success')
-    fermerModal('modal-produit')
-    chargerProduits()
-    chargerKPIs()
+    fermerModal('modal-produit'); chargerProduits(); chargerKPIs()
   }
 
   window.confirmerSuppression = function(id, nom) {
     if (!confirm('Supprimer "' + nom + '" ? Cette action est irréversible.')) return
     supabase.from('produits').delete().eq('id', id).then(({ error }) => {
       if (error) { showToast('❌ Erreur suppression', 'error'); return }
-      showToast('🗑️ Produit supprimé')
-      chargerProduits()
-      chargerKPIs()
+      showToast('🗑️ Produit supprimé'); chargerProduits(); chargerKPIs()
     })
+  }
+
+  // GESTION IMAGES
+  let currentProduitImages = null
+
+  window.ouvrirGestionImages = async function(produitId, produitNom) {
+    currentProduitImages = produitId
+    document.getElementById('modal-images-titre').textContent = '📷 Images — ' + produitNom
+    document.getElementById('upload-progress').textContent = ''
+    document.getElementById('upload-preview').style.display = 'none'
+    document.getElementById('upload-file').value = ''
+    document.getElementById('upload-filename').value = ''
+    await chargerImagesModal(produitId)
+    document.getElementById('modal-images').classList.add('show')
+  }
+
+  async function chargerImagesModal(produitId) {
+    const liste = document.getElementById('images-liste')
+    liste.innerHTML = '<span class="spinner-sm"></span> Chargement...'
+    const { data } = await supabase.from('produit_images').select('*').eq('produit_id', produitId).order('type').order('ordre')
+    if (!data || !data.length) { liste.innerHTML = '<p style="color:#aaa;font-size:.85rem;">Aucune image pour ce produit.</p>'; return }
+    liste.innerHTML = data.map(function(img) {
+      return '<div class="img-card">' +
+        '<img src="' + img.url + '" onerror="this.src=\'data:image/svg+xml," + encodeURIComponent("<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'#eee\'/><text x=\'50\' y=\'60\' text-anchor=\'middle\' font-size=\'30\'>📦</text></svg>") + "\'" />' +
+        '<div class="img-info">' + img.type + ' #' + img.ordre + '</div>' +
+        '<button class="btn-danger btn-sm" onclick="supprimerImage(\'' + img.id + '\', \'' + produitId + '\')">🗑️ Supprimer</button>' +
+        '</div>'
+    }).join('')
+  }
+
+  window.previewUpload = function(input) {
+    const file = input.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = function(e) {
+      document.getElementById('upload-preview-img').src = e.target.result
+      document.getElementById('upload-preview').style.display = 'block'
+    }
+    reader.readAsDataURL(file)
+    if (!document.getElementById('upload-filename').value) {
+      document.getElementById('upload-filename').value = file.name.toLowerCase().replace(/\s+/g, '-')
+    }
+  }
+
+  window.uploadImage = async function() {
+    const file = document.getElementById('upload-file').files[0]
+    const filename = document.getElementById('upload-filename').value.trim()
+    const type = document.getElementById('upload-type').value
+    const ordre = Number(document.getElementById('upload-ordre').value) || 1
+    const progress = document.getElementById('upload-progress')
+    const btn = document.getElementById('btn-upload')
+    if (!file) { showToast('⚠️ Sélectionnez un fichier', 'error'); return }
+    if (!filename) { showToast('⚠️ Entrez un nom de fichier', 'error'); return }
+    btn.disabled = true; progress.textContent = '⏳ Upload en cours...'
+    try {
+      const uploadRes = await fetch('https://harvel-proxy.herryharivelo.workers.dev/upload/' + filename, {
+        method: 'PUT',
+        headers: { 'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw', 'X-File-Name': filename, 'X-File-Type': file.type },
+        body: file
+      })
+      const uploadData = await uploadRes.json()
+      if (!uploadData.success) throw new Error(uploadData.error)
+      const { error } = await supabase.from('produit_images').insert({ produit_id: currentProduitImages, url: uploadData.url, type, ordre })
+      if (error) throw new Error(error.message)
+      if (type === 'principale' && ordre === 1) {
+        await supabase.from('produits').update({ image_url: uploadData.url }).eq('id', currentProduitImages)
+      }
+      progress.textContent = '✅ Image uploadée : ' + uploadData.url
+      showToast('✅ Image ajoutée avec succès', 'success')
+      await chargerImagesModal(currentProduitImages)
+      document.getElementById('upload-file').value = ''
+      document.getElementById('upload-filename').value = ''
+      document.getElementById('upload-preview').style.display = 'none'
+    } catch(e) {
+      progress.textContent = '❌ Erreur : ' + e.message
+      showToast('❌ Erreur upload', 'error')
+    }
+    btn.disabled = false
+  }
+
+  window.supprimerImage = async function(imageId, produitId) {
+    if (!confirm('Supprimer cette image ?')) return
+    const { error } = await supabase.from('produit_images').delete().eq('id', imageId)
+    if (error) { showToast('❌ Erreur suppression', 'error'); return }
+    showToast('🗑️ Image supprimée')
+    await chargerImagesModal(produitId)
   }
 
   // AVIS
@@ -523,8 +609,7 @@
     tbody.innerHTML = '<tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr>'
     const { data, error } = await supabase.from('avis').select('*').order('created_at', { ascending: false })
     if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur de chargement</td></tr>'; return }
-    tousLesAvis = data
-    afficherAvis(data)
+    tousLesAvis = data; afficherAvis(data)
   }
 
   function afficherAvis(data) {
@@ -550,18 +635,14 @@
   window.validerAvis = async function(id) {
     const { error } = await supabase.from('avis').update({ valide: true }).eq('id', id)
     if (error) { showToast('❌ Erreur', 'error'); return }
-    showToast('✅ Avis validé', 'success')
-    chargerAvis()
-    chargerKPIs()
+    showToast('✅ Avis validé', 'success'); chargerAvis(); chargerKPIs()
   }
 
   window.supprimerAvis = async function(id) {
     if (!confirm('Supprimer cet avis ?')) return
     const { error } = await supabase.from('avis').delete().eq('id', id)
     if (error) { showToast('❌ Erreur', 'error'); return }
-    showToast('🗑️ Avis supprimé')
-    chargerAvis()
-    chargerKPIs()
+    showToast('🗑️ Avis supprimé'); chargerAvis(); chargerKPIs()
   }
 
   // NOTIFICATIONS
@@ -584,16 +665,13 @@
 
   window.toggleNotif = async function(id, val) {
     await supabase.from('notifs_site').update({ actif: val }).eq('id', id)
-    showToast(val ? '✅ Notification activée' : '⚠️ Désactivée', val ? 'success' : '')
-    chargerKPIs()
+    showToast(val ? '✅ Notification activée' : '⚠️ Désactivée', val ? 'success' : ''); chargerKPIs()
   }
 
   window.supprimerNotif = async function(id) {
     if (!confirm('Supprimer cette notification ?')) return
     await supabase.from('notifs_site').delete().eq('id', id)
-    showToast('🗑️ Notification supprimée')
-    chargerNotifs()
-    chargerKPIs()
+    showToast('🗑️ Notification supprimée'); chargerNotifs(); chargerKPIs()
   }
 
   window.ouvrirModalNotif = function() {
@@ -628,9 +706,7 @@
     else { ({ error } = await supabase.from('notifs_site').insert(payload)) }
     if (error) { showToast('❌ Erreur : ' + error.message, 'error'); return }
     showToast(id ? '✅ Notification mise à jour' : '✅ Notification publiée', 'success')
-    fermerModal('modal-notif')
-    chargerNotifs()
-    chargerKPIs()
+    fermerModal('modal-notif'); chargerNotifs(); chargerKPIs()
   }
 
   // CODES PROMO
@@ -654,8 +730,7 @@
   window.supprimerPromo = async function(id) {
     if (!confirm('Supprimer ce code promo ?')) return
     await supabase.from('codes_promo').delete().eq('id', id)
-    showToast('🗑️ Code supprimé')
-    chargerPromos()
+    showToast('🗑️ Code supprimé'); chargerPromos()
   }
 
   window.ouvrirModalPromo = function() {
@@ -693,8 +768,7 @@
     else { payload.usage_count = 0; ({ error } = await supabase.from('codes_promo').insert(payload)) }
     if (error) { showToast('❌ Erreur : ' + error.message, 'error'); return }
     showToast(id ? '✅ Code mis à jour' : '✅ Code promo créé', 'success')
-    fermerModal('modal-promo')
-    chargerPromos()
+    fermerModal('modal-promo'); chargerPromos()
   }
 
   // RECOMMANDATIONS
@@ -705,8 +779,7 @@
     tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><span class="spinner-sm"></span> Chargement...</td></tr>'
     const { data, error } = await supabase.from('recommandations').select('*').order('created_at', { ascending: false })
     if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="6">❌ Erreur de chargement</td></tr>'; return }
-    toutesLesRecs = data
-    afficherRecs(data)
+    toutesLesRecs = data; afficherRecs(data)
   }
 
   function afficherRecs(data) {
@@ -732,18 +805,14 @@
   window.validerRec = async function(id) {
     const { error } = await supabase.from('recommandations').update({ valide: true }).eq('id', id)
     if (error) { showToast('❌ Erreur', 'error'); return }
-    showToast('✅ Témoignage validé', 'success')
-    chargerRecs()
-    chargerKPIs()
+    showToast('✅ Témoignage validé', 'success'); chargerRecs(); chargerKPIs()
   }
 
   window.supprimerRec = async function(id) {
     if (!confirm('Supprimer ce témoignage ?')) return
     const { error } = await supabase.from('recommandations').delete().eq('id', id)
     if (error) { showToast('❌ Erreur', 'error'); return }
-    showToast('🗑️ Témoignage supprimé')
-    chargerRecs()
-    chargerKPIs()
+    showToast('🗑️ Témoignage supprimé'); chargerRecs(); chargerKPIs()
   }
 
   // COMMANDES
@@ -782,10 +851,6 @@
       var produitsShort = produits.length > 50 ? produits.substring(0, 50) + '...' : produits
       var waMsg = 'Bonjour ' + nom + ' ! Votre commande ' + num + ' - Statut : ' + statut
       var waUrl = 'https://wa.me/' + String(tel).replace(/\s/g,'').replace(/^\+/,'').replace(/^0/,'261') + '?text=' + encodeURIComponent(waMsg)
-      var actions = '<div class="actions-cell">' +
-        '<button class="btn-success btn-sm" onclick="ouvrirFacture(\'' + num + '\')">🖨️</button>' +
-        '<a href="' + waUrl + '" target="_blank"><button class="btn-primary btn-sm">💬</button></a>' +
-        '</div>'
       return '<tr>' +
         '<td style="font-size:.82rem;font-weight:600;">' + num + '</td>' +
         '<td style="font-size:.78rem;color:#888;">' + date + '</td>' +
@@ -793,7 +858,10 @@
         '<td style="font-size:.78rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + produitsShort + '</td>' +
         '<td style="font-size:.85rem;font-weight:600;color:#1F3864;">' + total + '</td>' +
         '<td>' + statutHtml + '</td>' +
-        '<td>' + actions + '</td>' +
+        '<td><div class="actions-cell">' +
+          '<button class="btn-success btn-sm" onclick="ouvrirFacture(\'' + num + '\')">🖨️</button>' +
+          '<a href="' + waUrl + '" target="_blank"><button class="btn-primary btn-sm">💬</button></a>' +
+        '</div></td>' +
         '</tr>'
     }).join('')
   }
