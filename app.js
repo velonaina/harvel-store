@@ -739,10 +739,9 @@ function updateSummary(){
   if(waBtn&&currentProduct) waBtn.href=getWhatsAppUrl(currentProduct);
 }
 // ===== CODE PROMO =====
-function appliquerCodePromo() {
+async function appliquerCodePromo() {
   var p = currentProduct;
   if(!p) return;
-  // Bloquer si prix dégressif actif et qty > 1
   if(p.prix_degressif && parsePrixDegressif(p.prix_degressif).length > 0 && selectedQty > 1) {
     showToast('⚠️ Code promo non applicable avec le prix dégressif','warning');
     return;
@@ -752,34 +751,63 @@ function appliquerCodePromo() {
   if(!input || !msg) return;
   var code = input.value.trim().toUpperCase();
   if(!code) { showToast('⚠️ Entrez un code promo','warning'); return; }
-  // Parser les codes disponibles pour ce produit
-  var codesDispos = p.codes_promo ? p.codes_promo.split(',').map(function(c){ return c.trim(); }) : [];
+
+  msg.className = 'code-promo-msg'; msg.textContent = '⏳ Vérification...';
+
   var found = null;
-  for(var i = 0; i < codesDispos.length; i++) {
-    var parts = codesDispos[i].split(':');
-    var nom = parts[0].trim().toUpperCase();
-    if(nom === code) {
-      found = { nom: nom, remise: parts[1]?parts[1].trim():'', expire: parts[2]?parts[2].trim():'' };
-      break;
+
+  // 1. Chercher dans la table codes_promo Supabase
+  try {
+    const { supabase: sb } = await import('./supabase-client.js');
+    const { data: codesSupabase } = await sb.from('codes_promo')
+      .select('code, type, valeur, date_expiration, actif')
+      .eq('actif', true)
+      .eq('code', code)
+      .single();
+    if (codesSupabase) {
+      if (codesSupabase.date_expiration && new Date(codesSupabase.date_expiration) < new Date()) {
+        msg.className = 'code-promo-error';
+        msg.textContent = '❌ Ce code promo a expiré';
+        selectedCodePromo = null;
+        return;
+      }
+      var remiseStr = codesSupabase.type === 'pourcentage'
+        ? codesSupabase.valeur + '%'
+        : String(codesSupabase.valeur);
+      found = { nom: codesSupabase.code, remise: remiseStr, expire: '' };
+    }
+  } catch(e) { console.error('Erreur Supabase codes_promo:', e); }
+
+  // 2. Si pas trouvé dans Supabase → chercher dans codes_promo du produit
+  if (!found && p.codes_promo) {
+    var codesDispos = p.codes_promo.split(',').map(function(c){ return c.trim(); });
+    for(var i = 0; i < codesDispos.length; i++) {
+      var parts = codesDispos[i].split(':');
+      var nom = parts[0].trim().toUpperCase();
+      if(nom === code) {
+        found = { nom: nom, remise: parts[1]?parts[1].trim():'', expire: parts[2]?parts[2].trim():'' };
+        break;
+      }
+    }
+    if (found && found.expire) {
+      var ep = found.expire.split('/');
+      var expireDate = new Date(ep[2], ep[1]-1, ep[0]);
+      if(expireDate < new Date()) {
+        msg.className = 'code-promo-error';
+        msg.textContent = '❌ Ce code promo a expiré';
+        selectedCodePromo = null;
+        return;
+      }
     }
   }
+
   if(!found) {
     msg.className = 'code-promo-error';
     msg.textContent = '❌ Code promo invalide';
     selectedCodePromo = null;
     return;
   }
-  // Vérifier expiration côté client
-  if(found.expire) {
-    var parts = found.expire.split('/');
-    var expireDate = new Date(parts[2], parts[1]-1, parts[0]);
-    if(expireDate < new Date()) {
-      msg.className = 'code-promo-error';
-      msg.textContent = '❌ Ce code promo a expiré';
-      selectedCodePromo = null;
-      return;
-    }
-  }
+
   // Calculer le prix avec remise
   var prixBase = document.getElementById('pd-price');
   var paliers = parsePrixDegressif(p.prix_degressif);
