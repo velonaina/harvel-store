@@ -1415,45 +1415,34 @@ function genTrackToken() {
   return token;
 }
 
-// ===== ENREGISTRER COMMANDE DANS SUPABASE =====
+// ===== ENREGISTRER COMMANDE DANS SUPABASE VIA WORKER =====
 async function enregistrerCommandeSupabase(orderNum, trackToken, name, phone, address, note, cartItems, total, codePromo) {
   try {
-    const { supabase: sb } = await import('./supabase-client.js');
-
-    // 1. Insérer dans commandes
-    // Générer l'UUID côté client pour éviter le SELECT après INSERT
     var cmdId = crypto.randomUUID();
-
-    var { error: cmdErr } = await sb.from('commandes').insert({
-      id:               cmdId,
-      numero:           orderNum,
-      client_nom:       name,
-      client_phone:     phone,
-      adresse_livraison: address,
-      notes:            note || null,
-      total:            total,
-      coupon_code:      codePromo || null,
-      track_token:      trackToken,
-      statut:           'en_attente',
-      source:           'site',
+    var payload = {
+      cmdId:      cmdId,
+      orderNum:   orderNum,
+      trackToken: trackToken,
+      name:       name,
+      phone:      phone,
+      address:    address,
+      note:       note || null,
+      items:      cartItems.map(function(i){
+        return { id: i.id, name: i.name, variant: i.variant||null, price: i.price, qty: i.qty };
+      }),
+      total:      total,
+      codePromo:  codePromo || null,
+    };
+    var res = await fetch(API_URL + '/supabase-commande', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
+      },
+      body: JSON.stringify(payload),
     });
-
-    if(cmdErr) { console.error('Supabase commande insert error:', cmdErr.message); return; }
-
-    // 2. Insérer les articles dans commandes_items
-    var items = cartItems.map(function(i) {
-      return {
-        commande_id: cmdId,
-        produit_id:  String(i.id),
-        produit_nom: i.name,
-        variante:    i.variant || null,
-        prix:        i.price,
-        quantite:    i.qty,
-      };
-    });
-    var { error: itemsErr } = await sb.from('commandes_items').insert(items);
-    if(itemsErr) console.error('Supabase items insert error:', itemsErr.message);
-
+    var data = await res.json();
+    if(!data.success) console.error('Supabase commande error:', data.error);
   } catch(e) {
     console.error('Erreur enregistrement Supabase:', e);
   }
