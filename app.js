@@ -425,6 +425,252 @@ function toggleFavori(id){
   showToast(isFav ? '❤️ Ajouté aux favoris' : 'Retiré des favoris');
 }
 
+// ===== DRAWER COMMANDE (style Alibaba) =====
+var drawerQty = 1;
+var drawerColor = null;
+var drawerColorIndex = -1;
+var drawerSize = null;
+var drawerOption = null;
+var drawerPromo = null;
+
+function openDrawer(){
+  if(!currentProduct) return;
+  var p = currentProduct;
+  drawerQty = 1;
+  drawerColor = null;
+  drawerColorIndex = -1;
+  drawerSize = null;
+  drawerOption = null;
+  drawerPromo = null;
+
+  var photos = getPhotos(p);
+  var thumb = document.getElementById('drawer-thumb');
+  if(thumb){ thumb.src = photos[0]||''; thumb.style.display = photos[0]?'':'none'; }
+
+  document.getElementById('drawer-product-name').textContent = p.name;
+  document.getElementById('drawer-prix-main').textContent = fmt(p.price);
+  var barreEl = document.getElementById('drawer-prix-barre');
+  if(barreEl){ barreEl.textContent = p.prix_barre ? fmt(p.prix_barre) : ''; }
+  var stockEl = document.getElementById('drawer-stock');
+  if(stockEl){
+    stockEl.textContent = p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ '+p.stock+' en stock':'✅ En stock';
+    stockEl.style.color = p.stock===0?'#e74c3c':p.stock<=3?'#f97316':'#3dbd00';
+  }
+  document.getElementById('drawer-qty-val').textContent = 1;
+  document.getElementById('drawer-qty-stock').textContent = 'Stock : '+p.stock;
+
+  // Couleurs
+  var colors = getColors(p);
+  var colorSection = document.getElementById('drawer-colors-section');
+  var colorGrid = document.getElementById('drawer-color-grid');
+  if(colors.length){
+    colorSection.style.display = '';
+    colorGrid.innerHTML = colors.map(function(c,i){
+      var imgKey = ['photos_c1','photos_c2','photos_c3','photos_c4','photos_c5'][i];
+      var imgUrl = p[imgKey] ? p[imgKey].split(',')[0] : '';
+      var hex = getColorHex(c);
+      var imgHtml = imgUrl
+        ? '<img class="drawer-color-img" src="'+imgUrl+'" alt="'+c+'" onerror="this.src=\'\';this.style.background=\''+hex+'\'">'
+        : '<div class="drawer-color-img" style="background:'+hex+';border:2px solid #eee;"></div>';
+      return '<div class="drawer-color-item" data-color="'+c+'" data-ci="'+i+'" onclick="drawerSelectColor(\''+c+'\','+i+',this)">'+
+        imgHtml+
+        '<span class="drawer-color-label-text">'+c+'</span>'+
+      '</div>';
+    }).join('');
+    document.getElementById('drawer-color-label').textContent = '— choisissez';
+  } else {
+    colorSection.style.display = 'none';
+  }
+
+  // Tailles
+  var sizes = getSizes(p);
+  var sizeSection = document.getElementById('drawer-sizes-section');
+  var sizeGrid = document.getElementById('drawer-size-grid');
+  if(sizes.length){
+    sizeSection.style.display = '';
+    var isOne = sizes.length===1 && sizes[0].toLowerCase().includes('one');
+    sizeGrid.innerHTML = sizes.map(function(s){
+      return '<button class="drawer-size-btn'+(isOne?' one-size':'')+'" onclick="drawerSelectSize(\''+s+'\',this)">'+s+'</button>';
+    }).join('');
+    if(isOne){ drawerSize = sizes[0]; document.getElementById('drawer-size-label').textContent = sizes[0]; }
+    else document.getElementById('drawer-size-label').textContent = '— choisissez';
+  } else {
+    sizeSection.style.display = 'none';
+  }
+
+  // Options
+  var optSection = document.getElementById('drawer-options-section');
+  var optGrid = document.getElementById('drawer-option-grid');
+  if(p.options){
+    optSection.style.display = '';
+    var opts = p.options.split(',').map(function(o){return o.trim();});
+    optGrid.innerHTML = opts.map(function(opt){
+      var parts = opt.split(':');
+      var nom = parts[0].trim();
+      var px = parts[1]?Number(parts[1].trim()):0;
+      var qty = parts[2]?Number(parts[2].trim()):1;
+      return '<button class="drawer-option-btn" data-nom="'+nom+'" data-prix="'+px+'" data-qty="'+qty+'" onclick="drawerSelectOption(\''+nom+'\','+px+','+qty+',this)">'+(px?nom+' — '+fmt(px):nom)+'</button>';
+    }).join('');
+    document.getElementById('drawer-option-label').textContent = '— choisissez';
+  } else {
+    optSection.style.display = 'none';
+  }
+
+  // Code promo
+  var promoSection = document.getElementById('drawer-promo-section');
+  if(p.codes_promo){ promoSection.style.display=''; } else { promoSection.style.display='none'; }
+  var promoInput = document.getElementById('drawer-promo-input');
+  var promoMsg = document.getElementById('drawer-promo-msg');
+  if(promoInput) promoInput.value='';
+  if(promoMsg){ promoMsg.textContent=''; promoMsg.className=''; }
+
+  drawerUpdateSubtotal();
+
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer-commande').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer(){
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer-commande').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function drawerSelectColor(c, ci, el){
+  drawerColor = c;
+  drawerColorIndex = ci;
+  document.querySelectorAll('.drawer-color-item').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('drawer-color-label').textContent = c;
+  // Mettre à jour la miniature header
+  var p = currentProduct;
+  var imgKey = ['photos_c1','photos_c2','photos_c3','photos_c4','photos_c5'][ci];
+  var imgUrl = p[imgKey] ? p[imgKey].split(',')[0] : '';
+  var thumb = document.getElementById('drawer-thumb');
+  if(thumb && imgUrl){ thumb.src = imgUrl; thumb.style.display=''; }
+  // Mettre à jour le carrousel de la fiche
+  updateCarouselForColor(ci);
+  drawerUpdateSubtotal();
+}
+
+function drawerSelectSize(s, el){
+  drawerSize = s;
+  document.querySelectorAll('.drawer-size-btn').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('drawer-size-label').textContent = s;
+  drawerUpdateSubtotal();
+}
+
+function drawerSelectOption(nom, prix, qty, el){
+  drawerOption = { name: nom, price: prix, qty: qty };
+  document.querySelectorAll('.drawer-option-btn').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('drawer-option-label').textContent = nom;
+  drawerUpdateSubtotal();
+}
+
+function drawerChangeQty(delta){
+  var p = currentProduct;
+  if(!p) return;
+  var newQty = drawerQty + delta;
+  if(newQty < 1) return;
+  if(newQty > p.stock){ showToast('⚠️ Stock max : '+p.stock,'warning'); return; }
+  if(newQty > GROS_COMMANDE_LIMITE){
+    showToast('📦 Pour '+GROS_COMMANDE_LIMITE+'+ articles, contactez-nous !','warning');
+    var waMsg = 'Bonjour Harvel Store ! 👋 Je souhaite commander *'+p.name+'* en grande quantité ('+newQty+' articles). Pouvez-vous me proposer un tarif ? Merci !';
+    window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg),'_blank');
+    return;
+  }
+  drawerQty = newQty;
+  document.getElementById('drawer-qty-val').textContent = drawerQty;
+  drawerUpdateSubtotal();
+}
+
+function drawerUpdateSubtotal(){
+  var p = currentProduct;
+  if(!p) return;
+  var paliers = parsePrixDegressif(p.prix_degressif);
+  var prix = paliers.length ? getPrixDegressif(paliers, drawerQty) : p.price;
+  if(drawerOption && drawerOption.price > 0) prix = drawerOption.price;
+  if(drawerPromo){
+    var remise = drawerPromo.remise;
+    if(remise.includes('%')){ prix = Math.round(prix*(1-parseFloat(remise)/100)); }
+    else { prix = Math.max(0, prix - Number(remise)); }
+  }
+  var total = prix * (drawerOption && drawerOption.qty > 1 ? drawerOption.qty : drawerQty);
+  document.getElementById('drawer-subtotal').textContent = fmt(total);
+  // Mettre à jour le prix affiché
+  document.getElementById('drawer-prix-main').textContent = fmt(prix);
+}
+
+async function drawerAppliquerPromo(){
+  var p = currentProduct;
+  if(!p) return;
+  var input = document.getElementById('drawer-promo-input');
+  var msg = document.getElementById('drawer-promo-msg');
+  var code = input ? input.value.trim().toUpperCase() : '';
+  if(!code){ showToast('⚠️ Entrez un code promo','warning'); return; }
+  msg.className='code-promo-msg'; msg.textContent='⏳ Vérification...';
+  var found = null;
+  try {
+    const { supabase: sb } = await import('./supabase-client.js');
+    const { data } = await sb.from('codes_promo').select('code,type,valeur,date_expiration,actif').eq('actif',true).eq('code',code).single();
+    if(data){
+      if(data.date_expiration && new Date(data.date_expiration) < new Date()){
+        msg.className='code-promo-error'; msg.textContent='❌ Code expiré'; return;
+      }
+      found = { nom: data.code, remise: data.type==='pourcentage'?data.valeur+'%':String(data.valeur) };
+    }
+  } catch(e){}
+  if(!found && p.codes_promo){
+    p.codes_promo.split(',').forEach(function(c){
+      var parts = c.trim().split(':');
+      if(parts[0].trim().toUpperCase()===code) found={nom:parts[0].trim(),remise:parts[1]?parts[1].trim():''};
+    });
+  }
+  if(!found){ msg.className='code-promo-error'; msg.textContent='❌ Code invalide'; drawerPromo=null; return; }
+  drawerPromo = found;
+  var label = found.remise.includes('%') ? '-'+found.remise : '-'+fmt(Number(found.remise));
+  msg.className='code-promo-success'; msg.textContent='✅ '+found.nom+' appliqué ! '+label;
+  drawerUpdateSubtotal();
+}
+
+function drawerAddToCart(){
+  var p = currentProduct;
+  if(!p) return;
+  var colors = getColors(p), sizes = getSizes(p);
+  var isOne = sizes.length===1 && sizes[0].toLowerCase().includes('one');
+  if(colors.length && !drawerColor){ showToast('⚠️ Choisissez une couleur','warning'); return; }
+  if(sizes.length && !isOne && !drawerSize){ showToast('⚠️ Choisissez une taille','warning'); return; }
+
+  // Sync avec les variables globales pour réutiliser addToCartFromProduct
+  selectedColor = drawerColor;
+  selectedSize = drawerSize || (isOne ? sizes[0] : null);
+  selectedOption = drawerOption;
+  selectedQty = drawerQty;
+  selectedCodePromo = drawerPromo ? { code: drawerPromo.nom, remise: drawerPromo.remise, prixFinal: null } : null;
+  if(selectedCodePromo){
+    var paliers = parsePrixDegressif(p.prix_degressif);
+    var baseP = paliers.length ? getPrixDegressif(paliers, selectedQty) : p.price;
+    var rem = selectedCodePromo.remise;
+    selectedCodePromo.prixFinal = rem.includes('%') ? Math.round(baseP*(1-parseFloat(rem)/100)) : Math.max(0,baseP-Number(rem));
+  }
+
+  addToCartFromProduct();
+  closeDrawer();
+}
+
+function drawerCommanderWA(){
+  var p = currentProduct;
+  if(!p) return;
+  selectedColor = drawerColor;
+  selectedSize = drawerSize;
+  selectedOption = drawerOption;
+  selectedQty = drawerQty;
+  window.open(getWhatsAppUrl(p), '_blank');
+  closeDrawer();
+}
 function openProduct(id){
   currentProduct=products.find(function(p){return p.id==id;});
   if(!currentProduct) return;
@@ -446,39 +692,6 @@ function openProduct(id){
     if(allImages.indexOf(url)<0) allImages.push(url);
   });
 
-  var optHtml='';
-  if(p.options){
-    var opts=p.options.split(',').map(function(o){return o.trim();});
-    var hasDegrv = p.prix_degressif && parsePrixDegressif(p.prix_degressif).length > 0;
-    // Si prix dégressif actif et qty > 1 → coupons grisés
-    var couponBloque = hasDegrv && selectedQty > 1;
-    var blocMsg = couponBloque
-      ? '<div class="option-bloque">ℹ️ Coupon non applicable avec le prix dégressif</div>'
-      : '';
-    optHtml='<div class="option-group"><div class="option-label">🎁 Options spéciales : <span id="selected-option-label">— choisissez —</span></div>'+blocMsg+'<div class="special-options">'+
-    opts.map(function(opt){
-      var parts=opt.split(':');
-      var nom=parts[0].trim();
-      var px=parts[1]?Number(parts[1].trim()):0;
-      var qtyOpt=parts[2]?Number(parts[2].trim()):1;
-      // Griser si coupon bloqué (qty > 1 avec dégressif)
-      var isBloque = couponBloque && qtyOpt === 1;
-      var disabledAttr = isBloque ? ' disabled' : '';
-      var disabledClass = isBloque ? ' disabled' : '';
-      return '<button class="special-btn'+disabledClass+'" '+disabledAttr+' onclick="selectOption(\'' + nom + '\',' + px + ',' + qtyOpt + ',this)">'+(px?nom+' — '+fmt(px):nom)+'</button>';
-    }).join('')+
-    '</div></div>';
-  }
-  var colHtml='';
-  if(colors.length){
-    colHtml='<div class="option-group"><div class="option-label">🎨 Couleur : <span id="selected-color-label">— choisissez</span></div><div class="color-options">'+colors.map(function(c,i){return '<button class="color-btn-label" onclick="selectColor(\''+c+'\','+i+',this)"><span class="color-dot" style="background:'+getColorHex(c)+';"></span>'+c+'</button>';}).join('')+'</div></div>';
-  }
-  var szHtml='';
-  if(sizes.length){
-    var isOne=sizes.length===1&&sizes[0].toLowerCase().includes('one');
-    szHtml='<div class="option-group"><div class="option-label">📏 Taille : <span id="selected-size-label">'+(isOne?'One Size':'— choisissez')+'</span></div><div class="size-options">'+sizes.map(function(s){return '<button class="size-btn'+(isOne?' one-size':'')+'" onclick="selectSize(\''+s+'\',this)">'+s+'</button>';}).join('')+'</div>'+(p.guide_tailles?'<button class="size-guide-toggle" onclick="toggleSizeGuide()">📏 Guide des tailles</button><div class="size-guide" id="size-guide"><table>'+p.guide_tailles.split(',').map(function(g){var parts=g.split(':');return '<tr><td>'+(parts[0]||'')+'</td><td>'+(parts[1]||'')+'</td></tr>';}).join('')+'</table></div>':'')+'</div>';
-    if(isOne) selectedSize=sizes[0];
-  }
   var isFav = getFavoris().indexOf(String(p.id)) >= 0;
   var carouselHtml=allImages.length>0?allImages.map(function(u,i){return '<img src="'+u+'" class="'+(i===0?'active':'')+'" onerror="this.style.display=\'none\'"/>';}).join(''):'<div class="no-img">'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</div>';
   var arrowHtml=allImages.length>1?'<button class="carousel-arrow prev" onclick="carouselPrev()">‹</button><button class="carousel-arrow next" onclick="carouselNext()">›</button>':'';
@@ -499,43 +712,22 @@ function openProduct(id){
 (p.badge?'<div class="prod-badge-wrap" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:4px;">'+p.badge.split(',').map(function(b){b=b.trim();return '<div class="prod-badge badge-'+b.toLowerCase()+'">'+b+'</div>';}).join('')+'</div>':'')+
         '<div class="pd-category">'+p.cat+(p.sous_categorie?' — '+p.sous_categorie:'')+'</div>'+
         '<div class="pd-name">'+p.name+'</div>'+
-        (p.moyenne_avis?'<div class="pd-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="pd-nb-avis">('+p.moyenne_avis.count+' avis)</span></div>':'')+'<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
+        (p.moyenne_avis?'<div class="pd-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="pd-nb-avis">('+p.moyenne_avis.count+' avis)</span></div>':'')+
+        '<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
         (p.matiere?'<div class="pd-matiere">🧵 <strong>Matière :</strong> '+p.matiere+'</div>':'')+
         (p.description?'<div class="pd-desc">'+p.description+'</div>':'')+
-        (p.prix_degressif ? renderPrixDegressifTable(parsePrixDegressif(p.prix_degressif), selectedQty) : '')+
-        (p.prix_degressif && p.stock > 0 ?
-          '<div class="option-group">'+
-            '<div class="option-label">🔢 Quantité : <span id="selected-qty-label">1</span></div>'+
-            '<div class="qty-selector">'+
-              '<button class="qty-sel-btn" onclick="changeProductQty(-1)">−</button>'+
-              '<span id="qty-display">1</span>'+
-              '<button class="qty-sel-btn" onclick="changeProductQty(1)">+</button>'+
-            '</div>'+
-          '</div>'
-        : '')+
-        (p.codes_promo ? '<div class="option-group" id="code-promo-group">'+
-          '<div class="option-label">🎟️ Vous avez un code promo ?</div>'+
-          (selectedQty > 1 && p.prix_degressif ? '<div class="option-bloque">ℹ️ Code promo non applicable avec le prix dégressif</div>' : '')+
-          '<div class="code-promo-wrap">'+
-            '<input id="code-promo-input" class="code-promo-input" type="text" placeholder="Entrez votre code..." '+(selectedQty > 1 && p.prix_degressif ? 'disabled' : '')+' oninput="this.value=this.value.toUpperCase()"/>'+
-            '<button class="code-promo-btn" '+(selectedQty > 1 && p.prix_degressif ? 'disabled' : '')+' onclick="appliquerCodePromo()">Appliquer</button>'+
-          '</div>'+
-          '<div id="code-promo-msg"></div>'+
-        '</div>' : '')+
-        colHtml+szHtml+optHtml+
-        '<div class="selection-summary" id="selection-summary" style="display:none;">✅ <strong>Votre sélection :</strong> <span id="summary-text"></span></div>'+
+        (p.prix_degressif ? renderPrixDegressifTable(parsePrixDegressif(p.prix_degressif), 1) : '')+
         '<div class="pd-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div>'+
         '<div class="prod-stock'+(p.stock<=3?' stock-low':'')+'" style="margin-bottom:14px;">'+(p.stock===0?'❌ Rupture de stock':p.stock<=3?'⚠️ Plus que '+p.stock+' en stock':'✅ En stock ('+p.stock+')')+'</div>'+
         '<button class="back-to-shop" onclick="showPage(\'shop\')">← Continuer mes achats</button>'+
       '</div>'+
     '</div>'+
     '<div id="avis-section" class="avis-section"></div>'+
-    // Barre sticky panier en bas (style Pinduoduo)
     '<div class="sticky-cta" id="sticky-cta">'+
       '<div class="sticky-price" id="sticky-price">'+(p.prix_barre?'<span class="sticky-prix-barre">'+fmt(p.prix_barre)+'</span> <span class="sticky-prix-main">'+fmt(p.price)+'</span>':'<span class="sticky-prix-main">'+fmt(p.price)+'</span>')+'</div>'+
       '<div class="sticky-btns">'+
-        '<a class="sticky-wa" href="'+waUrl+'" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>'+
-        '<button class="sticky-cart-btn" id="add-cart-btn" onclick="addToCartFromProduct()"'+(p.stock===0?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg> '+(p.stock===0?'Indisponible':'Ajouter au panier')+'</button>'+
+        '<button class="sticky-wa" onclick="openDrawer()" title="Commander via WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></button>'+
+        '<button class="sticky-cart-btn" onclick="openDrawer()"'+(p.stock===0?' disabled':'')+'><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg> '+(p.stock===0?'Indisponible':'Ajouter au panier')+'</button>'+
       '</div>'+
     '</div>';
   window.location.hash = 'product-'+(currentProduct.slug || id);
@@ -771,14 +963,26 @@ function initCarouselSwipe(){
 }
 function updateCarouselForColor(ci){
   if(!currentProduct) return;
-  var mainPhotos = getPhotos(currentProduct);
-  var colorPhotos = getColorPhotos(currentProduct, ci);
-  // Combiner : photos couleur en premier, puis les principales non-dupliquées
-  var combined = colorPhotos.slice();
+  var p = currentProduct;
+  var mainPhotos = getPhotos(p);
+  var selectedColorPhotos = getColorPhotos(p, ci);
+
+  // Toutes les images couleur (toutes couleurs confondues), triées par ordre
+  var allColorPhotos = (p.produit_images||[])
+    .filter(function(img){ return img.type==='couleur'; })
+    .sort(function(a,b){ return a.ordre - b.ordre; })
+    .map(function(img){ return img.url; });
+
+  // Ordre : couleur sélectionnée en premier, puis autres couleurs, puis principales
+  var combined = selectedColorPhotos.slice();
+  allColorPhotos.forEach(function(u){
+    if(combined.indexOf(u) < 0) combined.push(u);
+  });
   mainPhotos.forEach(function(u){
     if(combined.indexOf(u) < 0) combined.push(u);
   });
   if(!combined.length) combined = mainPhotos;
+
   var main=document.getElementById('carousel-main');
   var dots=document.getElementById('carousel-dots');
   var thumbs=document.getElementById('carousel-thumbs');
