@@ -816,3 +816,10 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
   60%{transform:translateX(-4px);}
   80%{transform:translateX(4px);}
 }
+
+/* ===== VARIANTES EN RUPTURE ===== */
+.drawer-color-item.rupture{opacity:.4;cursor:not-allowed;}
+.drawer-color-item.rupture .drawer-color-img{filter:grayscale(100%);}
+.drawer-color-item.rupture .drawer-color-label-text{color:var(--muted);}
+.drawer-color-item.rupture small{font-size:.65rem;color:#e74c3c;}
+.drawer-size-btn.rupture{opacity:.4;cursor:not-allowed;text-decoration:line-through;background:#f5f5f5;border-color:#ddd;color:#aaa;}

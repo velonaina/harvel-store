@@ -243,6 +243,7 @@ async function loadProducts(){
         photos_c4:     photos.photos_c4 || null,
         photos_c5:     photos.photos_c5 || null,
         stock:         p.stock || 0,
+        variantes:     p.variantes || [],
       });
     });
 
@@ -267,6 +268,33 @@ function getPhotos(p){return p.emoji&&p.emoji.startsWith('http')?p.emoji.split('
 function getColorPhotos(p,ci){var k=['photos_c1','photos_c2','photos_c3','photos_c4','photos_c5'][ci];if(p[k])return p[k].split(',').map(function(u){return u.trim();}).filter(Boolean);return getPhotos(p);}
 function getColors(p){return p.couleurs?p.couleurs.split(',').map(function(c){return c.trim();}).filter(Boolean):[];}
 function getSizes(p){return p.tailles?p.tailles.split(',').map(function(s){return s.trim();}).filter(Boolean):[];}
+
+// ===== VARIANTES =====
+function getStockVariante(p, taille, couleur){
+  if(!p.variantes || !p.variantes.length) return p.stock || 0;
+  var v = p.variantes.find(function(v){
+    var tMatch = taille ? v.taille === taille : true;
+    var cMatch = couleur ? v.couleur === couleur : true;
+    return tMatch && cMatch;
+  });
+  return v ? v.stock : 0;
+}
+
+function isTailleDisponible(p, taille){
+  if(!p.variantes || !p.variantes.length) return true;
+  // Une taille est disponible si au moins une variante de cette taille a stock > 0
+  return p.variantes.some(function(v){
+    return v.taille === taille && v.stock > 0;
+  });
+}
+
+function isCouleurDisponible(p, couleur){
+  if(!p.variantes || !p.variantes.length) return true;
+  // Une couleur est disponible si au moins une variante de cette couleur a stock > 0
+  return p.variantes.some(function(v){
+    return v.couleur === couleur && v.stock > 0;
+  });
+}
 function filteredAndSearched(){
   var list=filteredProducts();
   if(searchQuery) list=list.filter(function(p){return p.name.toLowerCase().includes(searchQuery)||p.cat.toLowerCase().includes(searchQuery);});
@@ -474,12 +502,13 @@ function openDrawer(){
       var imgKey = ['photos_c1','photos_c2','photos_c3','photos_c4','photos_c5'][i];
       var imgUrl = p[imgKey] ? p[imgKey].split(',')[0] : '';
       var hex = getColorHex(c);
+      var dispo = isCouleurDisponible(p, c);
       var imgHtml = imgUrl
-        ? '<img class="drawer-color-img" src="'+imgUrl+'" alt="'+c+'" onerror="this.src=\'\';this.style.background=\''+hex+'\'">'
-        : '<div class="drawer-color-img" style="background:'+hex+';border:2px solid #eee;"></div>';
-      return '<div class="drawer-color-item" data-color="'+c+'" data-ci="'+i+'" onclick="drawerSelectColor(\''+c+'\','+i+',this)">'+
+        ? '<img class="drawer-color-img'+(dispo?'':' rupture')+'" src="'+imgUrl+'" alt="'+c+'" onerror="this.src=\'\';this.style.background=\''+hex+'\'">'
+        : '<div class="drawer-color-img'+(dispo?'':' rupture')+'" style="background:'+hex+';border:2px solid #eee;"></div>';
+      return '<div class="drawer-color-item'+(dispo?'':' rupture')+'" data-color="'+c+'" data-ci="'+i+'" '+(dispo?'onclick="drawerSelectColor(\''+c+'\','+i+',this)"':'')+'>' +
         imgHtml+
-        '<span class="drawer-color-label-text">'+c+'</span>'+
+        '<span class="drawer-color-label-text">'+c+(dispo?'':'<br><small>Rupture</small>')+'</span>'+
       '</div>';
     }).join('');
     document.getElementById('drawer-color-label').textContent = '— choisissez';
@@ -495,7 +524,8 @@ function openDrawer(){
     sizeSection.style.display = '';
     var isOne = sizes.length===1 && sizes[0].toLowerCase().includes('one');
     sizeGrid.innerHTML = sizes.map(function(s){
-      return '<button class="drawer-size-btn'+(isOne?' one-size':'')+'" onclick="drawerSelectSize(\''+s+'\',this)">'+s+'</button>';
+      var dispo = isTailleDisponible(p, s);
+      return '<button class="drawer-size-btn'+(isOne?' one-size':'')+(dispo?'':' rupture')+'" '+(dispo?'onclick="drawerSelectSize(\''+s+'\',this)"':'disabled')+'>'+s+'</button>';
     }).join('');
     if(isOne){ drawerSize = sizes[0]; document.getElementById('drawer-size-label').textContent = sizes[0]; }
     else document.getElementById('drawer-size-label').textContent = '— choisissez';
@@ -586,7 +616,11 @@ function drawerChangeQty(delta){
   if(!p) return;
   var newQty = drawerQty + delta;
   if(newQty < 1) return;
-  if(newQty > p.stock){ showToast('⚠️ Stock max : '+p.stock,'warning'); return; }
+  // Stock selon variante sélectionnée
+  var stockMax = p.variantes && p.variantes.length
+    ? getStockVariante(p, drawerSize, drawerColor)
+    : p.stock;
+  if(newQty > stockMax){ showToast('⚠️ Stock max : '+stockMax,'warning'); return; }
   if(newQty > GROS_COMMANDE_LIMITE){
     showToast('📦 Pour '+GROS_COMMANDE_LIMITE+'+ articles, contactez-nous !','warning');
     var waMsg = 'Bonjour Harvel Store ! 👋 Je souhaite commander *'+p.name+'* en grande quantité ('+newQty+' articles). Pouvez-vous me proposer un tarif ? Merci !';
@@ -630,8 +664,14 @@ function drawerUpdateSubtotal(){
   }
   var total = prix * (drawerOption && drawerOption.qty > 1 ? drawerOption.qty : drawerQty);
   document.getElementById('drawer-subtotal').textContent = fmt(total);
-  // Mettre à jour le prix affiché
   document.getElementById('drawer-prix-main').textContent = fmt(prix);
+  // Mettre à jour stock affiché
+  var stockEl = document.getElementById('drawer-qty-stock');
+  if(stockEl && p.variantes && p.variantes.length && (drawerSize || drawerColor)){
+    var sv = getStockVariante(p, drawerSize, drawerColor);
+    stockEl.textContent = sv > 0 ? 'Stock : '+sv : 'Rupture';
+    stockEl.style.color = sv > 0 ? '' : '#e74c3c';
+  }
 }
 
 async function drawerAppliquerPromo(){
@@ -1496,14 +1536,38 @@ async function submitOrder(){
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
 
-    // ── Décrémenter stock Supabase ──
+    // ── Décrémenter stock Supabase (produit global + variante) ──
     cart.forEach(async function(item){
-      var prod=products.find(function(p){return p.id==item.id;});
+      var prod = products.find(function(p){ return p.id==item.id; });
       if(prod){
-        prod.stock=Math.max(0,prod.stock-item.qty);
+        prod.stock = Math.max(0, prod.stock - item.qty);
         try {
           const { supabase: sb } = await import('./supabase-client.js');
           await sb.from('produits').update({ stock: prod.stock }).eq('id', prod.id);
+          // Décrémenter la variante si applicable
+          if(prod.variantes && prod.variantes.length && item.variant){
+            var parts = item.variant.split(' — ');
+            var couleur = null, taille = null;
+            parts.forEach(function(part){
+              var colors = getColors(prod);
+              var sizes = getSizes(prod);
+              if(colors.indexOf(part) >= 0) couleur = part;
+              if(sizes.indexOf(part) >= 0) taille = part;
+            });
+            var v = prod.variantes.find(function(v){
+              var tMatch = taille ? v.taille === taille : !v.taille;
+              var cMatch = couleur ? v.couleur === couleur : !v.couleur;
+              return tMatch && cMatch;
+            });
+            if(v){
+              v.stock = Math.max(0, v.stock - item.qty);
+              await sb.from('variantes')
+                .update({ stock: v.stock })
+                .eq('produit_id', prod.id)
+                .eq('taille', v.taille || '')
+                .eq('couleur', v.couleur || '');
+            }
+          }
         } catch(e) { console.error('Stock update error:', e); }
       }
     });

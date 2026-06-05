@@ -1,8 +1,7 @@
 import { supabase } from './supabase-client.js'
 
 /**
- * Charge tous les produits actifs + leurs images principales.
- * Equivalent de l'appel Apps Script vers Google Sheets.
+ * Charge tous les produits actifs + leurs images + leurs variantes.
  */
 export async function getProduitsActifs() {
   const { data, error } = await supabase
@@ -23,6 +22,24 @@ export async function getProduitsActifs() {
     return []
   }
 
+  // Charger les variantes (stock par taille/couleur)
+  const { data: variantesData } = await supabase
+    .from('variantes')
+    .select('produit_id, taille, couleur, stock')
+
+  // Regrouper les variantes par produit_id
+  const variantesMap = {}
+  if (variantesData) {
+    variantesData.forEach(v => {
+      if (!variantesMap[v.produit_id]) variantesMap[v.produit_id] = []
+      variantesMap[v.produit_id].push({
+        taille:  v.taille,
+        couleur: v.couleur,
+        stock:   v.stock,
+      })
+    })
+  }
+
   // Charger les avis validés pour calculer les moyennes
   const { data: avisData } = await supabase
     .from('avis')
@@ -39,7 +56,7 @@ export async function getProduitsActifs() {
     })
   }
 
-  // Normalise : ajoute image_url principale + moyenne_avis
+  // Normalise : ajoute image_url principale + moyenne_avis + variantes
   return data.map(p => {
     const moy = moyennes[String(p.sheet_id)] || moyennes[p.id] || null
     return {
@@ -51,7 +68,8 @@ export async function getProduitsActifs() {
       moyenne_avis: moy ? {
         moyenne: Math.round((moy.total / moy.count) * 10) / 10,
         count: moy.count
-      } : null
+      } : null,
+      variantes: variantesMap[p.id] || [],
     }
   })
 }
