@@ -595,6 +595,25 @@ function drawerChangeQty(delta){
   }
   drawerQty = newQty;
   document.getElementById('drawer-qty-val').textContent = drawerQty;
+
+  // Gérer le blocage code promo si prix dégressif actif
+  var hasDegrv = p.prix_degressif && parsePrixDegressif(p.prix_degressif).length > 0;
+  var couponBloque = hasDegrv && drawerQty > 1;
+  var promoInput = document.getElementById('drawer-promo-input');
+  var promoBtn = document.querySelector('#drawer-promo-section .code-promo-btn');
+  var promoMsg = document.getElementById('drawer-promo-msg');
+  var promoSection = document.getElementById('drawer-promo-section');
+  if(couponBloque){
+    if(promoInput){ promoInput.disabled = true; promoInput.value = ''; }
+    if(promoBtn) promoBtn.disabled = true;
+    if(promoMsg){ promoMsg.className='option-bloque'; promoMsg.textContent='ℹ️ Code promo non applicable avec le prix dégressif'; }
+    if(drawerPromo){ drawerPromo = null; }
+  } else {
+    if(promoInput) promoInput.disabled = false;
+    if(promoBtn) promoBtn.disabled = false;
+    if(promoMsg && promoMsg.className==='option-bloque'){ promoMsg.textContent=''; promoMsg.className=''; }
+  }
+
   drawerUpdateSubtotal();
 }
 
@@ -618,8 +637,13 @@ function drawerUpdateSubtotal(){
 async function drawerAppliquerPromo(){
   var p = currentProduct;
   if(!p) return;
+  var hasDegrv = p.prix_degressif && parsePrixDegressif(p.prix_degressif).length > 0;
   var input = document.getElementById('drawer-promo-input');
   var msg = document.getElementById('drawer-promo-msg');
+  if(hasDegrv && drawerQty > 1){
+    if(msg){ msg.className='option-bloque'; msg.textContent='ℹ️ Code promo non applicable avec le prix dégressif'; }
+    return;
+  }
   var code = input ? input.value.trim().toUpperCase() : '';
   if(!code){ showToast('⚠️ Entrez un code promo','warning'); return; }
   msg.className='code-promo-msg'; msg.textContent='⏳ Vérification...';
