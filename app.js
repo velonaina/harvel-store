@@ -1407,6 +1407,54 @@ function fallbackCopy(text){
   }catch(e){showToast('⚠️ Copie impossible, notez le manuellement','warning');}
   document.body.removeChild(ta);
 }
+// ===== GÉNÉRER UN TOKEN DE SUIVI =====
+function genTrackToken() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  var token = '';
+  for(var i = 0; i < 12; i++) token += chars[Math.floor(Math.random() * chars.length)];
+  return token;
+}
+
+// ===== ENREGISTRER COMMANDE DANS SUPABASE =====
+async function enregistrerCommandeSupabase(orderNum, trackToken, name, phone, address, note, cartItems, total, codePromo) {
+  try {
+    const { supabase: sb } = await import('./supabase-client.js');
+
+    // 1. Insérer dans commandes
+    var { data: cmd, error: cmdErr } = await sb.from('commandes').insert({
+      numero:           orderNum,
+      client_nom:       name,
+      client_phone:     phone,
+      adresse_livraison: address,
+      notes:            note || null,
+      total:            total,
+      coupon_code:      codePromo || null,
+      track_token:      trackToken,
+      statut:           'en_attente',
+      source:           'site',
+    }).select('id').single();
+
+    if(cmdErr) { console.error('Supabase commande insert error:', cmdErr.message); return; }
+
+    // 2. Insérer les articles dans commandes_items
+    var items = cartItems.map(function(i) {
+      return {
+        commande_id: cmd.id,
+        produit_id:  String(i.id),
+        produit_nom: i.name,
+        variante:    i.variant || null,
+        prix:        i.price,
+        quantite:    i.qty,
+      };
+    });
+    var { error: itemsErr } = await sb.from('commandes_items').insert(items);
+    if(itemsErr) console.error('Supabase items insert error:', itemsErr.message);
+
+  } catch(e) {
+    console.error('Erreur enregistrement Supabase:', e);
+  }
+}
+
 async function submitOrder(){
   var name=document.getElementById('f-name').value.trim();
   var phone=document.getElementById('f-phone').value.trim();
@@ -1415,21 +1463,36 @@ async function submitOrder(){
   if(!name||!phone||!address){showToast('⚠️ Veuillez remplir tous les champs obligatoires.','warning');return;}
   if(!cart.length){showToast('⚠️ Votre panier est vide.','warning');return;}
   var btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ Envoi en cours...';
+
+  // Générer le track_token côté client
+  var trackToken = genTrackToken();
+  var total = cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var codePromo = cart.length>0&&cart[0].code_promo?cart[0].code_promo:undefined;
+
   var payload={
     customer:{name:name,phone:phone,address:address,note:note},
     items:cart.map(function(i){return {id:i.id,name:i.name+(i.variant?' ('+i.variant+')':''),price:i.price,qty:i.qty};}),
-    code_promo:cart.length>0&&cart[0].code_promo?cart[0].code_promo:undefined,
-    total:cart.reduce(function(s,i){return s+i.price*i.qty;},0),
+    code_promo: codePromo,
+    total: total,
   };
+
   try{
+    // ── Envoi vers Apps Script (principal) ──
     var res=await fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
     var data=await res.json();
     if(!data.success) throw new Error(data.error);
     var orderNum=data.commande;
+    // Utiliser le token retourné par Apps Script (il génère le sien)
+    var finalToken = data.track_token || trackToken;
+
+    // ── Envoi vers Supabase en parallèle (ne bloque pas) ──
+    var cartSnapshot = cart.map(function(i){ return Object.assign({},i); });
+    enregistrerCommandeSupabase(orderNum, finalToken, name, phone, address, note, cartSnapshot, total, codePromo);
+
+    // ── Affichage page succès ──
     document.getElementById('success-order-num').textContent='📋 '+orderNum;
-    // Stocker le token pour le lien de suivi
-    if(data.track_token) {
-      var lienSuivi = window.location.origin + '/#suivi-' + orderNum + '-' + data.track_token;
+    if(finalToken) {
+      var lienSuivi = window.location.origin + '/#suivi-' + orderNum + '-' + finalToken;
       var lienEl = document.getElementById('success-lien-suivi');
       if(lienEl) {
         lienEl.href = lienSuivi;
@@ -1439,6 +1502,8 @@ async function submitOrder(){
     }
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
+
+    // ── Décrémenter stock Supabase ──
     cart.forEach(async function(item){
       var prod=products.find(function(p){return p.id==item.id;});
       if(prod){
@@ -1449,26 +1514,23 @@ async function submitOrder(){
         } catch(e) { console.error('Stock update error:', e); }
       }
     });
-    // ── Résumé commande dans page success ───────────────────────
+
+    // ── Résumé commande dans page success ──
     var resumeItems = cart.map(function(i){
-      var nom = i.name;
       var option = i.variant ? '<div class="suivi-item-option">📌 '+i.variant+'</div>' : '';
-      var qtyAff = i.qty;
       return '<div class="suivi-item">'+
-        '<div class="suivi-item-nom">'+nom+'</div>'+
+        '<div class="suivi-item-nom">'+i.name+'</div>'+
         option+
-        '<div class="suivi-item-prix">'+qtyAff+' × '+fmt(i.price)+'</div>'+
+        '<div class="suivi-item-prix">'+i.qty+' × '+fmt(i.price)+'</div>'+
       '</div>';
     }).join('');
-    var resumeTotal = cart.reduce(function(s,i){return s+i.price*i.qty;},0);
-    var resumeAdresse = address;
     var resumeEl = document.getElementById('success-resume');
     if(resumeEl){
       resumeEl.innerHTML =
         '<div class="suivi-resume-title">🛍️ Détail de votre commande</div>'+
         resumeItems+
-        '<div class="suivi-total">Total : <strong>'+fmt(resumeTotal)+'</strong></div>'+
-        '<div class="suivi-adresse">📍 '+resumeAdresse+'</div>';
+        '<div class="suivi-total">Total : <strong>'+fmt(total)+'</strong></div>'+
+        '<div class="suivi-adresse">📍 '+address+'</div>';
       resumeEl.style.display = 'block';
     }
     ['f-name','f-phone','f-address','f-note'].forEach(function(id){document.getElementById(id).value='';});
