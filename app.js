@@ -1421,7 +1421,11 @@ async function enregistrerCommandeSupabase(orderNum, trackToken, name, phone, ad
     const { supabase: sb } = await import('./supabase-client.js');
 
     // 1. Insérer dans commandes
-    var { data: cmd, error: cmdErr } = await sb.from('commandes').insert({
+    // Générer l'UUID côté client pour éviter le SELECT après INSERT
+    var cmdId = crypto.randomUUID();
+
+    var { error: cmdErr } = await sb.from('commandes').insert({
+      id:               cmdId,
       numero:           orderNum,
       client_nom:       name,
       client_phone:     phone,
@@ -1432,14 +1436,14 @@ async function enregistrerCommandeSupabase(orderNum, trackToken, name, phone, ad
       track_token:      trackToken,
       statut:           'en_attente',
       source:           'site',
-    }).select('id').single();
+    });
 
     if(cmdErr) { console.error('Supabase commande insert error:', cmdErr.message); return; }
 
     // 2. Insérer les articles dans commandes_items
     var items = cartItems.map(function(i) {
       return {
-        commande_id: cmd.id,
+        commande_id: cmdId,
         produit_id:  String(i.id),
         produit_nom: i.name,
         variante:    i.variant || null,
