@@ -249,6 +249,7 @@ async function loadProducts(){
     renderNotifications(notifs);
     renderHome();
     renderShop();
+    updateFavCount();
     showToast('✅ ' + products.length + ' produits chargés');
     return true;
   } catch(err) {
@@ -423,6 +424,10 @@ function toggleFavori(id){
     b.innerHTML = FAV_SVG;
   });
   showToast(isFav ? '❤️ Ajouté aux favoris' : 'Retiré des favoris');
+  updateFavCount();
+  // Re-render la page favoris si on y est
+  var pageFav = document.getElementById('page-favoris');
+  if(pageFav && pageFav.classList.contains('active')) renderFavoris();
 }
 
 // ===== DRAWER COMMANDE (style Alibaba) =====
@@ -543,6 +548,9 @@ function drawerSelectColor(c, ci, el){
   document.querySelectorAll('.drawer-color-item').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
   document.getElementById('drawer-color-label').textContent = c;
+  // Retirer l'erreur
+  var colorSection = document.getElementById('drawer-colors-section');
+  if(colorSection) colorSection.classList.remove('drawer-section-error');
   // Mettre à jour la miniature header
   var p = currentProduct;
   var imgKey = ['photos_c1','photos_c2','photos_c3','photos_c4','photos_c5'][ci];
@@ -559,6 +567,9 @@ function drawerSelectSize(s, el){
   document.querySelectorAll('.drawer-size-btn').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
   document.getElementById('drawer-size-label').textContent = s;
+  // Retirer l'erreur
+  var sizeSection = document.getElementById('drawer-sizes-section');
+  if(sizeSection) sizeSection.classList.remove('drawer-section-error');
   drawerUpdateSubtotal();
 }
 
@@ -641,8 +652,29 @@ function drawerAddToCart(){
   if(!p) return;
   var colors = getColors(p), sizes = getSizes(p);
   var isOne = sizes.length===1 && sizes[0].toLowerCase().includes('one');
-  if(colors.length && !drawerColor){ showToast('⚠️ Choisissez une couleur','warning'); return; }
-  if(sizes.length && !isOne && !drawerSize){ showToast('⚠️ Choisissez une taille','warning'); return; }
+
+  // Réinitialiser les erreurs
+  var colorSection = document.getElementById('drawer-colors-section');
+  var sizeSection = document.getElementById('drawer-sizes-section');
+  if(colorSection) colorSection.classList.remove('drawer-section-error');
+  if(sizeSection) sizeSection.classList.remove('drawer-section-error');
+
+  var hasError = false;
+  if(colors.length && !drawerColor){
+    if(colorSection) colorSection.classList.add('drawer-section-error');
+    hasError = true;
+  }
+  if(sizes.length && !isOne && !drawerSize){
+    if(sizeSection) sizeSection.classList.add('drawer-section-error');
+    hasError = true;
+  }
+  if(hasError){
+    // Scroller vers la première erreur
+    var firstError = document.querySelector('.drawer-section-error');
+    if(firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
+    showToast('⚠️ Veuillez compléter votre sélection','warning');
+    return;
+  }
 
   // Sync avec les variables globales pour réutiliser addToCartFromProduct
   selectedColor = drawerColor;
@@ -671,6 +703,62 @@ function drawerCommanderWA(){
   window.open(getWhatsAppUrl(p), '_blank');
   closeDrawer();
 }
+function updateFavCount(){
+  var count = getFavoris().length;
+  var navBadge = document.getElementById('fav-nav-count');
+  if(navBadge){
+    if(count > 0){
+      navBadge.textContent = count;
+      navBadge.style.display = 'inline-flex';
+    } else {
+      navBadge.style.display = 'none';
+    }
+  }
+  var mobileCount = document.getElementById('mobile-fav-count');
+  if(mobileCount) mobileCount.textContent = count;
+}
+
+function renderFavoris(){
+  var el = document.getElementById('favoris-content');
+  if(!el) return;
+  var favs = getFavoris();
+  if(!favs.length){
+    el.innerHTML =
+      '<div class="fav-empty">'+
+        '<div class="fav-empty-icon">🤍</div>'+
+        '<p>Vous n\'avez pas encore de favoris.</p>'+
+        '<p style="font-size:.85rem;color:var(--muted);">Appuyez sur le cœur sur un produit pour l\'ajouter ici.</p>'+
+        '<button class="hero-btn" style="background:var(--primary);color:#fff;margin-top:16px;" onclick="showPage(\'shop\')">🛍️ Découvrir les produits</button>'+
+      '</div>';
+    return;
+  }
+  var list = products.filter(function(p){ return favs.indexOf(String(p.id)) >= 0; });
+  if(!list.length){
+    el.innerHTML = '<div class="fav-empty"><div class="fav-empty-icon">🤍</div><p>Chargement...</p></div>';
+    return;
+  }
+  el.innerHTML = '<div class="products">'+list.map(function(p){
+    var ph = getPhotos(p);
+    var v = getViewers(p.id);
+    var imgHtml = ph.length > 0
+      ? '<img src="'+ph[0]+'" alt="'+p.name+'" onerror="this.parentElement.innerHTML=\'📦\'"/>'
+      : '<span>'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</span>';
+    var stockHtml = p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ Plus que '+p.stock:'✅ En stock';
+    return '<div class="product-card" onclick="openProduct(\''+p.id+'\')">'+
+      '<button class="fav-card-btn active" data-pid="'+p.id+'" onclick="event.stopPropagation();toggleFavori(\''+p.id+'\')" title="Retirer des favoris">'+FAV_SVG+'</button>'+
+      '<div class="prod-img">'+imgHtml+'</div>'+
+      '<div class="prod-info">'+
+        '<div class="prod-name">'+p.name+'</div>'+
+        (p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+
+        '<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
+        '<div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+
+        '<button class="view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Voir le produit →</button>'+
+      '</div>'+
+    '</div>';
+  }).join('')+'</div>'+
+  '<div style="text-align:center;margin-top:8px;"><p style="font-size:.82rem;color:var(--muted);">'+list.length+' produit'+(list.length>1?'s':'')+'</p></div>';
+}
+
 function openProduct(id){
   currentProduct=products.find(function(p){return p.id==id;});
   if(!currentProduct) return;
@@ -1388,6 +1476,7 @@ function showPage(p){
   var nb=document.getElementById('nav-'+p);if(nb)nb.classList.add('active');
   if(p==='home') renderHome();
   if(p==='shop') renderShop();
+  if(p==='favoris') renderFavoris();
   if(p==='cart') {
     renderCart();
     // Cacher le bouton flottant sur la page panier
@@ -1816,6 +1905,8 @@ function initFromHash(){
     var cmdNum = parts[0]+'-'+parts[1]+'-'+parts[2]; // suivi-CMD-XXXXXX → CMD-XXXXXX
     var trackToken = parts.slice(3).join('-');
     ouvrirSuiviAvecToken(parts[1]+'-'+parts[2], trackToken);
+  } else if(hash==='favoris'){
+    showPage('favoris');
   } else if(hash==='cart'){
     showPage('cart');
   } else if(hash.startsWith('avis-')){

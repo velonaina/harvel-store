@@ -794,3 +794,25 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 @media(max-width:640px){
   .drawer{width:100vw;}
 }
+
+/* ===== PAGE FAVORIS ===== */
+.fav-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.fav-empty-icon{font-size:3.5rem;margin-bottom:16px;}
+.fav-empty p{font-size:.95rem;margin-bottom:6px;}
+
+/* ===== DRAWER — VALIDATION ERREUR ===== */
+.drawer-section-error{
+  border-radius:var(--border-radius-md);
+  background:#fff5f5;
+  border:1.5px solid #e74c3c !important;
+  padding:10px !important;
+  animation:shakeError .35s ease;
+}
+.drawer-section-error .drawer-section-title{color:#e74c3c;}
+@keyframes shakeError{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-6px);}
+  40%{transform:translateX(6px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}

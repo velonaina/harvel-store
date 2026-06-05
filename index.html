@@ -103,6 +103,7 @@
   </div>
   <div class="nav-links">
     <button onclick="showPage('home')" id="nav-home" class="active">Accueil</button>
+    <button onclick="showPage('favoris')" id="nav-favoris">❤️ <span id="fav-nav-count" style="display:none;background:#e74c3c;color:#fff;border-radius:50%;width:18px;height:18px;font-size:.7rem;display:none;align-items:center;justify-content:center;margin-left:2px;font-weight:800;" id="fav-nav-count"></span></button>
     <button onclick="showPage('shop')" id="nav-shop">Boutique</button>
     <button onclick="showPage('about')" id="nav-about">À propos</button>
     <button onclick="showPage('suivi')" id="nav-suivi">📦 Suivi</button>
@@ -117,6 +118,7 @@
 <div class="mobile-menu" id="mobile-menu">
   <button class="close-menu" onclick="toggleMenu()">✕</button>
   <button onclick="showPage('home');toggleMenu()">🏠 Accueil</button>
+  <button onclick="showPage('favoris');toggleMenu()">❤️ Mes favoris (<span id="mobile-fav-count">0</span>)</button>
   <button onclick="showPage('shop');toggleMenu()">🛍️ Boutique</button>
   <button onclick="showPage('about');toggleMenu()">ℹ️ À propos</button>
   <button onclick="showPage('suivi');toggleMenu()">📦 Suivi de commande</button>
@@ -154,6 +156,12 @@
   <div id="recommandations-carrousel" class="rec-carrousel-wrap">
     <div class="rec-loading">Chargement des témoignages...</div>
   </div>
+</div>
+
+<!-- FAVORIS -->
+<div class="page" id="page-favoris">
+  <div class="section-title">❤️ Mes favoris</div>
+  <div id="favoris-content"></div>
 </div>
 
 <!-- SHOP -->
