@@ -571,24 +571,33 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 /* ===== SEMAINE 9 — FAVORIS ===== */
 .fav-card-btn{
   position:absolute;top:8px;right:8px;
-  background:#fff;border:none;border-radius:50%;
-  width:32px;height:32px;font-size:1rem;
+  background:rgba(255,255,255,0.88);
+  border:none;border-radius:50%;
+  width:30px;height:30px;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;box-shadow:0 2px 6px #0002;
+  cursor:pointer;
+  box-shadow:0 1px 4px rgba(0,0,0,0.15);
   z-index:3;transition:.2s;
-  opacity:.75;
+  padding:0;
 }
-.fav-card-btn:hover,.fav-card-btn.active{opacity:1;transform:scale(1.1);}
+.fav-card-btn svg{width:16px;height:16px;stroke:#aaa;fill:none;transition:.2s;flex-shrink:0;}
+.fav-card-btn:hover svg{stroke:#e74c3c;}
+.fav-card-btn.active svg{stroke:#e74c3c;fill:#e74c3c;}
 
 .fav-btn{
   position:absolute;top:10px;right:10px;
-  background:#fff;border:none;border-radius:50%;
-  width:40px;height:40px;font-size:1.2rem;
+  background:rgba(255,255,255,0.88);
+  border:none;border-radius:50%;
+  width:38px;height:38px;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;box-shadow:0 2px 8px #0003;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
   z-index:5;transition:.2s;
+  padding:0;
 }
-.fav-btn:hover,.fav-btn.active{transform:scale(1.15);}
+.fav-btn svg{width:20px;height:20px;stroke:#aaa;fill:none;transition:.2s;flex-shrink:0;}
+.fav-btn:hover svg{stroke:#e74c3c;}
+.fav-btn.active svg{stroke:#e74c3c;fill:#e74c3c;}
 
 /* ===== SEMAINE 9 — STICKY CTA PANIER (style Pinduoduo) ===== */
 .sticky-cta{

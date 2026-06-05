@@ -315,7 +315,7 @@ if(p.badge){
     var stockHtml=p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ Plus que '+p.stock:'✅ En stock';
     var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Voir le produit →</button>';
     var isFavCard = getFavoris().indexOf(String(p.id)) >= 0;
-    var favCardBtn = '<button class="fav-card-btn'+(isFavCard?' active':'')+'" data-pid="'+p.id+'" onclick="event.stopPropagation();toggleFavori(\''+p.id+'\')" title="Favoris">'+(isFavCard?'❤️':'🤍')+'</button>';
+    var favCardBtn = '<button class="fav-card-btn'+(isFavCard?' active':'')+'" data-pid="'+p.id+'" onclick="event.stopPropagation();toggleFavori(\''+p.id+'\')" title="Favoris">'+FAV_SVG+'</button>';
     return '<div class="product-card" onclick="openProduct(\''+p.id+'\')">'+badge+favCardBtn+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div>'+(p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+'<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
   }).join('')+'</div>';
 }
@@ -401,27 +401,28 @@ function getFavoris(){
 function saveFavoris(favs){
   try{ localStorage.setItem('harvel_favoris', JSON.stringify(favs)); }catch(e){}
 }
+var FAV_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+
 function toggleFavori(id){
   var favs = getFavoris();
   var idx = favs.indexOf(String(id));
   if(idx>=0){ favs.splice(idx,1); }
   else { favs.push(String(id)); }
   saveFavoris(favs);
-  // Mettre à jour le bouton si présent
+  var isFav = favs.indexOf(String(id)) >= 0;
+  // Mettre à jour le bouton fiche produit
   var btn = document.getElementById('fav-btn');
   if(btn){
-    var isFav = favs.indexOf(String(id)) >= 0;
     btn.classList.toggle('active', isFav);
-    btn.innerHTML = isFav ? '❤️' : '🤍';
+    btn.innerHTML = FAV_SVG;
     btn.title = isFav ? 'Retirer des favoris' : 'Ajouter aux favoris';
   }
   // Mettre à jour les cartes produit dans la grille
   document.querySelectorAll('.fav-card-btn[data-pid="'+id+'"]').forEach(function(b){
-    var isFav2 = getFavoris().indexOf(String(id)) >= 0;
-    b.classList.toggle('active', isFav2);
-    b.innerHTML = isFav2 ? '❤️' : '🤍';
+    b.classList.toggle('active', isFav);
+    b.innerHTML = FAV_SVG;
   });
-  showToast(favs.indexOf(String(id))>=0 ? '❤️ Ajouté aux favoris' : '🤍 Retiré des favoris');
+  showToast(isFav ? '❤️ Ajouté aux favoris' : 'Retiré des favoris');
 }
 
 function openProduct(id){
@@ -488,7 +489,7 @@ function openProduct(id){
     '<button class="back-to-shop" onclick="showPage(\'shop\')" style="margin-bottom:16px;width:auto;padding:8px 16px;">← Retour</button>'+
     '<div class="product-page">'+
       '<div><div class="carousel-wrap">'+
-        '<button id="fav-btn" class="fav-btn'+(isFav?' active':'')+'" onclick="toggleFavori(\''+p.id+'\')" title="'+(isFav?'Retirer des favoris':'Ajouter aux favoris')+'">'+(isFav?'❤️':'🤍')+'</button>'+
+        '<button id="fav-btn" class="fav-btn'+(isFav?' active':'')+'" onclick="toggleFavori(\''+p.id+'\')" title="'+(isFav?'Retirer des favoris':'Ajouter aux favoris')+'">'+FAV_SVG+'</button>'+
         '<div class="carousel-main" id="carousel-main">'+carouselHtml+'</div>'+
         arrowHtml+
         '<div class="carousel-dots" id="carousel-dots">'+dotsHtml+'</div>'+
@@ -770,19 +771,23 @@ function initCarouselSwipe(){
 }
 function updateCarouselForColor(ci){
   if(!currentProduct) return;
-  // Récupérer les photos spécifiques à cette couleur
-  var photos=getColorPhotos(currentProduct,ci);
-  // Si pas de photos spécifiques couleur → garder les photos principales
-  if(!photos.length) photos=getPhotos(currentProduct);
+  var mainPhotos = getPhotos(currentProduct);
+  var colorPhotos = getColorPhotos(currentProduct, ci);
+  // Combiner : photos couleur en premier, puis les principales non-dupliquées
+  var combined = colorPhotos.slice();
+  mainPhotos.forEach(function(u){
+    if(combined.indexOf(u) < 0) combined.push(u);
+  });
+  if(!combined.length) combined = mainPhotos;
   var main=document.getElementById('carousel-main');
   var dots=document.getElementById('carousel-dots');
   var thumbs=document.getElementById('carousel-thumbs');
-  if(!main||!photos.length) return;
+  if(!main) return;
   carouselIndex=0;
-  main.innerHTML=photos.map(function(u,i){return '<img src="'+u+'" class="'+(i===0?'active':'')+'" onerror="this.style.display=\'none\'"/>';}).join('');
+  main.innerHTML=combined.map(function(u,i){return '<img src="'+u+'" class="'+(i===0?'active':'')+'" onerror="this.style.display=\'none\'"/>';}).join('');
   main._swipeInit=false;
-  if(dots) dots.innerHTML=photos.map(function(_,i){return '<div class="carousel-dot '+(i===0?'active':'')+'" onclick="goToSlide('+i+')"></div>';}).join('');
-  if(thumbs) thumbs.innerHTML=photos.map(function(u,i){return '<img src="'+u+'" class="carousel-thumb '+(i===0?'active':'')+'" onclick="goToSlide('+i+')" onerror="this.style.display=\'none\'"/>';}).join('');
+  if(dots) dots.innerHTML=combined.map(function(_,i){return '<div class="carousel-dot '+(i===0?'active':'')+'" onclick="goToSlide('+i+')"></div>';}).join('');
+  if(thumbs) thumbs.innerHTML=combined.map(function(u,i){return '<img src="'+u+'" class="carousel-thumb '+(i===0?'active':'')+'" onclick="goToSlide('+i+')" onerror="this.style.display=\'none\'"/>';}).join('');
   initCarouselSwipe();
 }
 function selectColor(c,i,btn){selectedColor=c;document.querySelectorAll('.color-btn-label').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var l=document.getElementById('selected-color-label');if(l)l.textContent=c;updateCarouselForColor(i);updateSummary();}
