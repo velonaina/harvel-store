@@ -567,3 +567,77 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .voir-plus-btn:hover{opacity:.88;}
 .voir-plus-btn:active{transform:scale(.97);}
 .voir-plus-chevron{font-size:1.1rem;}
+
+/* ===== SEMAINE 9 — FAVORIS ===== */
+.fav-card-btn{
+  position:absolute;top:8px;right:8px;
+  background:#fff;border:none;border-radius:50%;
+  width:32px;height:32px;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 2px 6px #0002;
+  z-index:3;transition:.2s;
+  opacity:.75;
+}
+.fav-card-btn:hover,.fav-card-btn.active{opacity:1;transform:scale(1.1);}
+
+.fav-btn{
+  position:absolute;top:10px;right:10px;
+  background:#fff;border:none;border-radius:50%;
+  width:40px;height:40px;font-size:1.2rem;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 2px 8px #0003;
+  z-index:5;transition:.2s;
+}
+.fav-btn:hover,.fav-btn.active{transform:scale(1.15);}
+
+/* ===== SEMAINE 9 — STICKY CTA PANIER (style Pinduoduo) ===== */
+.sticky-cta{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;
+  border-top:2px solid var(--border);
+  padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  z-index:990;
+  box-shadow:0 -4px 16px rgba(0,0,0,0.1);
+}
+.sticky-price{
+  display:flex;flex-direction:column;line-height:1.2;
+  min-width:100px;
+}
+.sticky-prix-barre{
+  text-decoration:line-through;color:var(--muted);font-size:.75rem;
+}
+.sticky-prix-main{
+  color:var(--danger);font-size:1.25rem;font-weight:800;
+}
+.sticky-btns{
+  display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end;
+}
+.sticky-wa{
+  width:46px;height:46px;border-radius:50%;
+  background:#25D366;
+  display:flex;align-items:center;justify-content:center;
+  text-decoration:none;flex-shrink:0;
+  transition:.2s;
+}
+.sticky-wa:hover{background:#1ebe5d;transform:scale(1.05);}
+.sticky-cart-btn{
+  flex:1;max-width:220px;
+  padding:12px 18px;
+  background:var(--primary);color:#fff;
+  border:none;border-radius:10px;
+  font-size:.95rem;font-weight:700;
+  cursor:pointer;transition:.2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.sticky-cart-btn:hover{background:var(--primary-dark);}
+.sticky-cart-btn:disabled{background:#ccc;cursor:not-allowed;}
+
+/* Padding bas de page sur fiche produit pour ne pas masquer le contenu */
+#page-product{padding-bottom:80px;}
+
+@media(max-width:640px){
+  .sticky-cta{padding:8px 12px;}
+  .sticky-prix-main{font-size:1.1rem;}
+  .sticky-cart-btn{font-size:.88rem;padding:12px 12px;}
+}
