@@ -1337,8 +1337,11 @@ function addToCartFromProduct(){
   var photos=getPhotos(p);
   var ex=cart.find(function(i){return i.cartKey===cartKey;});
   var emojiForAnim=p.emoji&&!p.emoji.startsWith('http')?p.emoji:'🛒';
+  var stockVariante = (p.variantes && p.variantes.length)
+    ? getStockVariante(p, selectedSize, selectedColor)
+    : p.stock;
   if(ex){
-    if(ex.qty<p.stock){ex.qty++;showToast('✅ '+p.name+' mis à jour');animateToCart(emojiForAnim);}
+    if(ex.qty<stockVariante){ex.qty++;showToast('✅ '+p.name+' mis à jour');animateToCart(emojiForAnim);}
     else{showToast('⚠️ Stock maximum atteint !','warning');return;}
   }else{
     var isPack = selectedOption && selectedOption.qty > 1;
