@@ -1337,11 +1337,8 @@ function addToCartFromProduct(){
   var photos=getPhotos(p);
   var ex=cart.find(function(i){return i.cartKey===cartKey;});
   var emojiForAnim=p.emoji&&!p.emoji.startsWith('http')?p.emoji:'🛒';
-  var stockVariante = (p.variantes && p.variantes.length)
-    ? getStockVariante(p, selectedSize, selectedColor)
-    : p.stock;
   if(ex){
-    if(ex.qty<stockVariante){ex.qty++;showToast('✅ '+p.name+' mis à jour');animateToCart(emojiForAnim);}
+    if(ex.qty<p.stock){ex.qty++;showToast('✅ '+p.name+' mis à jour');animateToCart(emojiForAnim);}
     else{showToast('⚠️ Stock maximum atteint !','warning');return;}
   }else{
     var isPack = selectedOption && selectedOption.qty > 1;
@@ -1395,7 +1392,20 @@ function changeQty(key,d){
   var prod=products.find(function(x){return x.id==item.id;});
   var newQty = item.qty + d;
   if(newQty <= 0){ cart=cart.filter(function(x){return x.cartKey!==key;}); updateCartCount(); renderCart(); return; }
-  if(prod && newQty > prod.stock){ showToast('⚠️ Stock maximum atteint !','warning'); return; }
+  var stockMaxCart = (prod && prod.variantes && prod.variantes.length)
+    ? getStockVariante(prod, item.variant ? item.variant.split(' — ')[1] : null, item.variant ? item.variant.split(' — ')[0] : null)
+    : (prod ? prod.stock : 999);
+  // Parser la variante depuis item.variant (format: "Couleur — Taille" ou "Taille — Couleur")
+  if(prod && prod.variantes && prod.variantes.length) {
+    var variantParts = item.variant ? item.variant.split(' — ') : [];
+    var itemColor = null, itemSize = null;
+    variantParts.forEach(function(part) {
+      if(prod.couleurs && prod.couleurs.indexOf(part) > -1) itemColor = part;
+      if(prod.tailles && prod.tailles.indexOf(part) > -1) itemSize = part;
+    });
+    stockMaxCart = getStockVariante(prod, itemSize, itemColor);
+  }
+  if(prod && newQty > stockMaxCart){ showToast('⚠️ Stock maximum atteint !','warning'); return; }
   item.qty = newQty;
   // Recalculer le prix dégressif si applicable
   if(prod && prod.prix_degressif) {
