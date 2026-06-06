@@ -1392,12 +1392,10 @@ function changeQty(key,d){
   var prod=products.find(function(x){return x.id==item.id;});
   var newQty = item.qty + d;
   if(newQty <= 0){ cart=cart.filter(function(x){return x.cartKey!==key;}); updateCartCount(); renderCart(); return; }
-  var stockMaxCart = (prod && prod.variantes && prod.variantes.length)
-    ? getStockVariante(prod, item.variant ? item.variant.split(' — ')[1] : null, item.variant ? item.variant.split(' — ')[0] : null)
-    : (prod ? prod.stock : 999);
-  // Parser la variante depuis item.variant (format: "Couleur — Taille" ou "Taille — Couleur")
-  if(prod && prod.variantes && prod.variantes.length) {
-    var variantParts = item.variant ? item.variant.split(' — ') : [];
+  // Parser variante : format "Couleur — Taille" (ordre fixe dans addToCartFromProduct)
+  var stockMaxCart = prod ? prod.stock : 999;
+  if(prod && prod.variantes && prod.variantes.length && item.variant) {
+    var variantParts = item.variant.split(' — ');
     var itemColor = null, itemSize = null;
     variantParts.forEach(function(part) {
       if(prod.couleurs && prod.couleurs.indexOf(part) > -1) itemColor = part;
