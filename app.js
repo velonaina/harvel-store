@@ -16,6 +16,32 @@ var COLOR_MAP = {
 };
 function getColorHex(n){return COLOR_MAP[n.toLowerCase().trim()]||'#888';}
 var products=[],cart=[],activeFilter="Tous",currentProduct=null;
+
+// ===== BADGES SUPABASE =====
+var badgesCache = [];
+async function chargerBadges() {
+  try {
+    const { supabase: sb } = await import('./supabase-client.js');
+    const { data } = await sb.from('badges').select('*').order('created_at');
+    badgesCache = data || [];
+  } catch(e) { console.error('Erreur chargement badges:', e); }
+}
+function renderBadgesProduit(p) {
+  var html = '';
+  if(p.badge_ids && p.badge_ids.length && badgesCache.length) {
+    html = p.badge_ids.map(function(bid) {
+      var b = badgesCache.find(function(x){ return x.id === bid; });
+      if(!b) return '';
+      return '<div class="prod-badge" style="background:'+b.couleur_fond+';color:'+b.couleur_texte+';">'+b.nom+'</div>';
+    }).join('');
+  } else if(p.badge) {
+    html = p.badge.split(',').map(function(b){
+      b = b.trim();
+      return '<div class="prod-badge badge-'+b.toLowerCase()+'">'+b+'</div>';
+    }).join('');
+  }
+  return html ? '<div class="prod-badge-wrap">'+html+'</div>' : '';
+}
 var selectedColor=null,selectedSize=null,selectedOption=null,selectedQty=1,selectedCodePromo=null,carouselIndex=0;
 var searchQuery='',chronoInterval=null;
 function fmt(n){return Number(n).toLocaleString('fr-MG')+' Ar';}
@@ -248,6 +274,7 @@ async function loadProducts(){
     });
 
     renderNotifications(notifs);
+    await chargerBadges();
     renderHome();
     renderShop();
     updateFavCount();
@@ -333,13 +360,7 @@ function renderProductGrid(id,list){
   el.innerHTML='<div class="products">'+list.map(function(p){
     var ph=getPhotos(p);
     var v=getViewers(p.id);
-    var badge='';
-if(p.badge){
-  badge='<div class="prod-badge-wrap">'+p.badge.split(',').map(function(b){
-    b=b.trim();
-    return '<div class="prod-badge badge-'+b.toLowerCase()+'">'+b+'</div>';
-  }).join('')+'</div>';
-}
+    var badge = renderBadgesProduit(p);
     var imgHtml=ph.length>0?'<img src="'+ph[0]+'" alt="'+p.name+'" onerror="this.parentElement.innerHTML=\'📦\'"/>':'<span>'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</span>';
     var stockHtml=p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ Plus que '+p.stock:'✅ En stock';
     var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Voir le produit →</button>';
@@ -861,9 +882,10 @@ function openProduct(id){
         thumbsHtml+
       '</div></div>'+
       '<div class="product-details">'+
-(p.badge?'<div class="prod-badge-wrap" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:4px;">'+p.badge.split(',').map(function(b){b=b.trim();return '<div class="prod-badge badge-'+b.toLowerCase()+'">'+b+'</div>';}).join('')+'</div>':'')+
+(renderBadgesProduit(p) ? '<div style="margin-bottom:10px;">'+renderBadgesProduit(p)+'</div>' : '')+
         '<div class="pd-category">'+p.cat+(p.sous_categorie?' — '+p.sous_categorie:'')+'</div>'+
         '<div class="pd-name">'+p.name+'</div>'+
+        (p.guide_tailles ? '<button class="guide-tailles-btn" onclick="ouvrirGuidesTailles(currentProduct)">📏 Guide des tailles</button>' : '')+
         (p.moyenne_avis?'<div class="pd-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="pd-nb-avis">('+p.moyenne_avis.count+' avis)</span></div>':'')+
         '<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
         (p.matiere?'<div class="pd-matiere">🧵 <strong>Matière :</strong> '+p.matiere+'</div>':'')+
@@ -2138,4 +2160,40 @@ if(MAINTENANCE){
   loadProducts().then(function(){
     initFromHash();
   });
+}
+
+// ===== GUIDE DES TAILLES =====
+function ouvrirGuidesTailles(p) {
+  var guide = null;
+  try { guide = p.guide_tailles ? JSON.parse(p.guide_tailles) : null; } catch(e) {}
+  if(!guide || !guide.cols || !guide.cols.length) return;
+  var cols = guide.cols;
+  var rows = guide.rows || [];
+  var tableHtml = '<table style="width:100%;border-collapse:collapse;font-size:.85rem;">' +
+    '<thead><tr>' +
+      cols.map(function(c){ return '<th style="background:#1F3864;color:white;padding:8px 10px;text-align:left;font-size:.8rem;">'+c+'</th>'; }).join('') +
+    '</tr></thead>' +
+    '<tbody>' +
+      rows.map(function(row){
+        return '<tr style="border-bottom:1px solid #f0f2f5;">' +
+          cols.map(function(_, ci){ return '<td style="padding:7px 10px;">'+(row[ci]||'—')+'</td>'; }).join('') +
+        '</tr>';
+      }).join('') +
+    '</tbody></table>';
+  var existing = document.getElementById('modal-guide-tailles');
+  if(existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'modal-guide-tailles';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2000;display:flex;align-items:flex-end;justify-content:center;';
+  modal.innerHTML =
+    '<div style="background:white;border-radius:16px 16px 0 0;padding:1.5rem;width:100%;max-width:600px;max-height:80vh;overflow-y:auto;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">'+
+        '<div style="font-size:1rem;font-weight:700;color:#1F3864;">📏 Guide des tailles — '+p.name+'</div>'+
+        '<button onclick="document.getElementById(\'modal-guide-tailles\').remove()" style="background:#f0f2f5;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.1rem;">×</button>'+
+      '</div>'+
+      '<div style="overflow-x:auto;">'+tableHtml+'</div>'+
+      '<p style="font-size:.75rem;color:#888;margin-top:1rem;text-align:center;">Les tailles peuvent varier. En cas de doute, contactez-nous via WhatsApp.</p>'+
+    '</div>';
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
 }
