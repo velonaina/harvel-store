@@ -7,105 +7,162 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; }
-    .navbar { background: #1F3864; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-    .navbar h1 { color: white; font-size: 1.1rem; font-weight: 700; }
-    .navbar span { color: #a0b4d0; font-size: 0.85rem; }
-    .btn-logout { background: transparent; border: 1.5px solid #a0b4d0; color: #a0b4d0; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+
+    /* ===== NAVBAR ===== */
+    .navbar { background: #1F3864; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .navbar h1 { color: white; font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .navbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .navbar span#user-email { color: #a0b4d0; font-size: 0.8rem; display: none; }
+    @media (min-width: 600px) { .navbar span#user-email { display: inline; } }
+    .btn-logout { background: transparent; border: 1.5px solid #a0b4d0; color: #a0b4d0; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; transition: all 0.2s; white-space: nowrap; }
     .btn-logout:hover { background: white; color: #1F3864; border-color: white; }
-    .tabs { background: white; border-bottom: 2px solid #e8ecf0; padding: 0 2rem; display: flex; gap: 0; overflow-x: auto; }
-    .tab-btn { padding: 14px 20px; border: none; background: transparent; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #888; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.2s; }
+
+    /* ===== TABS ===== */
+    .tabs { background: white; border-bottom: 2px solid #e8ecf0; padding: 0 1rem; display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { padding: 12px 14px; border: none; background: transparent; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: #888; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
     .tab-btn:hover { color: #1F3864; }
     .tab-btn.active { color: #1F3864; border-bottom-color: #1F3864; }
-    .container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+    /* ===== CONTAINER ===== */
+    .container { padding: 1rem; max-width: 1200px; margin: 0 auto; }
+    @media (min-width: 768px) { .container { padding: 2rem; } }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .kpi-card { background: white; border-radius: 10px; padding: 1.5rem; border: 1px solid #e8ecf0; border-left: 4px solid #2E75B6; }
+
+    /* ===== KPI ===== */
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+    @media (min-width: 600px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 900px) { .kpi-grid { grid-template-columns: repeat(5, 1fr); } }
+    .kpi-card { background: white; border-radius: 10px; padding: 1rem; border: 1px solid #e8ecf0; border-left: 4px solid #2E75B6; }
     .kpi-card.vert { border-left-color: #2E7D32; }
     .kpi-card.orange { border-left-color: #e65100; }
     .kpi-card.violet { border-left-color: #6a1b9a; }
     .kpi-card.rose { border-left-color: #c2185b; }
-    .kpi-card .label { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-    .kpi-card .value { font-size: 2rem; font-weight: 700; color: #1F3864; }
-    .kpi-card .sub { font-size: 0.78rem; color: #2E75B6; margin-top: 4px; }
-    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-    .section-title { font-size: 1.1rem; font-weight: 700; color: #1F3864; }
-    .btn-primary { background: #1F3864; color: white; border: none; padding: 8px 18px; border-radius: 7px; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: background 0.2s; }
+    .kpi-card .label { font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .kpi-card .value { font-size: 1.6rem; font-weight: 700; color: #1F3864; }
+    .kpi-card .sub { font-size: 0.72rem; color: #2E75B6; margin-top: 4px; }
+
+    /* ===== SECTION HEADER ===== */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+    .section-title { font-size: 1rem; font-weight: 700; color: #1F3864; }
+
+    /* ===== BUTTONS ===== */
+    .btn-primary { background: #1F3864; color: white; border: none; padding: 8px 16px; border-radius: 7px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
     .btn-primary:hover { background: #2E75B6; }
-    .btn-success { background: #2E7D32; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; }
+    .btn-success { background: #2E7D32; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
     .btn-success:hover { background: #388e3c; }
-    .btn-danger { background: #c62828; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; }
+    .btn-danger { background: #c62828; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
     .btn-danger:hover { background: #e53935; }
-    .btn-warning { background: #e65100; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; }
-    .btn-edit { background: #1565c0; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; }
+    .btn-warning { background: #e65100; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; }
+    .btn-edit { background: #1565c0; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
     .btn-edit:hover { background: #1976d2; }
-    .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; border: 1px solid #e8ecf0; }
+    .btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+
+    /* ===== TABLE ===== */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid #e8ecf0; }
+    table { width: 100%; border-collapse: collapse; background: white; min-width: 500px; }
     thead { background: #1F3864; }
-    thead th { color: white; padding: 12px 14px; font-size: 0.82rem; font-weight: 600; text-align: left; }
+    thead th { color: white; padding: 10px 12px; font-size: 0.78rem; font-weight: 600; text-align: left; white-space: nowrap; }
     tbody tr { border-bottom: 1px solid #f0f2f5; transition: background 0.15s; }
     tbody tr:hover { background: #f8fafc; }
-    tbody td { padding: 10px 14px; font-size: 0.85rem; vertical-align: middle; }
-    .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    tbody td { padding: 9px 12px; font-size: 0.82rem; vertical-align: middle; }
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
     .badge-actif { background: #e8f5e9; color: #2E7D32; }
     .badge-inactif { background: #fce4ec; color: #c62828; }
     .badge-attente { background: #fff3e0; color: #e65100; }
     .badge-valide { background: #e8f5e9; color: #2E7D32; }
-    .card { background: white; border-radius: 10px; border: 1px solid #e8ecf0; padding: 1.5rem; margin-bottom: 1.5rem; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.82rem; font-weight: 600; color: #555; }
-    .form-group input, .form-group select, .form-group textarea { padding: 8px 12px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 0.88rem; outline: none; transition: border 0.2s; font-family: Arial, sans-serif; }
+
+    /* ===== CARD ===== */
+    .card { background: white; border-radius: 10px; border: 1px solid #e8ecf0; padding: 1.25rem; margin-bottom: 1.5rem; }
+
+    /* ===== FORM ===== */
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 0.9rem; }
+    @media (min-width: 500px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: #555; }
+    .form-group input, .form-group select, .form-group textarea { padding: 8px 10px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 0.85rem; outline: none; transition: border 0.2s; font-family: Arial, sans-serif; width: 100%; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #2E75B6; }
-    .form-group textarea { resize: vertical; min-height: 80px; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .form-group textarea { resize: vertical; min-height: 75px; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: flex-end; justify-content: center; }
+    @media (min-width: 600px) { .modal-overlay { align-items: center; } }
     .modal-overlay.show { display: flex; }
-    .modal { background: white; border-radius: 12px; padding: 2rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-    .modal h3 { font-size: 1.1rem; color: #1F3864; margin-bottom: 1.5rem; font-weight: 700; }
-    .modal-actions { display: flex; gap: 10px; margin-top: 1.5rem; justify-content: flex-end; }
-    .toast { position: fixed; bottom: 2rem; right: 2rem; background: #1F3864; color: white; padding: 12px 20px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; transform: translateY(100px); opacity: 0; transition: all 0.3s; z-index: 9999; }
-    .toast.show { transform: translateY(0); opacity: 1; }
+    .modal { background: white; border-radius: 16px 16px 0 0; padding: 1.5rem; width: 100%; max-height: 92vh; overflow-y: auto; }
+    @media (min-width: 600px) { .modal { border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; } }
+    .modal h3 { font-size: 1rem; color: #1F3864; margin-bottom: 1.25rem; font-weight: 700; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 1.25rem; justify-content: flex-end; }
+
+    /* ===== TOAST ===== */
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: #1F3864; color: white; padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 9999; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     .toast.success { background: #2E7D32; }
     .toast.error { background: #c62828; }
-    .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+
+    /* ===== TOGGLE ===== */
+    .toggle { position: relative; display: inline-block; width: 38px; height: 21px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 22px; transition: 0.3s; }
-    .toggle-slider:before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 21px; transition: 0.3s; }
+    .toggle-slider:before { content: ''; position: absolute; width: 15px; height: 15px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
     .toggle input:checked + .toggle-slider { background: #2E7D32; }
-    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
-    .inline-input { width: 80px; padding: 4px 8px; border: 1.5px solid #2E75B6; border-radius: 5px; font-size: 0.82rem; text-align: right; }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(17px); }
+
+    /* ===== MISC ===== */
+    .inline-input { width: 75px; padding: 4px 7px; border: 1.5px solid #2E75B6; border-radius: 5px; font-size: 0.8rem; text-align: right; }
     .loading-row td { text-align: center; padding: 2rem; color: #aaa; }
-    .spinner-sm { display: inline-block; width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: #1F3864; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    .spinner-sm { display: inline-block; width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #1F3864; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .img-preview { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
+    .img-preview { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
     .stock-ok { color: #2E7D32; font-weight: 600; }
     .stock-low { color: #e65100; font-weight: 600; }
     .stock-zero { color: #c62828; font-weight: 600; }
-    .stars { color: #f59e0b; font-size: 1rem; letter-spacing: 1px; }
-    .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+    .stars { color: #f59e0b; font-size: 1rem; }
+    .actions-cell { display: flex; gap: 5px; flex-wrap: wrap; }
     .img-card { text-align: center; }
-    .img-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; }
-    .img-card .img-info { font-size: .75rem; color: #666; margin-top: 4px; }
+    .img-card img { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; }
+    .img-card .img-info { font-size: .73rem; color: #666; margin-top: 4px; }
     .img-card button { margin-top: 4px; width: 100%; }
-    @media (max-width: 600px) { .container { padding: 1rem; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } .tabs { padding: 0 1rem; } }
+
+    /* ===== VARIANTES ===== */
+    .variante-produit-select { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .variante-produit-select select { padding: 8px 12px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 0.85rem; flex: 1; min-width: 180px; }
+    .stock-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .stock-badge.ok { background: #e8f5e9; color: #2E7D32; }
+    .stock-badge.low { background: #fff3e0; color: #e65100; }
+    .stock-badge.zero { background: #fce4ec; color: #c62828; }
+    .variante-table-wrap table { min-width: 380px; }
+
+    /* ===== SCREEN SECRET ===== */
+    #ecran-secret { display: none; position: fixed; inset: 0; background: #1F3864; z-index: 9999; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; padding: 2rem; }
+    #ecran-secret h2 { color: white; font-family: Arial; font-size: 1.2rem; text-align: center; }
+    #ecran-secret input { padding: 12px 20px; border-radius: 8px; border: none; font-size: 1rem; width: 100%; max-width: 280px; text-align: center; }
+    #ecran-secret button { background: #2E7D32; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 600; width: 100%; max-width: 280px; }
+    #secret-error { color: #ff8a80; font-size: .85rem; text-align: center; }
+
+    /* ===== ACCÈS RAPIDES MOBILE ===== */
+    .quick-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .quick-btns .btn-primary { font-size: 0.8rem; padding: 7px 12px; }
   </style>
 </head>
 <body>
 
 <nav class="navbar">
   <h1>🛍️ Harvel Store — Admin</h1>
-  <span id="user-email"></span>
-  <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
+  <div class="navbar-right">
+    <span id="user-email"></span>
+    <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
+  </div>
 </nav>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('overview')">📊 Vue d'ensemble</button>
+  <button class="tab-btn active" onclick="switchTab('overview')">📊 Vue</button>
   <button class="tab-btn" onclick="switchTab('produits')">🛍️ Produits</button>
+  <button class="tab-btn" onclick="switchTab('variantes')">📦 Variantes</button>
   <button class="tab-btn" onclick="switchTab('avis')">⭐ Avis <span id="badge-avis"></span></button>
-  <button class="tab-btn" onclick="switchTab('notifs')">🔔 Notifications</button>
-  <button class="tab-btn" onclick="switchTab('promos')">🎟️ Codes promo</button>
-  <button class="tab-btn" onclick="switchTab('recs')">💬 Recommandations</button>
+  <button class="tab-btn" onclick="switchTab('notifs')">🔔 Notifs</button>
+  <button class="tab-btn" onclick="switchTab('promos')">🎟️ Promos</button>
+  <button class="tab-btn" onclick="switchTab('recs')">💬 Témoign.</button>
   <button class="tab-btn" onclick="switchTab('commandes')">📦 Commandes</button>
 </div>
 
@@ -115,19 +172,20 @@
   <div id="tab-overview" class="tab-content active">
     <div class="kpi-grid">
       <div class="kpi-card vert"><div class="label">Produits actifs</div><div class="value" id="kpi-produits">—</div><div class="sub">dans la boutique</div></div>
-      <div class="kpi-card"><div class="label">Stock total</div><div class="value" id="kpi-stock">—</div><div class="sub">articles disponibles</div></div>
+      <div class="kpi-card"><div class="label">Stock total</div><div class="value" id="kpi-stock">—</div><div class="sub">articles</div></div>
       <div class="kpi-card orange"><div class="label">Avis en attente</div><div class="value" id="kpi-avis">—</div><div class="sub">à valider</div></div>
-      <div class="kpi-card violet"><div class="label">Notifications</div><div class="value" id="kpi-notifs">—</div><div class="sub">actives sur le site</div></div>
+      <div class="kpi-card violet"><div class="label">Notifications</div><div class="value" id="kpi-notifs">—</div><div class="sub">actives</div></div>
       <div class="kpi-card rose"><div class="label">Témoignages</div><div class="value" id="kpi-recs">—</div><div class="sub">en attente</div></div>
     </div>
     <div class="card">
       <div class="section-title" style="margin-bottom:1rem;">⚡ Accès rapides</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div class="quick-btns">
         <button class="btn-primary" onclick="switchTab('produits')">🛍️ Produits</button>
+        <button class="btn-primary" onclick="switchTab('variantes')">📦 Variantes</button>
         <button class="btn-primary" onclick="switchTab('avis')">⭐ Avis</button>
-        <button class="btn-primary" onclick="switchTab('notifs')">🔔 Notifications</button>
-        <button class="btn-primary" onclick="switchTab('promos')">🎟️ Codes promo</button>
-        <button class="btn-primary" onclick="switchTab('recs')">💬 Recommandations</button>
+        <button class="btn-primary" onclick="switchTab('notifs')">🔔 Notifs</button>
+        <button class="btn-primary" onclick="switchTab('promos')">🎟️ Promos</button>
+        <button class="btn-primary" onclick="switchTab('recs')">💬 Témoign.</button>
         <button class="btn-primary" onclick="switchTab('commandes')">📦 Commandes</button>
       </div>
     </div>
@@ -141,13 +199,31 @@
   <div id="tab-produits" class="tab-content">
     <div class="section-header">
       <div class="section-title">🛍️ Gestion des produits</div>
-      <button class="btn-primary" onclick="ouvrirModalAjoutProduit()">+ Nouveau produit</button>
+      <button class="btn-primary" onclick="ouvrirModalAjoutProduit()">+ Nouveau</button>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Image</th><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Statut</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Image</th><th>Produit</th><th>Cat.</th><th>Prix</th><th>Stock</th><th>Actif</th><th>Actions</th></tr></thead>
         <tbody id="produits-tbody"><tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- VARIANTES -->
+  <div id="tab-variantes" class="tab-content">
+    <div class="section-header">
+      <div class="section-title">📦 Gestion des variantes</div>
+    </div>
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="variante-produit-select">
+        <select id="variante-produit-sel" onchange="chargerVariantesProduit()">
+          <option value="">— Choisir un produit —</option>
+        </select>
+        <button class="btn-primary" onclick="ouvrirModalAjoutVariante()" id="btn-ajouter-variante" disabled>+ Ajouter variante</button>
+      </div>
+    </div>
+    <div id="variantes-content">
+      <div style="text-align:center;padding:2rem;color:#aaa;font-size:.9rem;">Sélectionnez un produit pour voir ses variantes.</div>
     </div>
   </div>
 
@@ -155,8 +231,8 @@
   <div id="tab-avis" class="tab-content">
     <div class="section-header">
       <div class="section-title">⭐ Avis clients</div>
-      <select id="filtre-avis" onchange="filtrerAvis()" style="padding:6px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:0.85rem;">
-        <option value="tous">Tous les avis</option>
+      <select id="filtre-avis" onchange="filtrerAvis()" style="padding:6px 10px;border:1.5px solid #ddd;border-radius:7px;font-size:0.82rem;">
+        <option value="tous">Tous</option>
         <option value="attente">En attente</option>
         <option value="valide">Validés</option>
       </select>
@@ -172,8 +248,8 @@
   <!-- NOTIFICATIONS -->
   <div id="tab-notifs" class="tab-content">
     <div class="section-header">
-      <div class="section-title">🔔 Notifications barre de nav</div>
-      <button class="btn-primary" onclick="ouvrirModalNotif()">+ Nouvelle notification</button>
+      <div class="section-title">🔔 Notifications nav</div>
+      <button class="btn-primary" onclick="ouvrirModalNotif()">+ Nouvelle</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -186,8 +262,8 @@
   <!-- CODES PROMO -->
   <div id="tab-promos" class="tab-content">
     <div class="section-header">
-      <div class="section-title">🎟️ Codes promo globaux</div>
-      <button class="btn-primary" onclick="ouvrirModalPromo()">+ Nouveau code</button>
+      <div class="section-title">🎟️ Codes promo</div>
+      <button class="btn-primary" onclick="ouvrirModalPromo()">+ Nouveau</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -201,7 +277,7 @@
   <div id="tab-recs" class="tab-content">
     <div class="section-header">
       <div class="section-title">💬 Témoignages clients</div>
-      <select id="filtre-recs" onchange="filtrerRecs()" style="padding:6px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:0.85rem;">
+      <select id="filtre-recs" onchange="filtrerRecs()" style="padding:6px 10px;border:1.5px solid #ddd;border-radius:7px;font-size:0.82rem;">
         <option value="tous">Tous</option>
         <option value="attente">En attente</option>
         <option value="valide">Validés</option>
@@ -219,21 +295,21 @@
   <div id="tab-commandes" class="tab-content">
     <div class="section-header">
       <div class="section-title">📦 Commandes clients</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <select id="filtre-commandes" onchange="filtrerCommandes()" style="padding:6px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:0.85rem;">
-          <option value="tous">Tous les statuts</option>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="filtre-commandes" onchange="filtrerCommandes()" style="padding:6px 10px;border:1.5px solid #ddd;border-radius:7px;font-size:0.82rem;">
+          <option value="tous">Tous statuts</option>
           <option value="En attente">⏳ En attente</option>
           <option value="Confirmé">✅ Confirmé</option>
           <option value="Expédié">🚚 Expédié</option>
           <option value="Livré">🎉 Livré</option>
           <option value="Annulé">❌ Annulé</option>
         </select>
-        <button class="btn-primary" onclick="chargerCommandes()">🔄 Actualiser</button>
+        <button class="btn-primary" onclick="chargerCommandes()">🔄</button>
       </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>N° Commande</th><th>Date</th><th>Client</th><th>Produits</th><th>Total</th><th>Statut</th><th>Actions</th></tr></thead>
+        <thead><tr><th>N° Cmd</th><th>Date</th><th>Client</th><th>Produits</th><th>Total</th><th>Statut</th><th>Actions</th></tr></thead>
         <tbody id="commandes-tbody"><tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr></tbody>
       </table>
     </div>
@@ -241,11 +317,11 @@
 
 </div>
 
-<!-- MODAL IMAGES -->
+<!-- ===== MODAL IMAGES ===== -->
 <div class="modal-overlay" id="modal-images">
   <div class="modal" style="max-width:700px;">
     <h3 id="modal-images-titre">📷 Gérer les images</h3>
-    <div id="images-liste" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem;min-height:60px;"></div>
+    <div id="images-liste" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1rem;margin-bottom:1.5rem;min-height:60px;"></div>
     <div class="card" style="margin-bottom:0;">
       <div class="section-title" style="margin-bottom:1rem;">➕ Ajouter une image</div>
       <div class="form-grid">
@@ -254,9 +330,9 @@
         <div class="form-group"><label>Type</label><select id="upload-type"><option value="principale">🖼️ Principale</option><option value="couleur">🎨 Couleur</option></select></div>
         <div class="form-group"><label>Ordre</label><input type="number" id="upload-ordre" value="1" min="1" /></div>
       </div>
-      <div id="upload-preview" style="margin-top:1rem;display:none;"><img id="upload-preview-img" style="max-height:120px;border-radius:8px;border:1px solid #eee;" /></div>
-      <div id="upload-progress" style="margin-top:1rem;font-size:.85rem;color:#666;"></div>
-      <div class="modal-actions" style="margin-top:1rem;">
+      <div id="upload-preview" style="margin-top:1rem;display:none;"><img id="upload-preview-img" style="max-height:110px;border-radius:8px;border:1px solid #eee;" /></div>
+      <div id="upload-progress" style="margin-top:1rem;font-size:.82rem;color:#666;"></div>
+      <div class="modal-actions">
         <button class="btn-danger" onclick="fermerModal('modal-images')">Fermer</button>
         <button class="btn-success" onclick="uploadImage()" id="btn-upload">⬆️ Uploader</button>
       </div>
@@ -264,7 +340,7 @@
   </div>
 </div>
 
-<!-- MODAL PRODUIT -->
+<!-- ===== MODAL PRODUIT ===== -->
 <div class="modal-overlay" id="modal-produit">
   <div class="modal">
     <h3 id="modal-produit-titre">Modifier le produit</h3>
@@ -273,7 +349,7 @@
       <div class="form-group" style="grid-column:1/-1;"><label>Nom du produit</label><input type="text" id="edit-nom" placeholder="Nom du produit" /></div>
       <div class="form-group"><label>Prix (Ar)</label><input type="number" id="edit-prix" placeholder="30000" /></div>
       <div class="form-group"><label>Prix barré (Ar)</label><input type="number" id="edit-prix-barre" placeholder="Optionnel" /></div>
-      <div class="form-group"><label>Stock</label><input type="number" id="edit-stock" placeholder="0" /></div>
+      <div class="form-group"><label>Stock global</label><input type="number" id="edit-stock" placeholder="0" /></div>
       <div class="form-group"><label>Badge</label><input type="text" id="edit-badge" placeholder="Nouveau, Promo" /></div>
       <div class="form-group"><label>Catégorie</label><input type="text" id="edit-categorie" /></div>
       <div class="form-group"><label>Matière</label><input type="text" id="edit-matiere" /></div>
@@ -292,7 +368,34 @@
   </div>
 </div>
 
-<!-- MODAL NOTIFICATION -->
+<!-- ===== MODAL VARIANTE ===== -->
+<div class="modal-overlay" id="modal-variante">
+  <div class="modal">
+    <h3 id="modal-variante-titre">📦 Variante</h3>
+    <input type="hidden" id="variante-id" />
+    <input type="hidden" id="variante-produit-id" />
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Taille <small style="color:#888;">(laisser vide si non applicable)</small></label>
+        <input type="text" id="variante-taille" placeholder="S, M, L, XL, 40..." />
+      </div>
+      <div class="form-group">
+        <label>Couleur <small style="color:#888;">(laisser vide si non applicable)</small></label>
+        <input type="text" id="variante-couleur" placeholder="Noir, Blanc..." />
+      </div>
+      <div class="form-group">
+        <label>Stock <span style="color:#c62828;">*</span></label>
+        <input type="number" id="variante-stock" placeholder="0" min="0" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="fermerModal('modal-variante')">Annuler</button>
+      <button class="btn-success" onclick="sauvegarderVariante()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL NOTIFICATION ===== -->
 <div class="modal-overlay" id="modal-notif">
   <div class="modal">
     <h3 id="modal-notif-titre">🔔 Notification</h3>
@@ -311,7 +414,7 @@
   </div>
 </div>
 
-<!-- MODAL CODE PROMO -->
+<!-- ===== MODAL CODE PROMO ===== -->
 <div class="modal-overlay" id="modal-promo">
   <div class="modal">
     <h3 id="modal-promo-titre">🎟️ Code promo</h3>
@@ -331,12 +434,12 @@
   </div>
 </div>
 
-<!-- ECRAN CODE SECRET -->
-<div id="ecran-secret" style="display:none;position:fixed;inset:0;background:#1F3864;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
-  <h2 style="color:white;font-family:Arial;">🔐 Accès sécurisé</h2>
-  <input type="password" id="input-secret" placeholder="Code d'accès..." style="padding:12px 20px;border-radius:8px;border:none;font-size:1rem;width:250px;text-align:center;" />
-  <button onclick="verifierSecret()" style="background:#2E7D32;color:white;border:none;padding:12px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;">Accéder →</button>
-  <p id="secret-error" style="color:#ff8a80;font-size:.85rem;"></p>
+<!-- ===== ECRAN CODE SECRET ===== -->
+<div id="ecran-secret">
+  <h2>🔐 Accès sécurisé</h2>
+  <input type="password" id="input-secret" placeholder="Code d'accès..." />
+  <button onclick="verifierSecret()">Accéder →</button>
+  <p id="secret-error"></p>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -372,10 +475,11 @@
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'))
     document.getElementById('tab-' + tab).classList.add('active')
-    const tabs = ['overview','produits','avis','notifs','promos','recs','commandes']
+    const tabs = ['overview','produits','variantes','avis','notifs','promos','recs','commandes']
     const idx = tabs.indexOf(tab)
     if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active')
     if (tab === 'produits') chargerProduits()
+    if (tab === 'variantes') chargerProduitsVarianteSelect()
     if (tab === 'avis') chargerAvis()
     if (tab === 'notifs') chargerNotifs()
     if (tab === 'promos') chargerPromos()
@@ -403,12 +507,12 @@
   async function chargerStockCritique() {
     const { data } = await supabase.from('produits').select('nom, stock').eq('actif', true).lte('stock', 5).order('stock')
     const el = document.getElementById('stock-critique')
-    if (!data || !data.length) { el.innerHTML = '<p style="color:#2E7D32;font-size:.88rem;">✅ Tous les stocks sont corrects.</p>'; return }
+    if (!data || !data.length) { el.innerHTML = '<p style="color:#2E7D32;font-size:.85rem;">✅ Tous les stocks sont corrects.</p>'; return }
     el.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
-      data.map(p => '<tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:8px 0;font-size:.85rem;font-weight:600;">' + p.nom + '</td><td style="padding:8px 0;font-size:.85rem;text-align:right;" class="' + (p.stock === 0 ? 'stock-zero' : 'stock-low') + '">' + (p.stock === 0 ? '❌ Rupture' : '⚠️ ' + p.stock + ' restants') + '</td></tr>').join('') + '</table>'
+      data.map(p => `<tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:8px 0;font-size:.82rem;font-weight:600;">${p.nom}</td><td style="padding:8px 0;font-size:.82rem;text-align:right;" class="${p.stock === 0 ? 'stock-zero' : 'stock-low'}">${p.stock === 0 ? '❌ Rupture' : '⚠️ ' + p.stock + ' restants'}</td></tr>`).join('') + '</table>'
   }
 
-  // PRODUITS
+  // ===== PRODUITS =====
   let tousLesProduits = []
 
   async function chargerProduits() {
@@ -418,26 +522,26 @@
     if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur de chargement</td></tr>'; return }
     tousLesProduits = data
     const NO_IMG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="48" height="48" fill="#eee"/><text x="24" y="30" text-anchor="middle" font-size="20">📦</text></svg>')
-    tbody.innerHTML = data.map(p => '<tr>' +
-      '<td><img src="' + (p.image_url || NO_IMG) + '" class="img-preview" onerror="this.src=\'' + NO_IMG + '\'"/></td>' +
-      '<td><strong>' + p.nom + '</strong>' + (p.badge ? '<br><small style="color:#e65100;">' + p.badge + '</small>' : '') + '</td>' +
-      '<td style="color:#666;font-size:.82rem;">' + (p.categorie || '—') + '</td>' +
-      '<td><input type="number" class="inline-input" value="' + p.prix + '" id="prix-' + p.id + '" />' + (p.prix_barre ? '<br><small style="color:#aaa;text-decoration:line-through;">' + p.prix_barre.toLocaleString('fr') + ' Ar</small>' : '') + '</td>' +
-      '<td><input type="number" class="inline-input" value="' + p.stock + '" id="stock-' + p.id + '" style="width:60px;" /></td>' +
-      '<td><label class="toggle"><input type="checkbox" ' + (p.actif ? 'checked' : '') + ' onchange="toggleActif(\'' + p.id + '\', this.checked)" /><span class="toggle-slider"></span></label></td>' +
-      '<td><div class="actions-cell">' +
-        '<button class="btn-success btn-sm" onclick="sauvegarderStockPrix(\'' + p.id + '\')">💾 Sauver</button>' +
-        '<button class="btn-edit btn-sm" onclick="ouvrirModifierProduit(\'' + p.id + '\')">✏️ Modifier</button>' +
-        '<button class="btn-primary btn-sm" onclick="ouvrirGestionImages(\'' + p.id + '\', \'' + p.nom.replace(/'/g, "\\'") + '\')">📷</button>' +
-        '<button class="btn-danger btn-sm" onclick="confirmerSuppression(\'' + p.id + '\', \'' + p.nom.replace(/'/g, "\\'") + '\')">🗑️</button>' +
-      '</div></td>' +
-      '</tr>').join('')
+    tbody.innerHTML = data.map(p => `<tr>
+      <td><img src="${p.image_url || NO_IMG}" class="img-preview" onerror="this.src='${NO_IMG}'"/></td>
+      <td><strong>${p.nom}</strong>${p.badge ? '<br><small style="color:#e65100;">'+p.badge+'</small>' : ''}</td>
+      <td style="color:#666;font-size:.78rem;">${p.categorie || '—'}</td>
+      <td><input type="number" class="inline-input" value="${p.prix}" id="prix-${p.id}" />${p.prix_barre ? '<br><small style="color:#aaa;text-decoration:line-through;">'+p.prix_barre.toLocaleString('fr')+' Ar</small>' : ''}</td>
+      <td><input type="number" class="inline-input" value="${p.stock}" id="stock-${p.id}" style="width:55px;" /></td>
+      <td><label class="toggle"><input type="checkbox" ${p.actif ? 'checked' : ''} onchange="toggleActif('${p.id}', this.checked)" /><span class="toggle-slider"></span></label></td>
+      <td><div class="actions-cell">
+        <button class="btn-success btn-sm" onclick="sauvegarderStockPrix('${p.id}')">💾</button>
+        <button class="btn-edit btn-sm" onclick="ouvrirModifierProduit('${p.id}')">✏️</button>
+        <button class="btn-primary btn-sm" onclick="ouvrirGestionImages('${p.id}', '${p.nom.replace(/'/g, "\\'")}')">📷</button>
+        <button class="btn-danger btn-sm" onclick="confirmerSuppression('${p.id}', '${p.nom.replace(/'/g, "\\'")}')">🗑️</button>
+      </div></td>
+    </tr>`).join('')
   }
 
   window.toggleActif = async function(id, val) {
     const { error } = await supabase.from('produits').update({ actif: val }).eq('id', id)
     if (error) { showToast('❌ Erreur', 'error'); return }
-    showToast(val ? '✅ Produit activé' : '⚠️ Produit désactivé', val ? 'success' : '')
+    showToast(val ? '✅ Produit activé' : '⚠️ Désactivé', val ? 'success' : '')
   }
 
   window.sauvegarderStockPrix = async function(id) {
@@ -445,7 +549,7 @@
     const stock = Number(document.getElementById('stock-' + id).value)
     const { error } = await supabase.from('produits').update({ prix, stock }).eq('id', id)
     if (error) { showToast('❌ Erreur lors de la sauvegarde', 'error'); return }
-    showToast('✅ Prix et stock mis à jour', 'success')
+    showToast('✅ Mis à jour', 'success')
     chargerKPIs(); chargerStockCritique()
   }
 
@@ -508,14 +612,156 @@
   }
 
   window.confirmerSuppression = function(id, nom) {
-    if (!confirm('Supprimer "' + nom + '" ? Cette action est irréversible.')) return
+    if (!confirm('Supprimer "' + nom + '" ?')) return
     supabase.from('produits').delete().eq('id', id).then(({ error }) => {
       if (error) { showToast('❌ Erreur suppression', 'error'); return }
       showToast('🗑️ Produit supprimé'); chargerProduits(); chargerKPIs()
     })
   }
 
-  // GESTION IMAGES
+  // ===== VARIANTES =====
+  let produitsListeVariantes = []
+  let variantesActuelles = []
+
+  async function chargerProduitsVarianteSelect() {
+    const { data } = await supabase.from('produits').select('id, nom').eq('actif', true).order('nom')
+    produitsListeVariantes = data || []
+    const sel = document.getElementById('variante-produit-sel')
+    const currentVal = sel.value
+    sel.innerHTML = '<option value="">— Choisir un produit —</option>' +
+      (data || []).map(p => `<option value="${p.id}">${p.nom}</option>`).join('')
+    if (currentVal) { sel.value = currentVal; chargerVariantesProduit() }
+  }
+
+  window.chargerVariantesProduit = async function() {
+    const produitId = document.getElementById('variante-produit-sel').value
+    const btn = document.getElementById('btn-ajouter-variante')
+    const container = document.getElementById('variantes-content')
+    if (!produitId) {
+      btn.disabled = true
+      container.innerHTML = '<div style="text-align:center;padding:2rem;color:#aaa;font-size:.9rem;">Sélectionnez un produit pour voir ses variantes.</div>'
+      return
+    }
+    btn.disabled = false
+    container.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#aaa;"><span class="spinner-sm"></span> Chargement...</div>'
+    const { data, error } = await supabase.from('variantes').select('*').eq('produit_id', produitId).order('taille').order('couleur')
+    variantesActuelles = data || []
+    if (error) { container.innerHTML = '<p style="color:#c62828;padding:1rem;">❌ Erreur de chargement</p>'; return }
+    if (!data || !data.length) {
+      container.innerHTML = '<div class="card" style="text-align:center;padding:2rem;color:#888;"><p>Aucune variante pour ce produit.</p><p style="font-size:.82rem;margin-top:8px;">Cliquez sur "+ Ajouter variante" pour en créer une.</p></div>'
+      return
+    }
+    // Calcul stock total variantes
+    const stockTotal = data.reduce((s, v) => s + (v.stock || 0), 0)
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:.85rem;color:#555;">
+          <strong>${data.length}</strong> variante${data.length > 1 ? 's' : ''} — 
+          Stock total variantes : <strong style="color:#1F3864;">${stockTotal}</strong>
+        </div>
+        <button class="btn-warning btn-sm" onclick="reinitialiserStockVariantes()">🔄 Réinitialiser tout à 0</button>
+      </div>
+      <div class="table-wrap variante-table-wrap">
+        <table>
+          <thead><tr><th>Taille</th><th>Couleur</th><th>Stock</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${data.map(v => {
+              const cls = v.stock === 0 ? 'zero' : v.stock <= 3 ? 'low' : 'ok'
+              const lbl = v.stock === 0 ? '❌ Rupture' : v.stock <= 3 ? '⚠️ Faible' : '✅ OK'
+              return `<tr>
+                <td><strong>${v.taille || '—'}</strong></td>
+                <td>${v.couleur || '—'}</td>
+                <td>
+                  <input type="number" class="inline-input" value="${v.stock}" id="vstock-${v.id}" min="0" style="width:65px;" />
+                </td>
+                <td><span class="stock-badge ${cls}">${lbl}</span></td>
+                <td><div class="actions-cell">
+                  <button class="btn-success btn-sm" onclick="sauvegarderStockVariante('${v.id}')">💾</button>
+                  <button class="btn-edit btn-sm" onclick="ouvrirModifierVariante('${v.id}')">✏️</button>
+                  <button class="btn-danger btn-sm" onclick="supprimerVariante('${v.id}')">🗑️</button>
+                </div></td>
+              </tr>`
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`
+  }
+
+  window.sauvegarderStockVariante = async function(id) {
+    const newStock = Number(document.getElementById('vstock-' + id).value)
+    const { error } = await supabase.from('variantes').update({ stock: newStock }).eq('id', id)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast('✅ Stock mis à jour', 'success')
+    chargerVariantesProduit()
+  }
+
+  window.ouvrirModalAjoutVariante = function() {
+    const produitId = document.getElementById('variante-produit-sel').value
+    if (!produitId) return
+    document.getElementById('variante-id').value = ''
+    document.getElementById('variante-produit-id').value = produitId
+    document.getElementById('variante-taille').value = ''
+    document.getElementById('variante-couleur').value = ''
+    document.getElementById('variante-stock').value = '0'
+    document.getElementById('modal-variante-titre').textContent = '📦 Nouvelle variante'
+    // Pré-remplir tailles/couleurs suggérées depuis le produit
+    const produit = produitsListeVariantes.find(p => p.id == produitId)
+    if (produit) document.getElementById('modal-variante-titre').textContent = '📦 Nouvelle variante — ' + produit.nom
+    document.getElementById('modal-variante').classList.add('show')
+  }
+
+  window.ouvrirModifierVariante = function(id) {
+    const v = variantesActuelles.find(v => v.id === id)
+    if (!v) return
+    document.getElementById('variante-id').value = v.id
+    document.getElementById('variante-produit-id').value = v.produit_id
+    document.getElementById('variante-taille').value = v.taille || ''
+    document.getElementById('variante-couleur').value = v.couleur || ''
+    document.getElementById('variante-stock').value = v.stock || 0
+    const produit = produitsListeVariantes.find(p => p.id == v.produit_id)
+    document.getElementById('modal-variante-titre').textContent = '✏️ Modifier variante' + (produit ? ' — ' + produit.nom : '')
+    document.getElementById('modal-variante').classList.add('show')
+  }
+
+  window.sauvegarderVariante = async function() {
+    const id = document.getElementById('variante-id').value
+    const produitId = document.getElementById('variante-produit-id').value
+    const taille = document.getElementById('variante-taille').value.trim()
+    const couleur = document.getElementById('variante-couleur').value.trim()
+    const stock = Number(document.getElementById('variante-stock').value) || 0
+    if (!taille && !couleur) { showToast('⚠️ Taille ou couleur requise', 'error'); return }
+    const payload = { produit_id: produitId, taille: taille || null, couleur: couleur || null, stock }
+    let error
+    if (id) {
+      ({ error } = await supabase.from('variantes').update(payload).eq('id', id))
+    } else {
+      ({ error } = await supabase.from('variantes').insert(payload))
+    }
+    if (error) { showToast('❌ Erreur : ' + (error.message.includes('unique') ? 'Cette variante existe déjà' : error.message), 'error'); return }
+    showToast(id ? '✅ Variante mise à jour' : '✅ Variante ajoutée', 'success')
+    fermerModal('modal-variante')
+    chargerVariantesProduit()
+  }
+
+  window.supprimerVariante = async function(id) {
+    if (!confirm('Supprimer cette variante ?')) return
+    const { error } = await supabase.from('variantes').delete().eq('id', id)
+    if (error) { showToast('❌ Erreur suppression', 'error'); return }
+    showToast('🗑️ Variante supprimée')
+    chargerVariantesProduit()
+  }
+
+  window.reinitialiserStockVariantes = async function() {
+    const produitId = document.getElementById('variante-produit-sel').value
+    if (!produitId) return
+    if (!confirm('Réinitialiser tous les stocks de ce produit à 0 ?')) return
+    const { error } = await supabase.from('variantes').update({ stock: 0 }).eq('produit_id', produitId)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast('✅ Stocks remis à 0', 'success')
+    chargerVariantesProduit()
+  }
+
+  // ===== GESTION IMAGES =====
   let currentProduitImages = null
 
   window.ouvrirGestionImages = async function(produitId, produitNom) {
@@ -534,27 +780,19 @@
     liste.innerHTML = '<span class="spinner-sm"></span> Chargement...'
     const { data } = await supabase.from('produit_images').select('*').eq('produit_id', produitId).order('type').order('ordre')
     if (!data || !data.length) { liste.innerHTML = '<p style="color:#aaa;font-size:.85rem;">Aucune image pour ce produit.</p>'; return }
-    liste.innerHTML = data.map(function(img) {
-      return '<div class="img-card">' +
-        '<img src="' + img.url + '" onerror="this.src=\'data:image/svg+xml," + encodeURIComponent("<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'#eee\'/><text x=\'50\' y=\'60\' text-anchor=\'middle\' font-size=\'30\'>📦</text></svg>") + "\'" />' +
-        '<div class="img-info">' + img.type + ' #' + img.ordre + '</div>' +
-        '<button class="btn-danger btn-sm" onclick="supprimerImage(\'' + img.id + '\', \'' + produitId + '\')">🗑️ Supprimer</button>' +
-        '</div>'
-    }).join('')
+    liste.innerHTML = data.map(img => `<div class="img-card">
+      <img src="${img.url}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23eee\'/%3E%3Ctext x=\'50\' y=\'60\' text-anchor=\'middle\' font-size=\'30\'%3E📦%3C/text%3E%3C/svg%3E'" />
+      <div class="img-info">${img.type} #${img.ordre}</div>
+      <button class="btn-danger btn-sm" onclick="supprimerImage('${img.id}', '${produitId}')">🗑️</button>
+    </div>`).join('')
   }
 
   window.previewUpload = function(input) {
-    const file = input.files[0]
-    if (!file) return
+    const file = input.files[0]; if (!file) return
     const reader = new FileReader()
-    reader.onload = function(e) {
-      document.getElementById('upload-preview-img').src = e.target.result
-      document.getElementById('upload-preview').style.display = 'block'
-    }
+    reader.onload = e => { document.getElementById('upload-preview-img').src = e.target.result; document.getElementById('upload-preview').style.display = 'block' }
     reader.readAsDataURL(file)
-    if (!document.getElementById('upload-filename').value) {
-      document.getElementById('upload-filename').value = file.name.toLowerCase().replace(/\s+/g, '-')
-    }
+    if (!document.getElementById('upload-filename').value) document.getElementById('upload-filename').value = file.name.toLowerCase().replace(/\s+/g, '-')
   }
 
   window.uploadImage = async function() {
@@ -577,51 +815,46 @@
       if (!uploadData.success) throw new Error(uploadData.error)
       const { error } = await supabase.from('produit_images').insert({ produit_id: currentProduitImages, url: uploadData.url, type, ordre })
       if (error) throw new Error(error.message)
-      if (type === 'principale' && ordre === 1) {
-        await supabase.from('produits').update({ image_url: uploadData.url }).eq('id', currentProduitImages)
-      }
-      progress.textContent = '✅ Image uploadée : ' + uploadData.url
-      showToast('✅ Image ajoutée avec succès', 'success')
+      if (type === 'principale' && ordre === 1) await supabase.from('produits').update({ image_url: uploadData.url }).eq('id', currentProduitImages)
+      progress.textContent = '✅ ' + uploadData.url
+      showToast('✅ Image ajoutée', 'success')
       await chargerImagesModal(currentProduitImages)
       document.getElementById('upload-file').value = ''
       document.getElementById('upload-filename').value = ''
       document.getElementById('upload-preview').style.display = 'none'
-    } catch(e) {
-      progress.textContent = '❌ Erreur : ' + e.message
-      showToast('❌ Erreur upload', 'error')
-    }
+    } catch(e) { progress.textContent = '❌ ' + e.message; showToast('❌ Erreur upload', 'error') }
     btn.disabled = false
   }
 
   window.supprimerImage = async function(imageId, produitId) {
     if (!confirm('Supprimer cette image ?')) return
     const { error } = await supabase.from('produit_images').delete().eq('id', imageId)
-    if (error) { showToast('❌ Erreur suppression', 'error'); return }
+    if (error) { showToast('❌ Erreur', 'error'); return }
     showToast('🗑️ Image supprimée')
     await chargerImagesModal(produitId)
   }
 
-  // AVIS
+  // ===== AVIS =====
   let tousLesAvis = []
 
   async function chargerAvis() {
     const tbody = document.getElementById('avis-tbody')
     tbody.innerHTML = '<tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr>'
     const { data, error } = await supabase.from('avis').select('*').order('created_at', { ascending: false })
-    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur de chargement</td></tr>'; return }
+    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur</td></tr>'; return }
     tousLesAvis = data; afficherAvis(data)
   }
 
   function afficherAvis(data) {
     const tbody = document.getElementById('avis-tbody')
     if (!data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">Aucun avis.</td></tr>'; return }
-    tbody.innerHTML = data.map(function(a) {
-      var etoiles = '★'.repeat(a.note) + '☆'.repeat(5 - a.note)
-      var nom = a.anonyme ? 'Anonyme' : (a.nom || '—')
-      var date = a.date || new Date(a.created_at).toLocaleDateString('fr')
-      var statut = a.valide ? '<span class="badge badge-valide">Validé</span>' : '<span class="badge badge-attente">En attente</span>'
-      var actions = (!a.valide ? '<button class="btn-success btn-sm" onclick="validerAvis(\'' + a.id + '\')">✅ Valider</button>' : '') + '<button class="btn-danger btn-sm" onclick="supprimerAvis(\'' + a.id + '\')">🗑️</button>'
-      return '<tr><td style="font-size:.82rem;">' + (a.produit_nom || '—') + '</td><td style="font-size:.82rem;">' + nom + '</td><td><span class="stars">' + etoiles + '</span></td><td style="font-size:.82rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (a.commentaire || '—') + '</td><td style="font-size:.78rem;color:#888;">' + date + '</td><td>' + statut + '</td><td><div class="actions-cell">' + actions + '</div></td></tr>'
+    tbody.innerHTML = data.map(a => {
+      const etoiles = '★'.repeat(a.note) + '☆'.repeat(5 - a.note)
+      const nom = a.anonyme ? 'Anonyme' : (a.nom || '—')
+      const date = a.date || new Date(a.created_at).toLocaleDateString('fr')
+      const statut = a.valide ? '<span class="badge badge-valide">Validé</span>' : '<span class="badge badge-attente">Attente</span>'
+      const actions = (!a.valide ? `<button class="btn-success btn-sm" onclick="validerAvis('${a.id}')">✅</button>` : '') + `<button class="btn-danger btn-sm" onclick="supprimerAvis('${a.id}')">🗑️</button>`
+      return `<tr><td style="font-size:.78rem;">${a.produit_nom || '—'}</td><td style="font-size:.78rem;">${nom}</td><td><span class="stars">${etoiles}</span></td><td style="font-size:.78rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.commentaire || '—'}</td><td style="font-size:.75rem;color:#888;">${date}</td><td>${statut}</td><td><div class="actions-cell">${actions}</div></td></tr>`
     }).join('')
   }
 
@@ -645,16 +878,16 @@
     showToast('🗑️ Avis supprimé'); chargerAvis(); chargerKPIs()
   }
 
-  // NOTIFICATIONS
+  // ===== NOTIFICATIONS =====
   async function chargerNotifs() {
     const tbody = document.getElementById('notifs-tbody')
     tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><span class="spinner-sm"></span> Chargement...</td></tr>'
     const { data, error } = await supabase.from('notifs_site').select('*').order('created_at', { ascending: false })
     if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="6">❌ Erreur</td></tr>'; return }
-    tbody.innerHTML = data.map(function(n) {
-      var dot = '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + couleurHex(n.couleur) + ';margin-right:6px;vertical-align:middle;"></span>'
-      var actions = '<button class="btn-edit btn-sm" onclick="ouvrirModifierNotif(\'' + n.id + '\',\'' + n.message.replace(/'/g,"\\'") + '\',\'' + n.type + '\',\'' + n.couleur + '\',\'' + (n.date_fin || '') + '\',' + n.actif + ')">✏️</button><button class="btn-danger btn-sm" onclick="supprimerNotif(\'' + n.id + '\')">🗑️</button>'
-      return '<tr><td style="font-size:.85rem;max-width:280px;">' + n.message + '</td><td><span class="badge badge-' + (n.type === 'bandeau' ? 'attente' : 'valide') + '">' + n.type + '</span></td><td>' + dot + n.couleur + '</td><td style="font-size:.78rem;color:#888;">' + (n.date_fin ? new Date(n.date_fin).toLocaleDateString('fr') : '—') + '</td><td><label class="toggle"><input type="checkbox" ' + (n.actif ? 'checked' : '') + ' onchange="toggleNotif(\'' + n.id + '\', this.checked)" /><span class="toggle-slider"></span></label></td><td><div class="actions-cell">' + actions + '</div></td></tr>'
+    tbody.innerHTML = data.map(n => {
+      const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${couleurHex(n.couleur)};margin-right:5px;vertical-align:middle;"></span>`
+      const actions = `<button class="btn-edit btn-sm" onclick="ouvrirModifierNotif('${n.id}','${n.message.replace(/'/g,"\\'")}','${n.type}','${n.couleur}','${n.date_fin||''}',${n.actif})">✏️</button><button class="btn-danger btn-sm" onclick="supprimerNotif('${n.id}')">🗑️</button>`
+      return `<tr><td style="font-size:.82rem;max-width:220px;">${n.message}</td><td><span class="badge badge-${n.type==='bandeau'?'attente':'valide'}">${n.type}</span></td><td>${dot}${n.couleur}</td><td style="font-size:.75rem;color:#888;">${n.date_fin ? new Date(n.date_fin).toLocaleDateString('fr') : '—'}</td><td><label class="toggle"><input type="checkbox" ${n.actif?'checked':''} onchange="toggleNotif('${n.id}', this.checked)" /><span class="toggle-slider"></span></label></td><td><div class="actions-cell">${actions}</div></td></tr>`
     }).join('')
   }
 
@@ -671,7 +904,7 @@
   window.supprimerNotif = async function(id) {
     if (!confirm('Supprimer cette notification ?')) return
     await supabase.from('notifs_site').delete().eq('id', id)
-    showToast('🗑️ Notification supprimée'); chargerNotifs(); chargerKPIs()
+    showToast('🗑️ Supprimée'); chargerNotifs(); chargerKPIs()
   }
 
   window.ouvrirModalNotif = function() {
@@ -690,9 +923,9 @@
     document.getElementById('notif-message').value = message
     document.getElementById('notif-type').value = type
     document.getElementById('notif-couleur').value = couleur
-    document.getElementById('notif-date-fin').value = dateFin ? dateFin.slice(0, 16) : ''
+    document.getElementById('notif-date-fin').value = dateFin ? dateFin.slice(0,16) : ''
     document.getElementById('notif-actif').value = actif ? 'true' : 'false'
-    document.getElementById('modal-notif-titre').textContent = '✏️ Modifier la notification'
+    document.getElementById('modal-notif-titre').textContent = '✏️ Modifier notification'
     document.getElementById('modal-notif').classList.add('show')
   }
 
@@ -704,21 +937,21 @@
     let error
     if (id) { ({ error } = await supabase.from('notifs_site').update(payload).eq('id', id)) }
     else { ({ error } = await supabase.from('notifs_site').insert(payload)) }
-    if (error) { showToast('❌ Erreur : ' + error.message, 'error'); return }
-    showToast(id ? '✅ Notification mise à jour' : '✅ Notification publiée', 'success')
+    if (error) { showToast('❌ ' + error.message, 'error'); return }
+    showToast('✅ Notification sauvegardée', 'success')
     fermerModal('modal-notif'); chargerNotifs(); chargerKPIs()
   }
 
-  // CODES PROMO
+  // ===== CODES PROMO =====
   async function chargerPromos() {
     const tbody = document.getElementById('promos-tbody')
     tbody.innerHTML = '<tr class="loading-row"><td colspan="7"><span class="spinner-sm"></span> Chargement...</td></tr>'
     const { data, error } = await supabase.from('codes_promo').select('*').order('created_at', { ascending: false })
-    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur ou table vide</td></tr>'; return }
+    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ Erreur</td></tr>'; return }
     if (!data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">Aucun code promo.</td></tr>'; return }
-    tbody.innerHTML = data.map(function(c) {
-      var actions = '<button class="btn-edit btn-sm" onclick="ouvrirModifierPromo(\'' + c.id + '\',\'' + c.code + '\',\'' + c.type + '\',' + c.valeur + ',\'' + (c.date_expiration || '') + '\',' + (c.usage_max || 0) + ',' + c.actif + ')">✏️</button><button class="btn-danger btn-sm" onclick="supprimerPromo(\'' + c.id + '\')">🗑️</button>'
-      return '<tr><td><strong style="font-family:monospace;">' + c.code + '</strong></td><td style="color:#2E7D32;font-weight:600;">' + c.valeur + (c.type === 'pourcentage' ? '%' : ' Ar') + '</td><td style="font-size:.82rem;color:#666;">' + (c.type || '—') + '</td><td style="font-size:.82rem;color:#888;">' + (c.date_expiration ? new Date(c.date_expiration).toLocaleDateString('fr') : '—') + '</td><td style="font-size:.82rem;">' + (c.usage_count || 0) + ' / ' + (c.usage_max || '∞') + '</td><td><label class="toggle"><input type="checkbox" ' + (c.actif ? 'checked' : '') + ' onchange="togglePromo(\'' + c.id + '\', this.checked)" /><span class="toggle-slider"></span></label></td><td><div class="actions-cell">' + actions + '</div></td></tr>'
+    tbody.innerHTML = data.map(c => {
+      const actions = `<button class="btn-edit btn-sm" onclick="ouvrirModifierPromo('${c.id}','${c.code}','${c.type}',${c.valeur},'${c.date_expiration||''}',${c.usage_max||0},${c.actif})">✏️</button><button class="btn-danger btn-sm" onclick="supprimerPromo('${c.id}')">🗑️</button>`
+      return `<tr><td><strong style="font-family:monospace;">${c.code}</strong></td><td style="color:#2E7D32;font-weight:600;">${c.valeur}${c.type==='pourcentage'?'%':' Ar'}</td><td style="font-size:.78rem;color:#666;">${c.type||'—'}</td><td style="font-size:.78rem;color:#888;">${c.date_expiration?new Date(c.date_expiration).toLocaleDateString('fr'):'—'}</td><td style="font-size:.78rem;">${c.usage_count||0} / ${c.usage_max||'∞'}</td><td><label class="toggle"><input type="checkbox" ${c.actif?'checked':''} onchange="togglePromo('${c.id}', this.checked)" /><span class="toggle-slider"></span></label></td><td><div class="actions-cell">${actions}</div></td></tr>`
     }).join('')
   }
 
@@ -753,7 +986,7 @@
     document.getElementById('promo-expiration').value = dateExpiration || ''
     document.getElementById('promo-limite').value = usageMax || 0
     document.getElementById('promo-actif').value = actif ? 'true' : 'false'
-    document.getElementById('modal-promo-titre').textContent = '✏️ Modifier le code promo'
+    document.getElementById('modal-promo-titre').textContent = '✏️ Modifier code promo'
     document.getElementById('modal-promo').classList.add('show')
   }
 
@@ -762,36 +995,36 @@
     const code = document.getElementById('promo-code').value.trim().toUpperCase()
     const valeur = document.getElementById('promo-valeur').value.trim()
     if (!code || !valeur) { showToast('⚠️ Code et valeur requis', 'error'); return }
-    const payload = { code, type: document.getElementById('promo-type').value, valeur: Number(valeur) || 0, date_expiration: document.getElementById('promo-expiration').value || null, usage_max: Number(document.getElementById('promo-limite').value) || null, actif: document.getElementById('promo-actif').value === 'true' }
+    const payload = { code, type: document.getElementById('promo-type').value, valeur: Number(valeur)||0, date_expiration: document.getElementById('promo-expiration').value || null, usage_max: Number(document.getElementById('promo-limite').value) || null, actif: document.getElementById('promo-actif').value === 'true' }
     let error
     if (id) { ({ error } = await supabase.from('codes_promo').update(payload).eq('id', id)) }
     else { payload.usage_count = 0; ({ error } = await supabase.from('codes_promo').insert(payload)) }
-    if (error) { showToast('❌ Erreur : ' + error.message, 'error'); return }
-    showToast(id ? '✅ Code mis à jour' : '✅ Code promo créé', 'success')
+    if (error) { showToast('❌ ' + error.message, 'error'); return }
+    showToast(id ? '✅ Code mis à jour' : '✅ Code créé', 'success')
     fermerModal('modal-promo'); chargerPromos()
   }
 
-  // RECOMMANDATIONS
+  // ===== RECOMMANDATIONS =====
   let toutesLesRecs = []
 
   async function chargerRecs() {
     const tbody = document.getElementById('recs-tbody')
     tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><span class="spinner-sm"></span> Chargement...</td></tr>'
     const { data, error } = await supabase.from('recommandations').select('*').order('created_at', { ascending: false })
-    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="6">❌ Erreur de chargement</td></tr>'; return }
+    if (error || !data) { tbody.innerHTML = '<tr class="loading-row"><td colspan="6">❌ Erreur</td></tr>'; return }
     toutesLesRecs = data; afficherRecs(data)
   }
 
   function afficherRecs(data) {
     const tbody = document.getElementById('recs-tbody')
     if (!data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Aucun témoignage.</td></tr>'; return }
-    tbody.innerHTML = data.map(function(r) {
-      var etoiles = '★'.repeat(r.note) + '☆'.repeat(5 - r.note)
-      var nom = r.anonyme ? 'Anonyme' : (r.nom || '—')
-      var date = r.date || new Date(r.created_at).toLocaleDateString('fr')
-      var statut = r.valide ? '<span class="badge badge-valide">Validé</span>' : '<span class="badge badge-attente">En attente</span>'
-      var actions = (!r.valide ? '<button class="btn-success btn-sm" onclick="validerRec(\'' + r.id + '\')">✅ Valider</button>' : '') + '<button class="btn-danger btn-sm" onclick="supprimerRec(\'' + r.id + '\')">🗑️</button>'
-      return '<tr><td style="font-size:.82rem;">' + nom + '</td><td><span class="stars">' + etoiles + '</span></td><td style="font-size:.82rem;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (r.texte || '—') + '</td><td style="font-size:.78rem;color:#888;">' + date + '</td><td>' + statut + '</td><td><div class="actions-cell">' + actions + '</div></td></tr>'
+    tbody.innerHTML = data.map(r => {
+      const etoiles = '★'.repeat(r.note) + '☆'.repeat(5 - r.note)
+      const nom = r.anonyme ? 'Anonyme' : (r.nom || '—')
+      const date = r.date || new Date(r.created_at).toLocaleDateString('fr')
+      const statut = r.valide ? '<span class="badge badge-valide">Validé</span>' : '<span class="badge badge-attente">Attente</span>'
+      const actions = (!r.valide ? `<button class="btn-success btn-sm" onclick="validerRec('${r.id}')">✅</button>` : '') + `<button class="btn-danger btn-sm" onclick="supprimerRec('${r.id}')">🗑️</button>`
+      return `<tr><td style="font-size:.82rem;">${nom}</td><td><span class="stars">${etoiles}</span></td><td style="font-size:.78rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.texte||'—'}</td><td style="font-size:.75rem;color:#888;">${date}</td><td>${statut}</td><td><div class="actions-cell">${actions}</div></td></tr>`
     }).join('')
   }
 
@@ -812,10 +1045,10 @@
     if (!confirm('Supprimer ce témoignage ?')) return
     const { error } = await supabase.from('recommandations').delete().eq('id', id)
     if (error) { showToast('❌ Erreur', 'error'); return }
-    showToast('🗑️ Témoignage supprimé'); chargerRecs(); chargerKPIs()
+    showToast('🗑️ Supprimé'); chargerRecs(); chargerKPIs()
   }
 
-  // COMMANDES
+  // ===== COMMANDES =====
   let toutesLesCommandes = []
   const API_URL_PROXY = 'https://harvel-proxy.herryharivelo.workers.dev'
   const SECRET = 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw'
@@ -826,7 +1059,7 @@
     try {
       const res = await fetch(API_URL_PROXY + '?action=liste_commandes&secret=' + SECRET)
       const data = await res.json()
-      if (!data.success) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">❌ ' + data.error + '</td></tr>'; return }
+      if (!data.success) { tbody.innerHTML = `<tr class="loading-row"><td colspan="7">❌ ${data.error}</td></tr>`; return }
       toutesLesCommandes = data.commandes || []
       afficherCommandes(toutesLesCommandes)
     } catch(e) {
@@ -839,30 +1072,30 @@
     if (!data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="7">Aucune commande.</td></tr>'; return }
     const STATUT_CLASS = { 'En attente': 'badge-attente', 'Confirmé': 'badge-valide', 'Expédié': 'badge-valide', 'Livré': 'badge-valide', 'Annulé': 'badge-inactif' }
     const STATUT_ICON = { 'En attente': '⏳', 'Confirmé': '✅', 'Expédié': '🚚', 'Livré': '🎉', 'Annulé': '❌' }
-    tbody.innerHTML = data.map(function(c) {
-      var num = c['N° Commande'] || '—'
-      var date = c['Date'] ? new Date(c['Date']).toLocaleDateString('fr') : '—'
-      var nom = c['Nom'] || '—'
-      var tel = c['Téléphone'] || '—'
-      var produits = c['Produits'] || '—'
-      var total = c['Total'] ? Number(c['Total']).toLocaleString('fr') + ' Ar' : '—'
-      var statut = c['Statut'] || 'En attente'
-      var statutHtml = '<span class="badge ' + (STATUT_CLASS[statut] || 'badge-attente') + '">' + (STATUT_ICON[statut] || '⏳') + ' ' + statut + '</span>'
-      var produitsShort = produits.length > 50 ? produits.substring(0, 50) + '...' : produits
-      var waMsg = 'Bonjour ' + nom + ' ! Votre commande ' + num + ' - Statut : ' + statut
-      var waUrl = 'https://wa.me/' + String(tel).replace(/\s/g,'').replace(/^\+/,'').replace(/^0/,'261') + '?text=' + encodeURIComponent(waMsg)
-      return '<tr>' +
-        '<td style="font-size:.82rem;font-weight:600;">' + num + '</td>' +
-        '<td style="font-size:.78rem;color:#888;">' + date + '</td>' +
-        '<td style="font-size:.85rem;">' + nom + '<br><small style="color:#888;">' + tel + '</small></td>' +
-        '<td style="font-size:.78rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + produitsShort + '</td>' +
-        '<td style="font-size:.85rem;font-weight:600;color:#1F3864;">' + total + '</td>' +
-        '<td>' + statutHtml + '</td>' +
-        '<td><div class="actions-cell">' +
-          '<button class="btn-success btn-sm" onclick="ouvrirFacture(\'' + num + '\')">🖨️</button>' +
-          '<a href="' + waUrl + '" target="_blank"><button class="btn-primary btn-sm">💬</button></a>' +
-        '</div></td>' +
-        '</tr>'
+    tbody.innerHTML = data.map(c => {
+      const num = c['N° Commande'] || '—'
+      const date = c['Date'] ? new Date(c['Date']).toLocaleDateString('fr') : '—'
+      const nom = c['Nom'] || '—'
+      const tel = c['Téléphone'] || '—'
+      const produits = c['Produits'] || '—'
+      const total = c['Total'] ? Number(c['Total']).toLocaleString('fr') + ' Ar' : '—'
+      const statut = c['Statut'] || 'En attente'
+      const statutHtml = `<span class="badge ${STATUT_CLASS[statut]||'badge-attente'}">${STATUT_ICON[statut]||'⏳'} ${statut}</span>`
+      const produitsShort = produits.length > 40 ? produits.substring(0, 40) + '...' : produits
+      const waMsg = `Bonjour ${nom} ! Votre commande ${num} - Statut : ${statut}`
+      const waUrl = `https://wa.me/${String(tel).replace(/\s/g,'').replace(/^\+/,'').replace(/^0/,'261')}?text=${encodeURIComponent(waMsg)}`
+      return `<tr>
+        <td style="font-size:.8rem;font-weight:600;">${num}</td>
+        <td style="font-size:.75rem;color:#888;">${date}</td>
+        <td style="font-size:.82rem;">${nom}<br><small style="color:#888;">${tel}</small></td>
+        <td style="font-size:.75rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${produitsShort}</td>
+        <td style="font-size:.82rem;font-weight:600;color:#1F3864;">${total}</td>
+        <td>${statutHtml}</td>
+        <td><div class="actions-cell">
+          <button class="btn-success btn-sm" onclick="ouvrirFacture('${num}')">🖨️</button>
+          <a href="${waUrl}" target="_blank"><button class="btn-primary btn-sm">💬</button></a>
+        </div></td>
+      </tr>`
     }).join('')
   }
 
@@ -876,24 +1109,20 @@
     const c = toutesLesCommandes.find(x => x['N° Commande'] === numCommande)
     if (!c) return
     const params = new URLSearchParams({
-      num: c['N° Commande'] || '',
-      date: c['Date'] ? new Date(c['Date']).toLocaleDateString('fr') : '',
-      nom: c['Nom'] || '',
-      phone: c['Téléphone'] || '',
-      adresse: c['Adresse'] || '',
-      produits: c['Produits'] || '',
-      total: c['Total'] || '',
+      num: c['N° Commande']||'', date: c['Date']?new Date(c['Date']).toLocaleDateString('fr'):'',
+      nom: c['Nom']||'', phone: c['Téléphone']||'', adresse: c['Adresse']||'',
+      produits: c['Produits']||'', total: c['Total']||'',
     })
     window.open('facture-harvel.html?' + params.toString(), '_blank')
   }
 
-  // MODAL
+  // ===== MODAL ===== 
   window.fermerModal = function(id) { document.getElementById(id).classList.remove('show') }
   document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show') })
   })
 
-  // INIT
+  // ===== INIT =====
   chargerKPIs()
   chargerStockCritique()
 </script>
