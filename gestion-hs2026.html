@@ -605,7 +605,7 @@
     document.getElementById('edit-produit-id').value = ''
     ;['edit-nom','edit-prix','edit-prix-barre','edit-stock','edit-badge','edit-categorie','edit-matiere','edit-tailles','edit-couleurs','edit-prix-degressif','edit-slug','edit-codes-promo','edit-description'].forEach(id => { document.getElementById(id).value = '' })
     document.getElementById('edit-actif').value = 'true'
-    guideCols = []; guideRows = []; guideRender()
+    window.guideCols = []; window.guideRows = []; guideRender()
     document.getElementById('modal-produit-titre').textContent = '+ Nouveau produit'
     document.getElementById('modal-produit').classList.add('show')
   }
@@ -1075,39 +1075,39 @@
   })
 
   // ===== GUIDE DES TAILLES =====
-  let guideCols = []
-  let guideRows = []
+  window.guideCols = []
+  window.guideRows = []
 
   function guideRender() {
     const headerRow = document.getElementById('guide-header-row')
     const tbody = document.getElementById('guide-tbody')
     if (!headerRow || !tbody) return
-    headerRow.innerHTML = guideCols.map((col, ci) => `
+    headerRow.innerHTML = window.guideCols.map((col, ci) => `
       <th><div style="display:flex;align-items:center;gap:4px;">
-        <input class="guide-th-input" value="${col}" placeholder="Titre..." oninput="guideCols[${ci}]=this.value;guideSerialize()" />
+        <input class="guide-th-input" value="${col}" placeholder="Titre..." oninput="window.guideCols[${ci}]=this.value;guideSerialize()" />
         <button class="btn-del-col" onclick="guideSupprColonne(${ci})">×</button>
       </div></th>`).join('') + '<th style="background:#1F3864;width:36px;"></th>'
-    tbody.innerHTML = guideRows.map((row, ri) => `
-      <tr>${guideCols.map((_, ci) => `<td><input value="${row[ci]||''}" oninput="guideRows[${ri}][${ci}]=this.value;guideSerialize()" /></td>`).join('')}
+    tbody.innerHTML = window.guideRows.map((row, ri) => `
+      <tr>${window.guideCols.map((_, ci) => `<td><input value="${row[ci]||''}" oninput="window.guideRows[${ri}][${ci}]=this.value;guideSerialize()" /></td>`).join('')}
       <td><button class="btn-del-row" onclick="guideSupprLigne(${ri})">×</button></td></tr>`).join('')
     guideSerialize()
   }
 
   function guideSerialize() {
     const el = document.getElementById('edit-guide-tailles')
-    if (el) el.value = JSON.stringify({ cols: guideCols, rows: guideRows })
+    if (el) el.value = JSON.stringify({ cols: window.guideCols, rows: window.guideRows })
   }
 
   function guideDeserialize(str) {
-    try { const d = JSON.parse(str || '{}'); guideCols = d.cols || []; guideRows = d.rows || [] }
-    catch(e) { guideCols = []; guideRows = [] }
+    try { const d = JSON.parse(str || '{}'); window.guideCols = d.cols || []; window.guideRows = d.rows || [] }
+    catch(e) { window.guideCols = []; window.guideRows = [] }
   }
 
-  window.guideAjouterColonne = function() { guideCols.push('Colonne '+(guideCols.length+1)); guideRows.forEach(r => r.push('')); guideRender() }
-  window.guideAjouterLigne = function() { guideRows.push(guideCols.map(() => '')); guideRender() }
-  window.guideSupprColonne = function(ci) { guideCols.splice(ci,1); guideRows.forEach(r => r.splice(ci,1)); guideRender() }
-  window.guideSupprLigne = function(ri) { guideRows.splice(ri,1); guideRender() }
-  window.guideToutEffacer = function() { if(!confirm('Effacer tout le guide des tailles ?')) return; guideCols=[]; guideRows=[]; guideRender() }
+  window.guideAjouterColonne = function() { window.guideCols.push('Colonne '+(window.guideCols.length+1)); window.guideRows.forEach(r => r.push('')); guideRender() }
+  window.guideAjouterLigne = function() { window.guideRows.push(window.guideCols.map(() => '')); guideRender() }
+  window.guideSupprColonne = function(ci) { window.guideCols.splice(ci,1); window.guideRows.forEach(r => r.splice(ci,1)); guideRender() }
+  window.guideSupprLigne = function(ri) { window.guideRows.splice(ri,1); guideRender() }
+  window.guideToutEffacer = function() { if(!confirm('Effacer tout le guide des tailles ?')) return; window.guideCols=[]; window.guideRows=[]; guideRender() }
 
   // ===== BADGES =====
   async function chargerBadges() {
