@@ -1084,11 +1084,11 @@
     if (!headerRow || !tbody) return
     headerRow.innerHTML = window.guideCols.map((col, ci) => `
       <th><div style="display:flex;align-items:center;gap:4px;">
-        <input class="guide-th-input" value="${col}" placeholder="Titre..." oninput="window.guideCols[${ci}]=this.value;guideSerialize()" />
+        <input class="guide-th-input" value="${col}" placeholder="Titre..." oninput="window.guideCols[${ci}]=this.value;window.guideSerialize()" />
         <button class="btn-del-col" onclick="guideSupprColonne(${ci})">×</button>
       </div></th>`).join('') + '<th style="background:#1F3864;width:36px;"></th>'
     tbody.innerHTML = window.guideRows.map((row, ri) => `
-      <tr>${window.guideCols.map((_, ci) => `<td><input value="${row[ci]||''}" oninput="window.guideRows[${ri}][${ci}]=this.value;guideSerialize()" /></td>`).join('')}
+      <tr>${window.guideCols.map((_, ci) => `<td><input value="${row[ci]||''}" oninput="window.guideRows[${ri}][${ci}]=this.value;window.guideSerialize()" /></td>`).join('')}
       <td><button class="btn-del-row" onclick="guideSupprLigne(${ri})">×</button></td></tr>`).join('')
     guideSerialize()
   }
