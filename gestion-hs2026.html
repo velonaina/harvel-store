@@ -1078,7 +1078,7 @@
   window.guideCols = []
   window.guideRows = []
 
-  function guideRender() {
+  window.guideRender = function() {
     const headerRow = document.getElementById('guide-header-row')
     const tbody = document.getElementById('guide-tbody')
     if (!headerRow || !tbody) return
@@ -1093,7 +1093,7 @@
     guideSerialize()
   }
 
-  function guideSerialize() {
+  window.guideSerialize = function() {
     const el = document.getElementById('edit-guide-tailles')
     if (el) el.value = JSON.stringify({ cols: window.guideCols, rows: window.guideRows })
   }
