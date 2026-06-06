@@ -551,6 +551,25 @@
   import { requireAuth, logout, getUser } from './admin.js'
   import { supabase } from './supabase-client.js'
 
+  // Exposer switchTab globalement dès le début avant tout await
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'))
+    const el = document.getElementById('tab-' + tab)
+    if (el) el.classList.add('active')
+    const tabs = ['overview','produits','variantes','avis','notifs','promos','recs','badges','commandes']
+    const idx = tabs.indexOf(tab)
+    if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active')
+    if (tab === 'produits') chargerProduits()
+    if (tab === 'variantes') chargerProduitsVarianteSelect()
+    if (tab === 'avis') chargerAvis()
+    if (tab === 'notifs') chargerNotifs()
+    if (tab === 'promos') chargerPromos()
+    if (tab === 'recs') chargerRecs()
+    if (tab === 'badges') chargerBadges()
+    if (tab === 'commandes') chargerCommandes()
+  }
+
   const ecran = document.getElementById('ecran-secret')
   ecran.style.display = 'flex'
   await new Promise((resolve) => {
@@ -574,22 +593,7 @@
     setTimeout(() => t.classList.remove('show'), 3000)
   }
 
-  window.switchTab = function(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'))
-    document.getElementById('tab-' + tab).classList.add('active')
-    const tabs = ['overview','produits','variantes','avis','notifs','promos','recs','badges','commandes']
-    const idx = tabs.indexOf(tab)
-    if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active')
-    if (tab === 'produits') chargerProduits()
-    if (tab === 'variantes') chargerProduitsVarianteSelect()
-    if (tab === 'avis') chargerAvis()
-    if (tab === 'notifs') chargerNotifs()
-    if (tab === 'promos') chargerPromos()
-    if (tab === 'recs') chargerRecs()
-    if (tab === 'badges') chargerBadges()
-    if (tab === 'commandes') chargerCommandes()
-  }
+
 
   // ===== BADGES =====
   async function chargerBadges() {
