@@ -21,9 +21,14 @@ var products=[],cart=[],activeFilter="Tous",currentProduct=null;
 var badgesCache = [];
 async function chargerBadges() {
   try {
-    const { supabase: sb } = await import('./supabase-client.js');
-    const { data } = await sb.from('badges').select('*').order('created_at');
-    badgesCache = data || [];
+    var res = await fetch('https://rcikcebyewurgjhnqeto.supabase.co/rest/v1/badges?select=*&order=created_at.asc', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjaWtjZWJ5ZXd1cmdqaG5xZXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMTkxNTMsImV4cCI6MjA5NTg5NTE1M30.niZWrq2AOY6xRjI9Do-wfgmKDqVIr1GazDEW3cgq7Po',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjaWtjZWJ5ZXd1cmdqaG5xZXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMTkxNTMsImV4cCI6MjA5NTg5NTE1M30.niZWrq2AOY6xRjI9Do-wfgmKDqVIr1GazDEW3cgq7Po'
+      }
+    });
+    badgesCache = await res.json();
+    if (!Array.isArray(badgesCache)) badgesCache = [];
   } catch(e) { console.error('Erreur chargement badges:', e); }
 }
 function renderBadgesProduit(p) {
