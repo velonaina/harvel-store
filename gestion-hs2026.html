@@ -133,6 +133,34 @@
     .stock-badge.zero { background: #fce4ec; color: #c62828; }
     .variante-table-wrap table { min-width: 380px; }
 
+    /* ===== BADGES ===== */
+    .badge-preview { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; margin-left: 8px; vertical-align: middle; }
+    .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
+    .badge-card { background: white; border: 1.5px solid #e8ecf0; border-radius: 10px; padding: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .badge-card-left { display: flex; align-items: center; gap: 10px; }
+    .color-input-wrap { display: flex; align-items: center; gap: 6px; }
+    .color-input-wrap input[type=color] { width: 36px; height: 32px; border: 1.5px solid #ddd; border-radius: 6px; cursor: pointer; padding: 2px; background: none; }
+
+    /* ===== GUIDE TAILLES ===== */
+    .guide-editor { margin-top: 1rem; border: 1.5px solid #e8ecf0; border-radius: 10px; overflow: hidden; }
+    .guide-editor-header { background: #f8fafc; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid #e8ecf0; }
+    .guide-editor-header span { font-size: 0.82rem; font-weight: 600; color: #555; }
+    .guide-editor-btns { display: flex; gap: 6px; }
+    .guide-table-wrap { overflow-x: auto; }
+    .guide-table { width: 100%; border-collapse: collapse; min-width: 300px; }
+    .guide-table th { background: #1F3864; color: white; padding: 8px 10px; font-size: 0.78rem; text-align: left; white-space: nowrap; position: relative; }
+    .guide-table td { padding: 6px 8px; border-bottom: 1px solid #f0f2f5; }
+    .guide-table input { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; font-size: 0.82rem; width: 100%; min-width: 70px; }
+    .guide-table input:focus { border-color: #2E75B6; outline: none; }
+    .guide-th-input { background: transparent; border: none !important; color: white; font-weight: 700; font-size: 0.78rem; width: 100%; min-width: 60px; padding: 0; }
+    .guide-th-input:focus { outline: none; border-bottom: 1px solid rgba(255,255,255,0.5) !important; }
+    .guide-th-input::placeholder { color: rgba(255,255,255,0.6); }
+    .btn-del-col { background: rgba(255,255,255,0.2); border: none; color: white; width: 18px; height: 18px; border-radius: 50%; cursor: pointer; font-size: 0.7rem; line-height: 18px; text-align: center; margin-left: 4px; flex-shrink: 0; }
+    .btn-del-col:hover { background: #c62828; }
+    .btn-del-row { background: #fce4ec; border: none; color: #c62828; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    .btn-del-row:hover { background: #c62828; color: white; }
+    .guide-actions-row { padding: 8px 10px; background: #f8fafc; border-top: 1px solid #e8ecf0; }
+
     /* ===== SCREEN SECRET ===== */
     #ecran-secret { display: none; position: fixed; inset: 0; background: #1F3864; z-index: 9999; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; padding: 2rem; }
     #ecran-secret h2 { color: white; font-family: Arial; font-size: 1.2rem; text-align: center; }
@@ -163,6 +191,7 @@
   <button class="tab-btn" onclick="switchTab('notifs')">🔔 Notifs</button>
   <button class="tab-btn" onclick="switchTab('promos')">🎟️ Promos</button>
   <button class="tab-btn" onclick="switchTab('recs')">💬 Témoign.</button>
+  <button class="tab-btn" onclick="switchTab('badges')">🏷️ Badges</button>
   <button class="tab-btn" onclick="switchTab('commandes')">📦 Commandes</button>
 </div>
 
@@ -185,6 +214,7 @@
         <button class="btn-primary" onclick="switchTab('avis')">⭐ Avis</button>
         <button class="btn-primary" onclick="switchTab('notifs')">🔔 Notifs</button>
         <button class="btn-primary" onclick="switchTab('promos')">🎟️ Promos</button>
+        <button class="btn-primary" onclick="switchTab('badges')">🏷️ Badges</button>
         <button class="btn-primary" onclick="switchTab('recs')">💬 Témoign.</button>
         <button class="btn-primary" onclick="switchTab('commandes')">📦 Commandes</button>
       </div>
@@ -291,6 +321,18 @@
     </div>
   </div>
 
+  <!-- BADGES -->
+  <div id="tab-badges" class="tab-content">
+    <div class="section-header">
+      <div class="section-title">🏷️ Badges personnalisés</div>
+      <button class="btn-primary" onclick="ouvrirModalBadge()">+ Nouveau badge</button>
+    </div>
+    <p style="font-size:.82rem;color:#888;margin-bottom:1rem;">Les badges s'appliquent aux produits depuis l'onglet Produits → ✏️ Modifier → champ "Badge".</p>
+    <div id="badges-grid" class="badges-grid">
+      <div style="text-align:center;padding:2rem;color:#aaa;grid-column:1/-1;"><span class="spinner-sm"></span> Chargement...</div>
+    </div>
+  </div>
+
   <!-- COMMANDES -->
   <div id="tab-commandes" class="tab-content">
     <div class="section-header">
@@ -340,6 +382,44 @@
   </div>
 </div>
 
+<!-- ===== MODAL BADGE ===== -->
+<div class="modal-overlay" id="modal-badge">
+  <div class="modal">
+    <h3 id="modal-badge-titre">🏷️ Badge</h3>
+    <input type="hidden" id="badge-id" />
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>Nom du badge <span style="color:#c62828;">*</span></label>
+        <input type="text" id="badge-nom" placeholder="Nouveau, Populaire, Exclusif..." oninput="updateBadgePreview()" />
+      </div>
+      <div class="form-group">
+        <label>Couleur de fond</label>
+        <div class="color-input-wrap">
+          <input type="color" id="badge-fond" value="#e8f5e9" oninput="updateBadgePreview()" />
+          <input type="text" id="badge-fond-hex" value="#e8f5e9" placeholder="#e8f5e9" style="width:90px;" oninput="syncColorFromHex('badge-fond','badge-fond-hex');updateBadgePreview()" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Couleur du texte</label>
+        <div class="color-input-wrap">
+          <input type="color" id="badge-texte" value="#2E7D32" oninput="updateBadgePreview()" />
+          <input type="text" id="badge-texte-hex" value="#2E7D32" placeholder="#2E7D32" style="width:90px;" oninput="syncColorFromHex('badge-texte','badge-texte-hex');updateBadgePreview()" />
+        </div>
+      </div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>Aperçu</label>
+        <div style="padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #eee;">
+          <span id="badge-preview" class="badge-preview" style="background:#e8f5e9;color:#2E7D32;">Nouveau</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="fermerModal('modal-badge')">Annuler</button>
+      <button class="btn-success" onclick="sauvegarderBadge()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== MODAL PRODUIT ===== -->
 <div class="modal-overlay" id="modal-produit">
   <div class="modal">
@@ -360,11 +440,31 @@
       <div class="form-group"><label>Code promo produit</label><input type="text" id="edit-codes-promo" placeholder="CODE:10%:30/06/2026" /></div>
       <div class="form-group" style="grid-column:1/-1;"><label>Description</label><textarea id="edit-description" placeholder="Description du produit..."></textarea></div>
       <div class="form-group"><label>Produit actif</label><select id="edit-actif"><option value="true">✅ Actif</option><option value="false">❌ Inactif</option></select></div>
+      <div class="form-group" style="grid-column:1/-1;">
+        <label>📏 Guide des tailles</label>
+        <div class="guide-editor" id="guide-editor">
+          <div class="guide-editor-header">
+            <span>Tableau interactif</span>
+            <div class="guide-editor-btns">
+              <button type="button" class="btn-edit btn-sm" onclick="guideAjouterColonne()">+ Colonne</button>
+              <button type="button" class="btn-success btn-sm" onclick="guideAjouterLigne()">+ Ligne</button>
+              <button type="button" class="btn-danger btn-sm" onclick="guideToutEffacer()">🗑️ Effacer</button>
+            </div>
+          </div>
+          <div class="guide-table-wrap">
+            <table class="guide-table" id="guide-table">
+              <thead id="guide-thead"><tr id="guide-header-row"></tr></thead>
+              <tbody id="guide-tbody"></tbody>
+            </table>
+          </div>
+          <div class="guide-actions-row" style="font-size:.78rem;color:#888;">
+            Cliquez sur les titres pour les modifier. Les données sont sauvegardées avec le produit.
+          </div>
+        </div>
+        <input type="hidden" id="edit-guide-tailles" />
+      </div>
     </div>
     <div class="modal-actions">
-      <button class="btn-danger" onclick="fermerModal('modal-produit')">Annuler</button>
-      <button class="btn-success" onclick="sauvegarderProduit()">💾 Sauvegarder</button>
-    </div>
   </div>
 </div>
 
@@ -389,13 +489,11 @@
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn-danger" onclick="fermerModal('modal-variante')">Annuler</button>
-      <button class="btn-success" onclick="sauvegarderVariante()">💾 Sauvegarder</button>
+      <button class="btn-danger" onclick="fermerModal('modal-produit')">Annuler</button>
+      <button class="btn-success" onclick="sauvegarderProduit()">💾 Sauvegarder</button>
     </div>
-  </div>
-</div>
-
-<!-- ===== MODAL NOTIFICATION ===== -->
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="fermerModal('modal-variante')">Annuler</button>
 <div class="modal-overlay" id="modal-notif">
   <div class="modal">
     <h3 id="modal-notif-titre">🔔 Notification</h3>
@@ -408,13 +506,13 @@
       <div class="form-group"><label>Actif</label><select id="notif-actif"><option value="true">✅ Actif</option><option value="false">❌ Inactif</option></select></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-danger" onclick="fermerModal('modal-notif')">Annuler</button>
-      <button class="btn-success" onclick="sauvegarderNotif()">💾 Publier</button>
+      <button class="btn-success" onclick="sauvegarderVariante()">💾 Sauvegarder</button>
     </div>
   </div>
 </div>
 
-<!-- ===== MODAL CODE PROMO ===== -->
+<!-- ===== MODAL NOTIFICATION ===== -->
+      <button class="btn-danger" onclick="fermerModal('modal-notif')">Annuler</button>
 <div class="modal-overlay" id="modal-promo">
   <div class="modal">
     <h3 id="modal-promo-titre">🎟️ Code promo</h3>
@@ -428,8 +526,13 @@
       <div class="form-group"><label>Actif</label><select id="promo-actif"><option value="true">✅ Actif</option><option value="false">❌ Inactif</option></select></div>
     </div>
     <div class="modal-actions">
+      <button class="btn-success" onclick="sauvegarderNotif()">💾 Publier</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL CODE PROMO ===== -->
       <button class="btn-danger" onclick="fermerModal('modal-promo')">Annuler</button>
-      <button class="btn-success" onclick="sauvegarderPromo()">💾 Sauvegarder</button>
     </div>
   </div>
 </div>
@@ -475,7 +578,7 @@
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'))
     document.getElementById('tab-' + tab).classList.add('active')
-    const tabs = ['overview','produits','variantes','avis','notifs','promos','recs','commandes']
+    const tabs = ['overview','produits','variantes','avis','notifs','promos','recs','badges','commandes']
     const idx = tabs.indexOf(tab)
     if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active')
     if (tab === 'produits') chargerProduits()
@@ -484,7 +587,170 @@
     if (tab === 'notifs') chargerNotifs()
     if (tab === 'promos') chargerPromos()
     if (tab === 'recs') chargerRecs()
+    if (tab === 'badges') chargerBadges()
     if (tab === 'commandes') chargerCommandes()
+  }
+
+  // ===== BADGES =====
+  async function chargerBadges() {
+    const grid = document.getElementById('badges-grid')
+    grid.innerHTML = '<div style="text-align:center;padding:2rem;color:#aaa;grid-column:1/-1;"><span class="spinner-sm"></span> Chargement...</div>'
+    const { data, error } = await supabase.from('badges').select('*').order('created_at')
+    if (error || !data) { grid.innerHTML = '<p style="color:#c62828;padding:1rem;grid-column:1/-1;">❌ Erreur de chargement</p>'; return }
+    if (!data.length) {
+      grid.innerHTML = '<div style="text-align:center;padding:2rem;color:#888;grid-column:1/-1;"><p>Aucun badge créé.</p><p style="font-size:.82rem;margin-top:8px;">Cliquez sur "+ Nouveau badge" pour en créer un.</p></div>'
+      return
+    }
+    grid.innerHTML = data.map(b => `
+      <div class="badge-card">
+        <div class="badge-card-left">
+          <span class="badge-preview" style="background:${b.couleur_fond};color:${b.couleur_texte};">${b.nom}</span>
+        </div>
+        <div class="actions-cell">
+          <button class="btn-edit btn-sm" onclick="ouvrirModifierBadge('${b.id}','${b.nom}','${b.couleur_fond}','${b.couleur_texte}')">✏️</button>
+          <button class="btn-danger btn-sm" onclick="supprimerBadge('${b.id}','${b.nom}')">🗑️</button>
+        </div>
+      </div>`).join('')
+  }
+
+  window.ouvrirModalBadge = function() {
+    document.getElementById('badge-id').value = ''
+    document.getElementById('badge-nom').value = ''
+    document.getElementById('badge-fond').value = '#e8f5e9'
+    document.getElementById('badge-fond-hex').value = '#e8f5e9'
+    document.getElementById('badge-texte').value = '#2E7D32'
+    document.getElementById('badge-texte-hex').value = '#2E7D32'
+    document.getElementById('modal-badge-titre').textContent = '🏷️ Nouveau badge'
+    updateBadgePreview()
+    document.getElementById('modal-badge').classList.add('show')
+  }
+
+  window.ouvrirModifierBadge = function(id, nom, fond, texte) {
+    document.getElementById('badge-id').value = id
+    document.getElementById('badge-nom').value = nom
+    document.getElementById('badge-fond').value = fond
+    document.getElementById('badge-fond-hex').value = fond
+    document.getElementById('badge-texte').value = texte
+    document.getElementById('badge-texte-hex').value = texte
+    document.getElementById('modal-badge-titre').textContent = '✏️ Modifier badge'
+    updateBadgePreview()
+    document.getElementById('modal-badge').classList.add('show')
+  }
+
+  window.updateBadgePreview = function() {
+    const nom = document.getElementById('badge-nom').value || 'Aperçu'
+    const fond = document.getElementById('badge-fond').value
+    const texte = document.getElementById('badge-texte').value
+    // Sync hex inputs
+    document.getElementById('badge-fond-hex').value = fond
+    document.getElementById('badge-texte-hex').value = texte
+    const preview = document.getElementById('badge-preview')
+    preview.textContent = nom
+    preview.style.background = fond
+    preview.style.color = texte
+  }
+
+  window.syncColorFromHex = function(colorId, hexId) {
+    const hex = document.getElementById(hexId).value.trim()
+    if (/^#[0-9a-fA-F]{6}$/.test(hex)) document.getElementById(colorId).value = hex
+  }
+
+  window.sauvegarderBadge = async function() {
+    const id = document.getElementById('badge-id').value
+    const nom = document.getElementById('badge-nom').value.trim()
+    if (!nom) { showToast('⚠️ Nom requis', 'error'); return }
+    const payload = {
+      nom,
+      couleur_fond: document.getElementById('badge-fond').value,
+      couleur_texte: document.getElementById('badge-texte').value,
+    }
+    let error
+    if (id) { ({ error } = await supabase.from('badges').update(payload).eq('id', id)) }
+    else { ({ error } = await supabase.from('badges').insert(payload)) }
+    if (error) { showToast('❌ ' + error.message, 'error'); return }
+    showToast(id ? '✅ Badge mis à jour' : '✅ Badge créé', 'success')
+    fermerModal('modal-badge'); chargerBadges()
+  }
+
+  window.supprimerBadge = async function(id, nom) {
+    if (!confirm(`Supprimer le badge "${nom}" ?`)) return
+    const { error } = await supabase.from('badges').delete().eq('id', id)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast('🗑️ Badge supprimé'); chargerBadges()
+  }
+
+  // ===== GUIDE DES TAILLES =====
+  let guideCols = [] // ['Taille', 'Tour poitrine', ...]
+  let guideRows = [] // [['S', '86-90', ...], ...]
+
+  function guideRender() {
+    const headerRow = document.getElementById('guide-header-row')
+    const tbody = document.getElementById('guide-tbody')
+    if (!headerRow || !tbody) return
+
+    // En-têtes
+    headerRow.innerHTML = guideCols.map((col, ci) => `
+      <th>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <input class="guide-th-input" value="${col}" placeholder="Titre..." oninput="guideCols[${ci}]=this.value" />
+          <button class="btn-del-col" onclick="guideSupprColonne(${ci})" title="Supprimer colonne">×</button>
+        </div>
+      </th>`).join('') + '<th style="background:#1F3864;width:36px;"></th>'
+
+    // Lignes
+    tbody.innerHTML = guideRows.map((row, ri) => `
+      <tr>
+        ${guideCols.map((_, ci) => `<td><input value="${row[ci] || ''}" oninput="guideRows[${ri}][${ci}]=this.value" /></td>`).join('')}
+        <td><button class="btn-del-row" onclick="guideSupprLigne(${ri})" title="Supprimer ligne">×</button></td>
+      </tr>`).join('')
+
+    // Sauvegarder dans le hidden input
+    guideSerialize()
+  }
+
+  function guideSerialize() {
+    const data = { cols: guideCols, rows: guideRows }
+    const el = document.getElementById('edit-guide-tailles')
+    if (el) el.value = JSON.stringify(data)
+  }
+
+  function guideDeserialize(str) {
+    try {
+      const data = JSON.parse(str || '{}')
+      guideCols = data.cols || []
+      guideRows = data.rows || []
+    } catch(e) {
+      guideCols = []; guideRows = []
+    }
+  }
+
+  window.guideAjouterColonne = function() {
+    guideCols.push('Colonne ' + (guideCols.length + 1))
+    guideRows.forEach(row => row.push(''))
+    guideRender()
+  }
+
+  window.guideAjouterLigne = function() {
+    guideRows.push(guideCols.map(() => ''))
+    guideRender()
+  }
+
+  window.guideSupprColonne = function(ci) {
+    guideCols.splice(ci, 1)
+    guideRows.forEach(row => row.splice(ci, 1))
+    guideRender()
+  }
+
+  window.guideSupprLigne = function(ri) {
+    guideRows.splice(ri, 1)
+    guideRender()
+  }
+
+  window.guideToutEffacer = function() {
+    if (!confirm('Effacer tout le guide des tailles ?')) return
+    guideCols = []; guideRows = []
+    guideRender()
+  }
   }
 
   async function chargerKPIs() {
@@ -572,6 +838,9 @@
       document.getElementById('edit-description').value = data.description || ''
       document.getElementById('edit-actif').value = data.actif ? 'true' : 'false'
       document.getElementById('modal-produit-titre').textContent = '✏️ Modifier : ' + data.nom
+      // Guide des tailles
+      guideDeserialize(data.guide_tailles || '')
+      guideRender()
       document.getElementById('modal-produit').classList.add('show')
     })
   }
@@ -581,6 +850,9 @@
     ;['edit-nom','edit-prix','edit-prix-barre','edit-stock','edit-badge','edit-categorie','edit-matiere','edit-tailles','edit-couleurs','edit-prix-degressif','edit-slug','edit-codes-promo','edit-description'].forEach(id => { document.getElementById(id).value = '' })
     document.getElementById('edit-actif').value = 'true'
     document.getElementById('modal-produit-titre').textContent = '+ Nouveau produit'
+    // Guide des tailles — réinitialiser
+    guideCols = []; guideRows = []
+    guideRender()
     document.getElementById('modal-produit').classList.add('show')
   }
 
@@ -602,6 +874,7 @@
       description: document.getElementById('edit-description').value.trim() || null,
       actif: document.getElementById('edit-actif').value === 'true',
       valide_admin: true,
+      guide_tailles: document.getElementById('edit-guide-tailles').value || null,
     }
     let error
     if (id) { ({ error } = await supabase.from('produits').update(payload).eq('id', id)) }
