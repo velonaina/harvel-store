@@ -42,7 +42,12 @@ function renderBadgesProduit(p) {
   } else if(p.badge) {
     html = p.badge.split(',').map(function(b){
       b = b.trim();
-      return '<div class="prod-badge badge-'+b.toLowerCase()+'">'+b+'</div>';
+      // Chercher le badge par nom dans le cache Supabase
+      var badgeDef = badgesCache.find(function(x){ return x.nom.toLowerCase() === b.toLowerCase(); });
+      if(badgeDef) {
+        return '<div class="prod-badge" style="background:'+badgeDef.couleur_fond+';color:'+badgeDef.couleur_texte+';">'+badgeDef.nom+'</div>';
+      }
+      return '<div class="prod-badge badge-'+b.toLowerCase().replace(/\s+/g,'-')+'">'+b+'</div>';
     }).join('');
   }
   return html ? '<div class="prod-badge-wrap">'+html+'</div>' : '';
