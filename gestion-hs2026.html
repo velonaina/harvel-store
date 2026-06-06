@@ -551,17 +551,6 @@
   import { requireAuth, logout, getUser } from './admin.js'
   import { supabase } from './supabase-client.js'
 
-  // Déclarations anticipées pour éviter Temporal Dead Zone
-  let tousLesProduits = []
-  let tousLesAvis = []
-  let toutesLesRecs = []
-  let toutesLesCommandes = []
-  let produitsListeVariantes = []
-  let variantesActuelles = []
-  let guideCols = []
-  let guideRows = []
-  let currentProduitImages = null
-
   // Exposer switchTab globalement dès le début avant tout await
   window.switchTab = function(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
