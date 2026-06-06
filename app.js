@@ -325,9 +325,15 @@ function isTailleDisponible(p, taille){
   });
 }
 
-function isCouleurDisponible(p, couleur){
+function isCouleurDisponible(p, couleur, taille){
   if(!p.variantes || !p.variantes.length) return true;
-  // Une couleur est disponible si au moins une variante de cette couleur a stock > 0
+  // Si une taille est sélectionnée, vérifier stock pour taille+couleur
+  if(taille) {
+    return p.variantes.some(function(v){
+      return v.couleur === couleur && v.taille === taille && v.stock > 0;
+    });
+  }
+  // Sinon, au moins une taille de cette couleur a du stock
   return p.variantes.some(function(v){
     return v.couleur === couleur && v.stock > 0;
   });
@@ -533,7 +539,7 @@ function openDrawer(){
       var imgKey = ['photos_c1','photos_c2','photos_c3','photos_c4','photos_c5'][i];
       var imgUrl = p[imgKey] ? p[imgKey].split(',')[0] : '';
       var hex = getColorHex(c);
-      var dispo = isCouleurDisponible(p, c);
+      var dispo = isCouleurDisponible(p, c, drawerSize);
       var imgHtml = imgUrl
         ? '<img class="drawer-color-img'+(dispo?'':' rupture')+'" src="'+imgUrl+'" alt="'+c+'" onerror="this.src=\'\';this.style.background=\''+hex+'\'">'
         : '<div class="drawer-color-img'+(dispo?'':' rupture')+'" style="background:'+hex+';border:2px solid #eee;"></div>';
