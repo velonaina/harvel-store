@@ -551,6 +551,17 @@
   import { requireAuth, logout, getUser } from './admin.js'
   import { supabase } from './supabase-client.js'
 
+  // Déclarations anticipées pour éviter Temporal Dead Zone
+  let tousLesProduits = []
+  let tousLesAvis = []
+  let toutesLesRecs = []
+  let toutesLesCommandes = []
+  let produitsListeVariantes = []
+  let variantesActuelles = []
+  let guideCols = []
+  let guideRows = []
+  let currentProduitImages = null
+
   // Exposer switchTab globalement dès le début avant tout await
   window.switchTab = function(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'))
@@ -560,14 +571,14 @@
     const tabs = ['overview','produits','variantes','avis','notifs','promos','recs','badges','commandes']
     const idx = tabs.indexOf(tab)
     if (idx >= 0) document.querySelectorAll('.tab-btn')[idx].classList.add('active')
-    if (tab === 'produits') chargerProduits()
-    if (tab === 'variantes') chargerProduitsVarianteSelect()
-    if (tab === 'avis') chargerAvis()
-    if (tab === 'notifs') chargerNotifs()
-    if (tab === 'promos') chargerPromos()
-    if (tab === 'recs') chargerRecs()
-    if (tab === 'badges') chargerBadges()
-    if (tab === 'commandes') chargerCommandes()
+    try { if (tab === 'produits') chargerProduits() } catch(e) {}
+    try { if (tab === 'variantes') chargerProduitsVarianteSelect() } catch(e) {}
+    try { if (tab === 'avis') chargerAvis() } catch(e) {}
+    try { if (tab === 'notifs') chargerNotifs() } catch(e) {}
+    try { if (tab === 'promos') chargerPromos() } catch(e) {}
+    try { if (tab === 'recs') chargerRecs() } catch(e) {}
+    try { if (tab === 'badges') chargerBadges() } catch(e) {}
+    try { if (tab === 'commandes') chargerCommandes() } catch(e) {}
   }
 
   const ecran = document.getElementById('ecran-secret')
@@ -782,7 +793,6 @@
   }
 
   // ===== PRODUITS =====
-  let tousLesProduits = []
 
   async function chargerProduits() {
     const tbody = document.getElementById('produits-tbody')
@@ -896,8 +906,6 @@
   }
 
   // ===== VARIANTES =====
-  let produitsListeVariantes = []
-  let variantesActuelles = []
 
   async function chargerProduitsVarianteSelect() {
     const { data } = await supabase.from('produits').select('id, nom').eq('actif', true).order('nom')
@@ -1038,7 +1046,6 @@
   }
 
   // ===== GESTION IMAGES =====
-  let currentProduitImages = null
 
   window.ouvrirGestionImages = async function(produitId, produitNom) {
     currentProduitImages = produitId
@@ -1111,7 +1118,6 @@
   }
 
   // ===== AVIS =====
-  let tousLesAvis = []
 
   async function chargerAvis() {
     const tbody = document.getElementById('avis-tbody')
@@ -1281,7 +1287,6 @@
   }
 
   // ===== RECOMMANDATIONS =====
-  let toutesLesRecs = []
 
   async function chargerRecs() {
     const tbody = document.getElementById('recs-tbody')
@@ -1325,7 +1330,6 @@
   }
 
   // ===== COMMANDES =====
-  let toutesLesCommandes = []
   const API_URL_PROXY = 'https://harvel-proxy.herryharivelo.workers.dev'
   const SECRET = 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw'
 
