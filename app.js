@@ -1342,7 +1342,16 @@ function addToCartFromProduct(){
     else{showToast('⚠️ Stock maximum atteint !','warning');return;}
   }else{
     var isPack = selectedOption && selectedOption.qty > 1;
-    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:qtyReelle,is_pack:isPack,thumb:photos[0]||null,code_promo:selectedCodePromo?selectedCodePromo.code:null}));
+    // Choisir l'image selon la couleur sélectionnée
+    var thumbImg = photos[0] || null;
+    if(selectedColor && p.couleurs) {
+      var colorIdx = p.couleurs.indexOf(selectedColor);
+      if(colorIdx > -1) {
+        var colorPhotos = getColorPhotos(p, colorIdx);
+        if(colorPhotos && colorPhotos.length) thumbImg = colorPhotos[0];
+      }
+    }
+    cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:qtyReelle,is_pack:isPack,thumb:thumbImg,code_promo:selectedCodePromo?selectedCodePromo.code:null}));
     showToast('✅ '+p.name+' ajouté au panier');
     animateToCart(emojiForAnim);
   }
