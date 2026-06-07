@@ -1388,7 +1388,7 @@ function renderCart(){
   var el=document.getElementById('cart-content');
   if(!cart.length){
     el.innerHTML='<div class="cart-empty"><div class="icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2d7a00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div><p style="color:var(--primary);font-weight:600;">Votre panier est vide</p><p style="color:var(--muted);font-size:.9rem;">Découvrez nos produits !</p><br><div style="display:flex;flex-direction:column;gap:10px;align-items:center;">'+
-        (lastAddedProduct ? '<button class="hero-btn" style="background:white;color:var(--primary);border:2px solid var(--primary);" onclick="openProduct(lastAddedProduct)">↩ Retourner à : '+lastAddedProduct.name+'</button>' : '')+
+        (lastAddedProduct ? '<button class="hero-btn" style="background:white;color:var(--primary);border:2px solid var(--primary);" onclick="openProduct(lastAddedProduct.id)">↩ Retourner à : '+lastAddedProduct.name+'</button>' : '')+
         '<button class="hero-btn" style="background:var(--primary);color:#fff;" onclick="showPage(\'shop\')">Voir la boutique</button>'+
       '</div></div>';
     return;
