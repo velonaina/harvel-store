@@ -1720,6 +1720,17 @@ function buildCartWhatsApp() {
   return 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
 }
 
+function getStockVariantePourItem(item, prod) {
+  if(!prod || !prod.variantes || !prod.variantes.length) return prod ? prod.stock : 999;
+  var variantParts = item.variant ? item.variant.split(' — ') : [];
+  var itemColor = null, itemSize = null;
+  variantParts.forEach(function(part) {
+    if(prod.couleurs && prod.couleurs.split(',').map(function(c){return c.trim();}).indexOf(part) > -1) itemColor = part;
+    if(prod.tailles && prod.tailles.split(',').map(function(t){return t.trim();}).indexOf(part) > -1) itemSize = part;
+  });
+  return getStockVariante(prod, itemSize, itemColor);
+}
+
 function changeQty(key,d){
   var item=cart.find(function(x){return x.cartKey===key;});
   if(!item) return;
