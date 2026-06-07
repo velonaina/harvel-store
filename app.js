@@ -1394,14 +1394,15 @@ function renderCart(){
     var qtyTotale = articlesGroupe.reduce(function(s,i){ return s+i.qty; }, 0);
     var totalGroupe = articlesGroupe.reduce(function(s,i){ return s+i.price*i.qty; }, 0);
 
-    // Prix dégressif et code promo
+    // Prix dégressif : utiliser i.price déjà stocké, juste détecter si dégressif actif
     var paliers = (prod && prod.prix_degressif) ? parsePrixDegressif(prod.prix_degressif) : [];
-    var prixDegressif = paliers.length ? getPrixDegressif(paliers, qtyTotale) : null;
     var prixInitial = prod ? prod.price : ref.price;
+    var prixActuel = ref.price; // prix déjà calculé et stocké dans le panier
+    var isDegressif = paliers.length && prixActuel < prixInitial;
 
     var infoHtml = '';
     if(ref.code_promo) infoHtml += '<span class="ci-tag ci-tag-promo">🏷️ '+ref.code_promo+'</span>';
-    if(prixDegressif && qtyTotale > 1) infoHtml += '<span class="ci-tag ci-tag-degressif">📦 Prix dégressif ×'+qtyTotale+' — '+fmt(prixDegressif)+'/u</span>';
+    if(isDegressif && qtyTotale > 1) infoHtml += '<span class="ci-tag ci-tag-degressif">📦 Prix dégressif ×'+qtyTotale+' — '+fmt(prixActuel)+'/u</span>';
 
     // Lignes variantes sélectionnées (style C : photo + compteur + prix)
     var lignesSelectionnees = articlesGroupe.map(function(i){
@@ -1420,11 +1421,10 @@ function renderCart(){
       } else {
         varImg = '<div style="width:34px;height:34px;border-radius:6px;background:#eee;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;">📦</div>';
       }
-      // Prix à afficher (dégressif si applicable)
-      var prixAff = prixDegressif && qtyTotale > 1 ? prixDegressif : i.price;
-      var prixHtml = (prixDegressif && qtyTotale > 1 && prixInitial !== prixDegressif)
-        ? '<div style="font-size:10px;color:#aaa;text-decoration:line-through;">'+fmt(prixInitial)+'</div><div style="font-size:12px;font-weight:600;color:#2E7D32;">'+fmt(prixAff)+'</div>'
-        : '<div style="font-size:12px;font-weight:600;color:var(--primary);">'+fmt(prixAff)+'</div>';
+      // Prix à afficher — utiliser i.price directement (déjà calculé)
+      var prixHtml = (isDegressif && qtyTotale > 1)
+        ? '<div style="font-size:10px;color:#aaa;text-decoration:line-through;">'+fmt(prixInitial)+'</div><div style="font-size:12px;font-weight:600;color:#2E7D32;">'+fmt(i.price)+'</div>'
+        : '<div style="font-size:12px;font-weight:600;color:var(--primary);">'+fmt(i.price)+'</div>';
 
       return '<div class="ci-ligne-var">'+
         varImg+
