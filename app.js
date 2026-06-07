@@ -1344,11 +1344,14 @@ function addToCartFromProduct(){
     var isPack = selectedOption && selectedOption.qty > 1;
     // Choisir l'image selon la couleur sélectionnée
     var thumbImg = photos[0] || null;
-    if(selectedColor && p.couleurs) {
+    if(selectedColor && p.couleurs && p.produit_images) {
       var colorIdx = p.couleurs.indexOf(selectedColor);
-      if(colorIdx > -1) {
-        var colorPhotos = getColorPhotos(p, colorIdx);
-        if(colorPhotos && colorPhotos.length) thumbImg = colorPhotos[0];
+      // Les images couleur sont dans produit_images avec type='couleur', triées par ordre
+      var colorImgs = p.produit_images
+        .filter(function(img){ return img.type === 'couleur'; })
+        .sort(function(a,b){ return a.ordre - b.ordre; });
+      if(colorIdx > -1 && colorImgs[colorIdx]) {
+        thumbImg = colorImgs[colorIdx].url;
       }
     }
     cart.push(Object.assign({},p,{price:price,variant:variant,cartKey:cartKey,qty:qtyReelle,is_pack:isPack,thumb:thumbImg,code_promo:selectedCodePromo?selectedCodePromo.code:null}));
