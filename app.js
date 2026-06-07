@@ -1385,14 +1385,139 @@ function renderCart(){
     return;
   }
   var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
-  var itemsHtml=cart.map(function(i){
-    var imgHtml=i.thumb?'<img src="'+i.thumb+'" onerror="this.parentElement.innerHTML=\'📦\'"/>':(i.emoji&&!i.emoji.startsWith('http')?'<span>'+i.emoji+'</span>':'<span>📦</span>');
-    var qtyControls = i.is_pack
-      ? '<div class="ci-qty ci-pack"><span class="pack-label">📦 Pack fixe</span><span>'+i.qty+'</span></div>'
-      : '<div class="ci-qty"><button class="qty-btn" onclick="changeQty(\''+i.cartKey+'\',-1)">−</button><span>'+i.qty+'</span><button class="qty-btn" onclick="changeQty(\''+i.cartKey+'\',1)">+</button></div>';
-    return '<div class="cart-item"><div class="ci-icon">'+imgHtml+'</div><div class="ci-info"><div class="ci-name">'+i.name+'</div>'+(i.variant?'<div class="ci-variant">📌 '+i.variant+'</div>':'')+'<div class="ci-price">'+fmt(i.price)+' × '+i.qty+' = '+fmt(i.price*i.qty)+'</div>'+qtyControls+'</div><button class="remove-btn" onclick="removeFromCart(\''+i.cartKey+'\')">🗑️</button></div>';
+  // Grouper les articles par produit pour afficher les chips variantes
+  var prodIds = [];
+  cart.forEach(function(i){ if(prodIds.indexOf(i.id)===-1) prodIds.push(i.id); });
+  var itemsHtml = prodIds.map(function(prodId){
+    var articlesGroupe = cart.filter(function(i){ return i.id === prodId; });
+    var ref = articlesGroupe[0];
+    var prod = products.find(function(p){ return p.id === prodId; });
+    var imgHtml = ref.thumb
+      ? '<img src="'+ref.thumb+'" onerror="this.parentElement.innerHTML=\'📦\'"/>'
+      : (ref.emoji&&!ref.emoji.startsWith('http')?'<span>'+ref.emoji+'</span>':'<span>📦</span>');
+
+    // Chips variantes sélectionnées
+    var chipsSelectionnees = articlesGroupe.map(function(i){
+      var stockMax = getStockVariantePourItem(i, prod);
+      return '<div class="ci-chip-sel">'+
+        '<span class="ci-chip-label">'+i.variant+'</span>'+
+        '<div class="ci-chip-qty">'+
+          '<button class="ci-chip-btn" onclick="changeQty(\''+i.cartKey+'\',-1)" '+(i.qty<=0?'disabled':'')+'>−</button>'+
+          '<span>'+i.qty+'</span>'+
+          '<button class="ci-chip-btn" onclick="changeQty(\''+i.cartKey+'\',1)" '+(i.qty>=stockMax?'disabled':'')+'>+</button>'+
+        '</div>'+
+        '<button class="ci-chip-del" onclick="removeFromCart(\''+i.cartKey+'\')">×</button>'+
+      '</div>';
+    }).join('');
+
+    // Chips variantes disponibles non sélectionnées
+    var chipsDisponibles = '';
+    if(prod && prod.variantes && prod.variantes.length) {
+      prod.variantes.forEach(function(v){
+        if(!v.taille && !v.couleur) return;
+        var variantLabel = [v.couleur, v.taille].filter(Boolean).join(' — ');
+        var dejaSelec = articlesGroupe.some(function(i){ return i.variant === variantLabel; });
+        if(dejaSelec) return;
+        if(v.stock <= 0) {
+          chipsDisponibles += '<div class="ci-chip-dispo rupture" title="Rupture de stock">'+variantLabel+'</div>';
+        } else {
+          chipsDisponibles += '<div class="ci-chip-dispo" onclick="ajouterVarianteDepuisPanier(\''+prodId+'\',\''+v.couleur+'\',\''+v.taille+'\')">'+variantLabel+' +</div>';
+        }
+      });
+    }
+
+    // Prix total du groupe
+    var totalGroupe = articlesGroupe.reduce(function(s,i){ return s+i.price*i.qty; }, 0);
+    var qtyTotale = articlesGroupe.reduce(function(s,i){ return s+i.qty; }, 0);
+
+    // Afficher code promo et prix dégressif
+    var infoHtml = '';
+    if(ref.code_promo) infoHtml += '<span class="ci-tag ci-tag-promo">🏷️ '+ref.code_promo+'</span>';
+    if(prod && prod.prix_degressif) {
+      var paliers = parsePrixDegressif(prod.prix_degressif);
+      if(paliers.length && qtyTotale > 1) infoHtml += '<span class="ci-tag ci-tag-degressif">📦 Prix dégressif ×'+qtyTotale+'</span>';
+    }
+
+    return '<div class="cart-item ci-groupe">'+
+      '<div class="ci-icon">'+imgHtml+'</div>'+
+      '<div class="ci-info">'+
+        '<div class="ci-name">'+ref.name+'</div>'+
+        (infoHtml?'<div class="ci-tags">'+infoHtml+'</div>':'')+
+        '<div class="ci-chips-wrap">'+
+          chipsSelectionnees+
+          chipsDisponibles+
+        '</div>'+
+        '<div class="ci-price-total">Total : <strong>'+fmt(totalGroupe)+'</strong></div>'+
+      '</div>'+
+    '</div>';
   }).join('');
+
   el.innerHTML='<div class="section-title">Mon Panier</div><div class="cart-items">'+itemsHtml+'</div><div class="cart-summary"><div class="summary-row"><span>Articles ('+cart.reduce(function(s,i){return s+i.qty;},0)+')</span><span>'+fmt(sub)+'</span></div><div class="summary-row"><span>Livraison</span><span>Selon votre zone</span></div><div class="summary-row summary-total"><span>Total produits</span><span>'+fmt(sub)+'</span></div><button class="checkout-btn" onclick="goToOrder()">🛍️ Passer la commande</button></div>';
+}
+
+function getStockVariantePourItem(item, prod) {
+  if(!prod || !prod.variantes || !prod.variantes.length) return prod ? prod.stock : 999;
+  var variantParts = item.variant ? item.variant.split(' — ') : [];
+  var itemColor = null, itemSize = null;
+  variantParts.forEach(function(part) {
+    if(prod.couleurs && prod.couleurs.split(',').map(function(c){return c.trim();}).indexOf(part) > -1) itemColor = part;
+    if(prod.tailles && prod.tailles.split(',').map(function(t){return t.trim();}).indexOf(part) > -1) itemSize = part;
+  });
+  return getStockVariante(prod, itemSize, itemColor);
+}
+
+function ajouterVarianteDepuisPanier(prodId, couleur, taille) {
+  var prod = products.find(function(p){ return p.id === prodId; });
+  if(!prod) return;
+  var variantLabel = [couleur, taille].filter(Boolean).join(' — ');
+  var cartKey = prodId + '_' + variantLabel;
+  // Vérifier si déjà dans le panier
+  var ex = cart.find(function(i){ return i.cartKey === cartKey; });
+  if(ex) { showToast('✅ Déjà dans le panier — utilisez + pour augmenter','warning'); renderCart(); return; }
+  // Vérifier stock
+  var stockDispo = getStockVariante(prod, taille || null, couleur || null);
+  if(stockDispo <= 0) { showToast('❌ Rupture de stock','error'); return; }
+  // Calculer le prix (dégressif si applicable)
+  var qtyTotale = cart.filter(function(i){ return i.id===prodId; }).reduce(function(s,i){return s+i.qty;},0) + 1;
+  var price = prod.price;
+  if(prod.prix_degressif) {
+    var paliers = parsePrixDegressif(prod.prix_degressif);
+    if(paliers.length) price = getPrixDegressif(paliers, qtyTotale);
+    // Mettre à jour le prix de tous les articles du même produit
+    cart.forEach(function(i){
+      if(i.id === prodId && paliers.length) i.price = getPrixDegressif(paliers, qtyTotale);
+    });
+  }
+  // Vérifier code promo : bloqué si prix dégressif + qty > 1
+  var codePromo = null;
+  var existingItems = cart.filter(function(i){ return i.id===prodId; });
+  if(existingItems.length && existingItems[0].code_promo) {
+    if(prod.prix_degressif && parsePrixDegressif(prod.prix_degressif).length && qtyTotale > 1) {
+      showToast('⚠️ Code promo non applicable avec prix dégressif','warning');
+    } else {
+      codePromo = existingItems[0].code_promo;
+    }
+  }
+  // Choisir l'image selon la couleur
+  var thumbImg = prod.emoji ? prod.emoji.split(',')[0] : null;
+  if(couleur && prod.produit_images && prod.produit_images.length) {
+    var colorImg = prod.produit_images.find(function(img){
+      return img.type === 'couleur' && img.couleur_nom === couleur;
+    });
+    if(colorImg) thumbImg = colorImg.url;
+  }
+  cart.push(Object.assign({}, prod, {
+    price: price,
+    variant: variantLabel,
+    cartKey: cartKey,
+    qty: 1,
+    is_pack: false,
+    thumb: thumbImg,
+    code_promo: codePromo
+  }));
+  showToast('✅ '+variantLabel+' ajouté au panier');
+  updateCartCount();
+  renderCart();
 }
 function changeQty(key,d){
   var item=cart.find(function(x){return x.cartKey===key;});
