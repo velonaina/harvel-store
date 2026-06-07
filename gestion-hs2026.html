@@ -317,8 +317,9 @@
       <div class="form-grid">
         <div class="form-group"><label>Fichier image</label><input type="file" id="upload-file" accept="image/*" onchange="previewUpload(this)" /></div>
         <div class="form-group"><label>Nom fichier R2</label><input type="text" id="upload-filename" placeholder="manchon-jambe-noir-1.png" /></div>
-        <div class="form-group"><label>Type</label><select id="upload-type"><option value="principale">🖼️ Principale</option><option value="couleur">🎨 Couleur</option></select></div>
+        <div class="form-group"><label>Type</label><select id="upload-type" onchange="toggleCouleurUpload(this.value)"><option value="principale">🖼️ Principale</option><option value="couleur">🎨 Couleur</option></select></div>
         <div class="form-group"><label>Ordre</label><input type="number" id="upload-ordre" value="1" min="1" /></div>
+        <div class="form-group" id="upload-couleur-wrap" style="display:none;"><label>Couleur associée</label><select id="upload-couleur"><option value="">— Choisir —</option></select></div>
       </div>
       <div id="upload-preview" style="margin-top:1rem;display:none;"><img id="upload-preview-img" style="max-height:110px;border-radius:8px;border:1px solid #eee;" /></div>
       <div id="upload-progress" style="margin-top:1rem;font-size:.82rem;color:#666;"></div>
@@ -692,6 +693,21 @@
     }).join('')
   }
 
+  window.toggleCouleurUpload = async function(type) {
+    const wrap = document.getElementById('upload-couleur-wrap')
+    const sel = document.getElementById('upload-couleur')
+    if (type === 'couleur') {
+      wrap.style.display = ''
+      const { data } = await supabase.from('produits').select('couleurs').eq('id', currentProduitImages).single()
+      const couleurs = data && data.couleurs
+        ? (Array.isArray(data.couleurs) ? data.couleurs : data.couleurs.split(',').map(c => c.trim()).filter(Boolean))
+        : []
+      sel.innerHTML = '<option value="">— Choisir —</option>' + couleurs.map(c => `<option value="${c}">${c}</option>`).join('')
+    } else {
+      wrap.style.display = 'none'
+    }
+  }
+
   window.previewUpload = function(input) {
     const file = input.files[0]; if (!file) return
     const reader = new FileReader()
@@ -718,7 +734,8 @@
       })
       const uploadData = await uploadRes.json()
       if (!uploadData.success) throw new Error(uploadData.error)
-      const { error } = await supabase.from('produit_images').insert({ produit_id: currentProduitImages, url: uploadData.url, type, ordre })
+      const { error } = const couleurNom = type === 'couleur' ? (document.getElementById('upload-couleur').value || null) : null
+      const { error } = await supabase.from('produit_images').insert({ produit_id: currentProduitImages, url: uploadData.url, type, ordre, couleur_nom: couleurNom })
       if (error) throw new Error(error.message)
       if (type === 'principale' && ordre === 1) await supabase.from('produits').update({ image_url: uploadData.url }).eq('id', currentProduitImages)
       progress.textContent = '✅ ' + uploadData.url
