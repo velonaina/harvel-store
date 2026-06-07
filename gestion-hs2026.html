@@ -556,7 +556,10 @@
       <td><strong>${p.nom}</strong>${p.badge ? '<br><small style="color:#e65100;">'+p.badge+'</small>' : ''}</td>
       <td style="color:#666;font-size:.78rem;">${p.categorie || '—'}</td>
       <td><input type="number" class="inline-input" value="${p.prix}" id="prix-${p.id}" />${p.prix_barre ? '<br><small style="color:#aaa;text-decoration:line-through;">'+p.prix_barre.toLocaleString('fr')+' Ar</small>' : ''}</td>
-      <td><input type="number" class="inline-input" value="${p.stock}" id="stock-${p.id}" style="width:55px;" /></td>
+      <td style="white-space:nowrap;">
+        <input type="number" class="inline-input" value="${p.stock}" id="stock-${p.id}" style="width:55px;" />
+        ${(p.variantes && p.variantes.length) ? '<span title="Stock géré par variantes — onglet 📦 Variantes" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#e65100;color:white;font-size:9px;font-weight:700;cursor:help;margin-left:3px;">!</span>' : ''}
+      </td>
       <td><label class="toggle"><input type="checkbox" ${p.actif ? 'checked' : ''} onchange="toggleActif('${p.id}', this.checked)" /><span class="toggle-slider"></span></label></td>
       <td><div class="actions-cell">
         <button class="btn-success btn-sm" onclick="sauvegarderStockPrix('${p.id}')">💾</button>
