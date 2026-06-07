@@ -1396,69 +1396,34 @@ function renderCart(){
       ? '<img src="'+ref.thumb+'" onerror="this.parentElement.innerHTML=\'📦\'"/>'
       : (ref.emoji&&!ref.emoji.startsWith('http')?'<span>'+ref.emoji+'</span>':'<span>📦</span>');
 
-    // Lignes variantes sélectionnées — design C (photo + compteur + prix)
-    var prixInitial = prod ? prod.price : ref.price;
+    // Chips variantes sélectionnées
     var chipsSelectionnees = articlesGroupe.map(function(i){
       var stockMax = getStockVariantePourItem(i, prod);
-      // Image de la variante
-      var varImg = '';
-      if(i.thumb) {
-        varImg = '<img src="'+i.thumb+'" style="width:34px;height:34px;border-radius:6px;object-fit:cover;flex-shrink:0;border:0.5px solid rgba(0,0,0,0.1);" onerror="this.style.background=\'#eee\';this.removeAttribute(\'src\')" />';
-      } else if(prod && prod.couleurs) {
-        var couleursList = prod.couleurs.split(',').map(function(c){return c.trim();});
-        var varParts = i.variant ? i.variant.split(' — ') : [];
-        var itemCouleur = null;
-        varParts.forEach(function(vp){ if(couleursList.indexOf(vp)>-1) itemCouleur=vp; });
-        var hex = itemCouleur ? getColorHex(itemCouleur) : '#eee';
-        varImg = '<div style="width:34px;height:34px;border-radius:6px;background:'+hex+';flex-shrink:0;border:0.5px solid rgba(0,0,0,0.1);"></div>';
-      } else {
-        varImg = '<div style="width:34px;height:34px;border-radius:6px;background:#eee;flex-shrink:0;"></div>';
-      }
-      // Prix affiché — i.price est déjà correct (calculé à l'ajout)
-      var prixHtml = (i.price < prixInitial)
-        ? '<div style="font-size:10px;color:#aaa;text-decoration:line-through;">'+fmt(prixInitial)+'</div><div style="font-size:12px;font-weight:600;color:#2E7D32;">'+fmt(i.price)+'</div>'
-        : '<div style="font-size:12px;font-weight:600;color:var(--primary);">'+fmt(i.price)+'</div>';
-      return '<div class="ci-ligne-var">'+
-        varImg+
-        '<span class="ci-ligne-label">'+i.variant+'</span>'+
+      return '<div class="ci-chip-sel">'+
+        '<span class="ci-chip-label">'+i.variant+'</span>'+
         '<div class="ci-chip-qty">'+
-          '<button class="ci-chip-btn" onclick="changeQty(\''+i.cartKey+'\',-1)" '+(i.qty<=1?'disabled':'')+'>−</button>'+
+          '<button class="ci-chip-btn" onclick="changeQty(\''+i.cartKey+'\',-1)" '+(i.qty<=0?'disabled':'')+'>−</button>'+
           '<span>'+i.qty+'</span>'+
           '<button class="ci-chip-btn" onclick="changeQty(\''+i.cartKey+'\',1)" '+(i.qty>=stockMax?'disabled':'')+'>+</button>'+
         '</div>'+
         '<button class="ci-chip-del" onclick="removeFromCart(\''+i.cartKey+'\')">×</button>'+
-        '<div class="ci-ligne-prix">'+prixHtml+'</div>'+
       '</div>';
     }).join('');
 
-    // Miniatures variantes disponibles — design C
+    // Chips variantes disponibles non sélectionnées
     var chipsDisponibles = '';
     if(prod && prod.variantes && prod.variantes.length) {
-      var miniItems = [];
       prod.variantes.forEach(function(v){
         if(!v.taille && !v.couleur) return;
         var variantLabel = [v.couleur, v.taille].filter(Boolean).join(' — ');
         var dejaSelec = articlesGroupe.some(function(i){ return i.variant === variantLabel; });
         if(dejaSelec) return;
-        var miniImg = '';
-        if(prod.produit_images && prod.produit_images.length && v.couleur) {
-          var cImg = prod.produit_images.find(function(img){ return img.type==='couleur' && img.couleur_nom===v.couleur; });
-          if(cImg) miniImg = cImg.url;
+        if(v.stock <= 0) {
+          chipsDisponibles += '<div class="ci-chip-dispo rupture" title="Rupture de stock">'+variantLabel+'</div>';
+        } else {
+          chipsDisponibles += '<div class="ci-chip-dispo" onclick="ajouterVarianteDepuisPanier(\''+prodId+'\',\''+v.couleur+'\',\''+v.taille+'\')">'+variantLabel+' +</div>';
         }
-        var isRupture = v.stock <= 0;
-        var hex2 = v.couleur ? getColorHex(v.couleur) : '#eee';
-        var imgEl = miniImg
-          ? '<img src="'+miniImg+'" style="width:36px;height:36px;border-radius:6px;object-fit:cover;display:block;'+(isRupture?'filter:grayscale(1);':'')+'" onerror="this.style.background=\'#eee\';this.removeAttribute(\'src\')" />'
-          : '<div style="width:36px;height:36px;border-radius:6px;background:'+hex2+';'+(isRupture?'opacity:0.35;':'')+';border:0.5px solid rgba(0,0,0,0.1);"></div>';
-        var miniHtml = '<div class="ci-mini-var'+(isRupture?' rupture':'')+'" '+(isRupture?'':' onclick="ajouterVarianteDepuisPanier(\''+prodId+'\',\''+v.couleur+'\',\''+v.taille+'\')"')+' title="'+(isRupture?'Rupture — ':'')+variantLabel+'">'+
-          '<div style="position:relative;display:inline-block;">'+imgEl+(isRupture?'':'<div class="ci-mini-plus">+</div>')+'</div>'+
-          '<div class="ci-mini-label">'+(isRupture?'<s>':'')+variantLabel+(isRupture?'</s>':'')+'</div>'+
-        '</div>';
-        miniItems.push(miniHtml);
       });
-      if(miniItems.length) {
-        chipsDisponibles = '<div class="ci-miniatures-wrap"><span class="ci-miniatures-titre">Ajouter :</span>'+miniItems.join('')+'</div>';
-      }
     }
 
     // Prix total du groupe
@@ -1474,14 +1439,14 @@ function renderCart(){
     }
 
     return '<div class="cart-item ci-groupe">'+
-      '<div class="ci-info" style="width:100%;">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'+
-          '<div class="ci-name">'+ref.name+'</div>'+
-          '<button class="remove-btn" onclick="supprimerGroupePanier(\''+prodId+'\')">🗑️</button>'+
-        '</div>'+
+      '<div class="ci-icon">'+imgHtml+'</div>'+
+      '<div class="ci-info">'+
+        '<div class="ci-name">'+ref.name+'</div>'+
         (infoHtml?'<div class="ci-tags">'+infoHtml+'</div>':'')+
-        '<div class="ci-lignes-wrap">'+chipsSelectionnees+'</div>'+
-        chipsDisponibles+
+        '<div class="ci-chips-wrap">'+
+          chipsSelectionnees+
+          chipsDisponibles+
+        '</div>'+
         '<div class="ci-price-total">Total : <strong>'+fmt(totalGroupe)+'</strong></div>'+
       '</div>'+
     '</div>';
