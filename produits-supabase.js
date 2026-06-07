@@ -11,7 +11,7 @@ export async function getProduitsActifs() {
       stock, categorie, sous_categorie, badge,
       tailles, couleurs, options, prix_degressif,
       codes_promo, matiere, guide_tailles,
-      produit_images ( url, type, ordre )
+      produit_images ( url, type, ordre, couleur_nom )
     `)
     .eq('actif', true)
     .eq('valide_admin', true)
@@ -80,7 +80,7 @@ export async function getProduitsActifs() {
 export async function getProduitById(id) {
   const { data, error } = await supabase
     .from('produits')
-    .select(`*, produit_images ( url, type, ordre )`)
+    .select(`*, produit_images ( url, type, ordre, couleur_nom )`)
     .eq('id', id)
     .single()
 
