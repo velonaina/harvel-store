@@ -340,9 +340,11 @@
       <div class="form-group"><label>Prix (Ar)</label><input type="number" id="edit-prix" placeholder="30000" /></div>
       <div class="form-group"><label>Prix barré (Ar)</label><input type="number" id="edit-prix-barre" placeholder="Optionnel" /></div>
       <div class="form-group">
-        <label>Stock</label>
+        <label style="display:flex;align-items:center;gap:6px;">Stock
+          <span onclick="var m=document.getElementById('stock-info-msg');m.style.display=m.style.display==='none'?'inline':'none';" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#e65100;color:white;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0;" title="Info stock variantes">!</span>
+          <small id="stock-info-msg" style="display:none;color:#e65100;font-size:.75rem;font-weight:400;">⚠️ Produit avec tailles/couleurs ? Gérez le stock depuis <strong>📦 Variantes</strong>.</small>
+        </label>
         <input type="number" id="edit-stock" placeholder="0" />
-        <small style="color:#e65100;font-size:.75rem;margin-top:4px;">⚠️ Produit avec tailles/couleurs ? Gérez le stock depuis <strong>📦 Variantes</strong>.</small>
       </div>
       <div class="form-group"><label>Badge</label><input type="text" id="edit-badge" placeholder="Nouveau, Promo" /></div>
       <div class="form-group"><label>Catégorie</label><input type="text" id="edit-categorie" /></div>
