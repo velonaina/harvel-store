@@ -912,3 +912,10 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .ci-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
 .ci-tag-promo { background: #fff3e0; color: #e65100; }
 .ci-tag-degressif { background: #e8f5e9; color: #2E7D32; }
+.guide-tailles-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f0f4ff; color: #1F3864; border: 1.5px solid #c5d0e8;
+  border-radius: 8px; padding: 6px 14px; font-size: .82rem;
+  font-weight: 600; cursor: pointer; margin-bottom: 12px; transition: background 0.2s;
+}
+.guide-tailles-btn:hover { background: #dde6ff; }
