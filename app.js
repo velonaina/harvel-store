@@ -1385,137 +1385,305 @@ function updateCartCount(){
     }
   }
 }
-function renderCart(){
-  var el=document.getElementById('cart-content');
-  if(!cart.length){
-    el.innerHTML='<div class="cart-empty"><div class="icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2d7a00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div><p style="color:var(--primary);font-weight:600;">Votre panier est vide</p><p style="color:var(--muted);font-size:.9rem;">Découvrez nos produits !</p><br><div style="display:flex;flex-direction:column;gap:10px;align-items:center;">'+
-        (window.lastAddedProduct ? '<button class="hero-btn" style="background:white;color:var(--primary);border:2px solid var(--primary);" onclick="openProduct(lastAddedProduct)">↩ Retourner à : '+window.lastAddedProduct.name+'</button>' : '')+
-        '<button class="hero-btn" style="background:var(--primary);color:#fff;" onclick="showPage(\'shop\')">Voir la boutique</button>'+
-      '</div></div>';
+function renderCart() {
+  var el = document.getElementById('cart-content');
+  if (!el) return;
+
+  // ── Panier vide ──
+  if (!cart.length) {
+    el.innerHTML =
+      '<div class="cart-empty">' +
+        '<div class="icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2d7a00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>' +
+        '<p style="color:var(--primary);font-weight:600;">Votre panier est vide</p>' +
+        '<p style="color:var(--muted);font-size:.9rem;">Découvrez nos produits !</p><br>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;align-items:center;">' +
+          (window.lastAddedProduct
+            ? '<button class="hero-btn" style="background:white;color:var(--primary);border:2px solid var(--primary);" onclick="openProduct(\'' + window.lastAddedProduct.id + '\')">↩ Retourner à : ' + window.lastAddedProduct.name + '</button>'
+            : '') +
+          '<button class="hero-btn" style="background:var(--primary);color:#fff;" onclick="showPage(\'shop\')">Voir la boutique</button>' +
+        '</div>' +
+      '</div>';
     return;
   }
-  var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
-  // Grouper les articles par produit pour afficher les chips variantes
-  var prodIds = [];
-  cart.forEach(function(i){ if(prodIds.indexOf(i.id)===-1) prodIds.push(i.id); });
-  var itemsHtml = prodIds.map(function(prodId){
-    var articlesGroupe = cart.filter(function(i){ return i.id === prodId; });
-    var ref = articlesGroupe[0];
-    var prod = products.find(function(p){ return p.id === prodId; });
-    var imgHtml = ref.thumb
-      ? '<img src="'+ref.thumb+'" onerror="this.parentElement.innerHTML=\'📦\'"/>'
-      : (ref.emoji&&!ref.emoji.startsWith('http')?'<span>'+ref.emoji+'</span>':'<span>📦</span>');
 
-    // Chips variantes sélectionnées
-    var chipsSelectionnees = articlesGroupe.map(function(i){
-      var stockMax = getStockVariantePourItem(i, prod);
-      return '<div class="ci-chip-sel">'+
-        '<span class="ci-chip-label">'+i.variant+'</span>'+
-        '<div class="ci-chip-qty">'+
-          '<button class="ci-chip-btn" onclick="changeQty(\''+i.cartKey+'\',-1)" '+(i.qty<=0?'disabled':'')+'>−</button>'+
-          '<span>'+i.qty+'</span>'+
-          '<button class="ci-chip-btn" onclick="changeQty(\''+i.cartKey+'\',1)" '+(i.qty>=stockMax?'disabled':'')+'>+</button>'+
-        '</div>'+
-        '<button class="ci-chip-del" onclick="removeFromCart(\''+i.cartKey+'\')">×</button>'+
+  // ── Grouper par produit ──
+  var prodIds = [];
+  cart.forEach(function (i) { if (prodIds.indexOf(i.id) === -1) prodIds.push(i.id); });
+
+  var totalGlobal = cart.reduce(function (s, i) { return s + i.price * i.qty; }, 0);
+  var totalQty    = cart.reduce(function (s, i) { return s + i.qty; }, 0);
+
+  // Calcul économie dégressif (total sans dégressif vs total avec)
+  var economieTotale = 0;
+  prodIds.forEach(function (prodId) {
+    var prod = products.find(function (p) { return p.id === prodId; });
+    if (prod && prod.prix_degressif) {
+      var paliers = parsePrixDegressif(prod.prix_degressif);
+      if (paliers.length) {
+        var qtyTot = cart.filter(function (i) { return i.id === prodId; }).reduce(function (s, i) { return s + i.qty; }, 0);
+        var prixSansDeg = prod.price;
+        var prixAvecDeg = getPrixDegressif(paliers, qtyTot);
+        economieTotale += (prixSansDeg - prixAvecDeg) * qtyTot;
+      }
+    }
+  });
+
+  // ── Groupes produits ──
+  var groupesHtml = prodIds.map(function (prodId) {
+    var articlesGroupe = cart.filter(function (i) { return i.id === prodId; });
+    var ref  = articlesGroupe[0];
+    var prod = products.find(function (p) { return p.id === prodId; });
+
+    var qtyTotale     = articlesGroupe.reduce(function (s, i) { return s + i.qty; }, 0);
+    var totalGroupe   = articlesGroupe.reduce(function (s, i) { return s + i.price * i.qty; }, 0);
+
+    // Tags dégressif / promo
+    var infoHtml = '';
+    if (ref.code_promo) infoHtml += '<span class="dc-tag dc-tag-promo">🏷️ ' + ref.code_promo + '</span>';
+    if (prod && prod.prix_degressif) {
+      var paliers = parsePrixDegressif(prod.prix_degressif);
+      if (paliers.length && qtyTotale > 1) {
+        infoHtml += '<span class="dc-tag dc-tag-deg">📦 Prix dégressif ×' + qtyTotale + '</span>';
+      }
+    }
+
+    // Lignes variantes
+    var lignesHtml = articlesGroupe.map(function (item) {
+      var prod2    = products.find(function (p) { return p.id === item.id; });
+      var stockMax = getStockVariantePourItem(item, prod2);
+
+      var thumbHtml = item.thumb
+        ? '<img src="' + item.thumb + '" alt="' + item.name + '" onerror="this.parentElement.innerHTML=\'📦\'"/>'
+        : (item.emoji && !item.emoji.startsWith('http') ? '<span>' + item.emoji + '</span>' : '<span>📦</span>');
+
+      var stockBadge = (stockMax <= 3 && stockMax > 0)
+        ? '<div class="dc-vribbon">⚠️ Plus que ' + stockMax + '</div>' : '';
+      if (stockMax === 0) stockBadge = '<div class="dc-vribbon dc-vribbon-rupt">Rupture</div>';
+
+      var variantLabel = item.variant
+        ? item.variant.split(' — ').map(function (v) {
+            return '<span class="dc-vtag">' + v + '</span>';
+          }).join('')
+        : '';
+
+      return '<div class="dc-vrow">' +
+        '<div class="dc-vimg">' + thumbHtml + stockBadge + '</div>' +
+        '<div class="dc-vinfo">' +
+          '<div class="dc-vname">' + item.name + '</div>' +
+          (variantLabel ? '<div class="dc-vtags">' + variantLabel + '</div>' : '') +
+          '<div class="dc-vprow">' +
+            '<span class="dc-vprice">' + fmt(item.price) + '</span>' +
+            (item.price < (prod ? prod.price : item.price)
+              ? '<span class="dc-vold">' + fmt(prod ? prod.price : item.price) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="dc-qty">' +
+          '<button onclick="changeQty(\'' + item.cartKey + '\',-1)" ' + (item.qty <= 1 ? '' : '') + '>−</button>' +
+          '<span>' + item.qty + '</span>' +
+          '<button onclick="changeQty(\'' + item.cartKey + '\',1)" ' + (item.qty >= stockMax ? 'disabled' : '') + '>+</button>' +
+        '</div>' +
+        '<button class="dc-del" onclick="removeFromCart(\'' + item.cartKey + '\')" title="Supprimer">×</button>' +
       '</div>';
     }).join('');
 
-    // Chips variantes disponibles non sélectionnées
-    var chipsDisponibles = '';
-    if(prod && prod.variantes && prod.variantes.length) {
-      prod.variantes.forEach(function(v){
-        if(!v.taille && !v.couleur) return;
-        var variantLabel = [v.couleur, v.taille].filter(Boolean).join(' — ');
-        var dejaSelec = articlesGroupe.some(function(i){ return i.variant === variantLabel; });
-        if(dejaSelec) return;
-        if(v.stock <= 0) {
-          chipsDisponibles += '<div class="ci-chip-dispo rupture" title="Rupture de stock">'+variantLabel+'</div>';
-        } else {
-          chipsDisponibles += '<div class="ci-chip-dispo" onclick="ajouterVarianteDepuisPanier(\''+prodId+'\',\''+v.couleur+'\',\''+v.taille+'\')">'+variantLabel+' +</div>';
-        }
-      });
-    }
+    // Section inline variante (cachée par défaut)
+    var inlineVarHtml = renderInlineVariante(prodId, prod);
 
-    // Prix total du groupe
-    var totalGroupe = articlesGroupe.reduce(function(s,i){ return s+i.price*i.qty; }, 0);
-    var qtyTotale = articlesGroupe.reduce(function(s,i){ return s+i.qty; }, 0);
-
-    // Afficher code promo et prix dégressif
-    var infoHtml = '';
-    if(ref.code_promo) infoHtml += '<span class="ci-tag ci-tag-promo">🏷️ '+ref.code_promo+'</span>';
-    if(prod && prod.prix_degressif) {
-      var paliers = parsePrixDegressif(prod.prix_degressif);
-      if(paliers.length && qtyTotale > 1) infoHtml += '<span class="ci-tag ci-tag-degressif">📦 Prix dégressif ×'+qtyTotale+'</span>';
-    }
-
-    return '<div class="cart-item ci-groupe">'+
-      '<div class="ci-icon">'+imgHtml+'</div>'+
-      '<div class="ci-info">'+
-        '<div class="ci-name">'+ref.name+'</div>'+
-        (infoHtml?'<div class="ci-tags">'+infoHtml+'</div>':'')+
-        '<div class="ci-chips-wrap">'+
-          chipsSelectionnees+
-          chipsDisponibles+
-        '</div>'+
-        '<div class="ci-price-total">Total : <strong>'+fmt(totalGroupe)+'</strong></div>'+
-      '</div>'+
+    return '<div class="dc-group" id="dc-group-' + prodId + '">' +
+      '<div class="dc-group-hd">' +
+        '<div class="dc-gico">' +
+          (ref.thumb
+            ? '<img src="' + ref.thumb + '" onerror="this.src=\'\';this.style.background=\'var(--primary-light)\'"/>'
+            : '<span>' + (ref.emoji && !ref.emoji.startsWith('http') ? ref.emoji : '📦') + '</span>') +
+        '</div>' +
+        '<span class="dc-gname">' + ref.name + '</span>' +
+        '<span class="dc-gcount">' + articlesGroupe.length + ' var.</span>' +
+      '</div>' +
+      (infoHtml ? '<div class="dc-group-tags">' + infoHtml + '</div>' : '') +
+      lignesHtml +
+      '<button class="dc-av-btn" onclick="toggleInlineVariante(\'' + prodId + '\')">' +
+        '<span class="dc-av-plus">+</span> Ajouter une variante' +
+      '</button>' +
+      inlineVarHtml +
     '</div>';
   }).join('');
 
-  el.innerHTML='<div class="section-title">Mon Panier</div><div class="cart-items">'+itemsHtml+'</div><div class="cart-summary"><div class="summary-row"><span>Articles ('+cart.reduce(function(s,i){return s+i.qty;},0)+')</span><span>'+fmt(sub)+'</span></div><div class="summary-row"><span>Livraison</span><span>Selon votre zone</span></div><div class="summary-row summary-total"><span>Total produits</span><span>'+fmt(sub)+'</span></div><button class="checkout-btn" onclick="goToOrder()">🛍️ Passer la commande</button></div>';
+  // ── Footer ──
+  var economieLine = economieTotale > 0
+    ? '<div class="dc-savings">' +
+        '<span class="dc-sav-left">🏷️ Économie dégressif : <strong>' + fmt(economieTotale) + '</strong></span>' +
+        '<span class="dc-sav-right">✓ Meilleur prix appliqué</span>' +
+      '</div>'
+    : '';
+
+  el.innerHTML =
+    '<div class="dc-header-bar">' +
+      '<span class="dc-header-title">🛒 Mon Panier</span>' +
+      '<span class="dc-header-badge">' + totalQty + ' article' + (totalQty > 1 ? 's' : '') + '</span>' +
+    '</div>' +
+    '<div class="dc-body">' + groupesHtml + '</div>' +
+    '<div class="dc-footer">' +
+      economieLine +
+      '<button class="dc-cta-main" onclick="goToOrder()">' +
+        '<span>Passer commande</span><span>' + fmt(totalGlobal) + ' →</span>' +
+      '</button>' +
+      '<a class="dc-cta-wa" href="' + buildCartWhatsApp() + '" target="_blank">' +
+        '📱 Commander via WhatsApp' +
+      '</a>' +
+    '</div>';
 }
 
-function getStockVariantePourItem(item, prod) {
-  if(!prod || !prod.variantes || !prod.variantes.length) return prod ? prod.stock : 999;
-  var variantParts = item.variant ? item.variant.split(' — ') : [];
-  var itemColor = null, itemSize = null;
-  variantParts.forEach(function(part) {
-    if(prod.couleurs && prod.couleurs.split(',').map(function(c){return c.trim();}).indexOf(part) > -1) itemColor = part;
-    if(prod.tailles && prod.tailles.split(',').map(function(t){return t.trim();}).indexOf(part) > -1) itemSize = part;
-  });
-  return getStockVariante(prod, itemSize, itemColor);
-}
+// ── Génère le HTML de la section inline variante (cachée par défaut) ──
+function renderInlineVariante(prodId, prod) {
+  if (!prod) return '';
+  var colors = getColors(prod);
+  var sizes  = getSizes(prod);
+  if (!colors.length && !sizes.length) return '';
 
-function ajouterVarianteDepuisPanier(prodId, couleur, taille) {
-  var prod = products.find(function(p){ return p.id === prodId; });
-  if(!prod) return;
-  var variantLabel = [couleur, taille].filter(Boolean).join(' — ');
-  var cartKey = prodId + '_' + variantLabel;
-  // Vérifier si déjà dans le panier
-  var ex = cart.find(function(i){ return i.cartKey === cartKey; });
-  if(ex) { showToast('✅ Déjà dans le panier — utilisez + pour augmenter','warning'); renderCart(); return; }
-  // Vérifier stock
-  var stockDispo = getStockVariante(prod, taille || null, couleur || null);
-  if(stockDispo <= 0) { showToast('❌ Rupture de stock','error'); return; }
-  // Calculer le prix (dégressif si applicable)
-  var qtyTotale = cart.filter(function(i){ return i.id===prodId; }).reduce(function(s,i){return s+i.qty;},0) + 1;
-  var price = prod.price;
-  if(prod.prix_degressif) {
-    var paliers = parsePrixDegressif(prod.prix_degressif);
-    if(paliers.length) price = getPrixDegressif(paliers, qtyTotale);
-    // Mettre à jour le prix de tous les articles du même produit
-    cart.forEach(function(i){
-      if(i.id === prodId && paliers.length) i.price = getPrixDegressif(paliers, qtyTotale);
-    });
+  var colorHtml = '';
+  if (colors.length) {
+    colorHtml = '<div class="dc-iv-label">Couleur</div>' +
+      '<div class="dc-iv-color-grid">' +
+      colors.map(function (c, i) {
+        var imgKey = ['photos_c1','photos_c2','photos_c3','photos_c4','photos_c5'][i];
+        var imgUrl = prod[imgKey] ? prod[imgKey].split(',')[0] : '';
+        var hex    = getColorHex(c);
+        var dispo  = isCouleurDisponible(prod, c, null);
+        var imgHtml = imgUrl
+          ? '<img src="' + imgUrl + '" alt="' + c + '" onerror="this.style.background=\'' + hex + '\'">'
+          : '<div style="width:100%;height:100%;background:' + hex + ';"></div>';
+        return '<div class="dc-iv-color-item' + (dispo ? '' : ' rupture') + '" ' +
+          (dispo ? 'onclick="ivSelectColor(\'' + prodId + '\',\'' + c + '\',' + i + ',this)"' : '') +
+          ' title="' + c + (dispo ? '' : ' — Rupture') + '">' +
+          '<div class="dc-iv-color-thumb">' + imgHtml + '</div>' +
+          '<span class="dc-iv-color-lbl">' + c + '</span>' +
+        '</div>';
+      }).join('') +
+      '</div>';
   }
-  // Vérifier code promo : bloqué si prix dégressif + qty > 1
-  var codePromo = null;
-  var existingItems = cart.filter(function(i){ return i.id===prodId; });
-  if(existingItems.length && existingItems[0].code_promo) {
-    if(prod.prix_degressif && parsePrixDegressif(prod.prix_degressif).length && qtyTotale > 1) {
-      showToast('⚠️ Code promo non applicable avec prix dégressif','warning');
-    } else {
-      codePromo = existingItems[0].code_promo;
+
+  var sizeHtml = '';
+  if (sizes.length) {
+    var isOne = sizes.length === 1 && sizes[0].toLowerCase().includes('one');
+    sizeHtml = '<div class="dc-iv-label">Taille</div>' +
+      '<div class="dc-iv-size-grid">' +
+      sizes.map(function (s) {
+        var dispo = isTailleDisponible(prod, s);
+        return '<button class="dc-iv-size-btn' + (isOne ? ' one-size' : '') + (dispo ? '' : ' rupture') + '" ' +
+          (dispo ? 'onclick="ivSelectSize(\'' + prodId + '\',\'' + s + '\',this)"' : 'disabled') + '>' +
+          s + '</button>';
+      }).join('') +
+      '</div>';
+  }
+
+  return '<div class="dc-inline-var" id="dc-iv-' + prodId + '" style="display:none;">' +
+    '<div class="dc-iv-title">Choisir une autre variante</div>' +
+    colorHtml +
+    sizeHtml +
+    '<div class="dc-iv-cta-row">' +
+      '<button class="dc-iv-add" onclick="ivConfirmer(\'' + prodId + '\')">' +
+        '✅ Ajouter au panier' +
+      '</button>' +
+      '<button class="dc-iv-cancel" onclick="toggleInlineVariante(\'' + prodId + '\')">' +
+        'Annuler' +
+      '</button>' +
+    '</div>' +
+  '</div>';
+}
+
+// ── Ouvre/ferme la section inline variante ──
+function toggleInlineVariante(prodId) {
+  var section = document.getElementById('dc-iv-' + prodId);
+  if (!section) return;
+  var isOpen = section.style.display !== 'none';
+  // Fermer toutes les autres sections ouvertes
+  document.querySelectorAll('.dc-inline-var').forEach(function (el) {
+    el.style.display = 'none';
+  });
+  if (!isOpen) {
+    section.style.display = 'block';
+    // Reset sélections
+    section.querySelectorAll('.dc-iv-color-item').forEach(function (el) { el.classList.remove('active'); });
+    section.querySelectorAll('.dc-iv-size-btn').forEach(function (el) { el.classList.remove('active'); });
+    section._selectedColor = null;
+    section._selectedColorIndex = -1;
+    section._selectedSize = null;
+    // Scroll vers la section
+    setTimeout(function () { section.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+  }
+}
+
+// ── Sélection couleur inline ──
+function ivSelectColor(prodId, couleur, colorIndex, el) {
+  var section = document.getElementById('dc-iv-' + prodId);
+  if (!section) return;
+  section.querySelectorAll('.dc-iv-color-item').forEach(function (b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  section._selectedColor = couleur;
+  section._selectedColorIndex = colorIndex;
+}
+
+// ── Sélection taille inline ──
+function ivSelectSize(prodId, taille, el) {
+  var section = document.getElementById('dc-iv-' + prodId);
+  if (!section) return;
+  section.querySelectorAll('.dc-iv-size-btn').forEach(function (b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  section._selectedSize = taille;
+}
+
+// ── Confirmer l'ajout depuis l'inline ──
+function ivConfirmer(prodId) {
+  var section  = document.getElementById('dc-iv-' + prodId);
+  var prod     = products.find(function (p) { return p.id === prodId; });
+  if (!section || !prod) return;
+
+  var couleur  = section._selectedColor || null;
+  var taille   = section._selectedSize  || null;
+  var ci       = section._selectedColorIndex || 0;
+  var colors   = getColors(prod);
+  var sizes    = getSizes(prod);
+  var isOne    = sizes.length === 1 && sizes[0].toLowerCase().includes('one');
+  if (isOne) taille = sizes[0];
+
+  // Validation
+  if (colors.length && !couleur) { showToast('⚠️ Veuillez choisir une couleur', 'warning'); return; }
+  if (sizes.length && !isOne && !taille) { showToast('⚠️ Veuillez choisir une taille', 'warning'); return; }
+
+  var variantLabel = [couleur, taille].filter(Boolean).join(' — ');
+  var cartKey      = prodId + '_' + variantLabel;
+
+  // Déjà dans le panier ?
+  if (cart.find(function (i) { return i.cartKey === cartKey; })) {
+    showToast('⚠️ Cette variante est déjà dans le panier — utilisez + pour augmenter', 'warning');
+    return;
+  }
+
+  // Stock
+  var stockDispo = getStockVariante(prod, taille, couleur);
+  if (stockDispo <= 0) { showToast('❌ Rupture de stock', 'error'); return; }
+
+  // Prix dégressif
+  var qtyTotale = cart.filter(function (i) { return i.id === prodId; }).reduce(function (s, i) { return s + i.qty; }, 0) + 1;
+  var price = prod.price;
+  if (prod.prix_degressif) {
+    var paliers = parsePrixDegressif(prod.prix_degressif);
+    if (paliers.length) {
+      price = getPrixDegressif(paliers, qtyTotale);
+      // Mettre à jour le prix des variantes existantes
+      cart.forEach(function (x) { if (x.id === prodId && paliers.length) x.price = price; });
     }
   }
-  // Choisir l'image selon la couleur
+
+  // Image couleur
   var thumbImg = prod.emoji ? prod.emoji.split(',')[0] : null;
-  if(couleur && prod.produit_images && prod.produit_images.length) {
-    var colorImg = prod.produit_images.find(function(img){
+  if (couleur && prod.produit_images && prod.produit_images.length) {
+    var colorImg = prod.produit_images.find(function (img) {
       return img.type === 'couleur' && img.couleur_nom === couleur;
     });
-    if(colorImg) thumbImg = colorImg.url;
+    if (colorImg) thumbImg = colorImg.url;
   }
+
   cart.push(Object.assign({}, prod, {
     price: price,
     variant: variantLabel,
@@ -1523,12 +1691,35 @@ function ajouterVarianteDepuisPanier(prodId, couleur, taille) {
     qty: 1,
     is_pack: false,
     thumb: thumbImg,
-    code_promo: codePromo
+    code_promo: null
   }));
-  showToast('✅ '+variantLabel+' ajouté au panier');
+
+  showToast('✅ ' + (variantLabel || prod.name) + ' ajouté !');
+  section.style.display = 'none';
   updateCartCount();
   renderCart();
 }
+
+// ── Génère le message WhatsApp depuis le panier complet ──
+function buildCartWhatsApp() {
+  if (!cart.length) return 'https://wa.me/' + WA_NUMBER;
+  var msg = 'Bonjour Harvel Store ! 👋\n\nJe souhaite commander :\n\n';
+  var prodIds = [];
+  cart.forEach(function (i) { if (prodIds.indexOf(i.id) === -1) prodIds.push(i.id); });
+  prodIds.forEach(function (prodId) {
+    var items = cart.filter(function (i) { return i.id === prodId; });
+    msg += '🛍️ *' + items[0].name + '*\n';
+    items.forEach(function (i) {
+      if (i.variant) msg += '  📌 ' + i.variant + ' × ' + i.qty + ' = ' + fmt(i.price * i.qty) + '\n';
+      else msg += '  × ' + i.qty + ' = ' + fmt(i.price * i.qty) + '\n';
+    });
+    msg += '\n';
+  });
+  var total = cart.reduce(function (s, i) { return s + i.price * i.qty; }, 0);
+  msg += '💰 *Total : ' + fmt(total) + '*\n\nMerci de confirmer ma commande !';
+  return 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
+}
+
 function changeQty(key,d){
   var item=cart.find(function(x){return x.cartKey===key;});
   if(!item) return;
