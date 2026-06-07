@@ -66,7 +66,7 @@ nav{background:#fff;padding:0 20px;display:flex;align-items:center;justify-conte
 
 /* HERO */
 .hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-radius:16px;padding:36px 30px;margin-bottom:28px;position:relative;overflow:hidden;}
-.hero::after{content:'­ƒøÆ';position:absolute;right:24px;top:16px;font-size:6rem;opacity:.12;}
+.hero::after{content:'🛒';position:absolute;right:24px;top:16px;font-size:6rem;opacity:.12;}
 .hero h1{font-size:1.8rem;font-weight:800;margin-bottom:10px;line-height:1.2;}
 .hero p{opacity:.9;font-size:.95rem;margin-bottom:18px;line-height:1.6;}
 .hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
