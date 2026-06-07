@@ -1539,24 +1539,35 @@ function changeQty(key,d){
   }
   if(prod && newQty > stockMaxCart){ showToast('⚠️ Stock maximum atteint !','warning'); return; }
   item.qty = newQty;
-  // Recalculer le prix dégressif sur la QTY TOTALE de toutes les variantes du produit
+  // Recalculer le prix dégressif sur la QTY TOTALE
   if(prod && prod.prix_degressif) {
     var paliers = parsePrixDegressif(prod.prix_degressif);
     if(paliers.length) {
-      // Calculer la quantité totale après modification
-      var qtyTotaleProduit = cart.reduce(function(s,x){
-        return x.id === item.id ? s + x.qty : s;
-      }, 0);
+      var qtyTotaleProduit = cart.reduce(function(s,x){ return x.id===item.id ? s+x.qty : s; }, 0);
       var nouveauPrix = getPrixDegressif(paliers, qtyTotaleProduit);
-      // Appliquer le même prix à toutes les variantes du produit
-      cart.forEach(function(x){
-        if(x.id === item.id) x.price = nouveauPrix;
-      });
+      cart.forEach(function(x){ if(x.id===item.id) x.price = nouveauPrix; });
     }
   }
   updateCartCount();renderCart();
 }
-function removeFromCart(key){cart=cart.filter(function(x){return x.cartKey!==key;});updateCartCount();renderCart();}
+function removeFromCart(key){
+  var item = cart.find(function(x){return x.cartKey===key;});
+  var prodId = item ? item.id : null;
+  cart = cart.filter(function(x){return x.cartKey!==key;});
+  // Recalculer prix dégressif pour les variantes restantes du même produit
+  if(prodId) {
+    var prod = products.find(function(p){return p.id==prodId;});
+    if(prod && prod.prix_degressif) {
+      var paliers = parsePrixDegressif(prod.prix_degressif);
+      if(paliers.length) {
+        var qtyRestante = cart.reduce(function(s,x){ return x.id===prodId ? s+x.qty : s; }, 0);
+        var nouveauPrix = getPrixDegressif(paliers, qtyRestante);
+        cart.forEach(function(x){ if(x.id===prodId) x.price = nouveauPrix; });
+      }
+    }
+  }
+  updateCartCount();renderCart();
+}
 // ===== MINI PANIER =====
 function renderMiniCart(){
   var itemsEl=document.getElementById('mini-cart-items');
