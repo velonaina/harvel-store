@@ -1619,7 +1619,19 @@ function miniChangeQty(key,d){
   if(item.is_pack){ showToast('📦 Prix de pack fixe — supprimez et rechoisissez depuis la fiche produit','warning'); return; }
   var prod=products.find(function(x){return x.id==item.id;});
   var newQty = item.qty + d;
-  if(newQty <= 0){ cart=cart.filter(function(x){return x.cartKey!==key;}); updateCartCount(); renderMiniCart(); return; }
+  if(newQty <= 0){
+    var prodId2 = item.id;
+    cart = cart.filter(function(x){return x.cartKey!==key;});
+    if(prod && prod.prix_degressif) {
+      var paliers2 = parsePrixDegressif(prod.prix_degressif);
+      if(paliers2.length) {
+        var qtyRestante2 = cart.reduce(function(s,x){ return x.id===prodId2 ? s+x.qty : s; }, 0);
+        var prix2 = getPrixDegressif(paliers2, qtyRestante2);
+        cart.forEach(function(x){ if(x.id===prodId2) x.price = prix2; });
+      }
+    }
+    updateCartCount(); renderCart(); return;
+  }
   if(prod && newQty > prod.stock){ showToast('⚠️ Stock maximum atteint !','warning'); return; }
   item.qty = newQty;
   // Recalculer le prix dégressif si applicable
