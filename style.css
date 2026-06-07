@@ -877,3 +877,38 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .ci-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
 .ci-tag-promo { background: #fff3e0; color: #e65100; }
 .ci-tag-degressif { background: #e8f5e9; color: #2E7D32; }
+
+/* ===== VARIANTES PANIER — DESIGN C ===== */
+.ci-groupe { flex-direction: column; align-items: flex-start; gap: 0; padding: 12px 14px; }
+.ci-groupe .ci-icon { display: none; }
+.ci-lignes-wrap { display: flex; flex-direction: column; gap: 0; margin: 6px 0; }
+.ci-ligne-var {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06);
+}
+.ci-ligne-var:last-child { border-bottom: none; }
+.ci-ligne-label { flex: 1; font-size: 12px; font-weight: 600; color: var(--text); }
+.ci-ligne-prix { min-width: 72px; text-align: right; }
+.ci-chip-qty { display: flex; align-items: center; border: 1.5px solid #1565c0; border-radius: 20px; overflow: hidden; background: #e3f0ff; }
+.ci-chip-qty span { font-size: 12px; font-weight: 600; color: #1565c0; min-width: 18px; text-align: center; }
+.ci-chip-btn { background: none; border: none; font-size: 15px; cursor: pointer; color: #1565c0; padding: 4px 7px; line-height: 1; }
+.ci-chip-btn:disabled { opacity: 0.3; cursor: default; }
+.ci-chip-del { background: none; border: none; border-left: 1px solid #1565c0; font-size: 13px; cursor: pointer; color: #1565c0; padding: 4px 7px; line-height: 1; }
+.ci-chip-del:hover { background: #c62828; color: white; }
+.ci-miniatures-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 0 4px; }
+.ci-miniatures-titre { font-size: 11px; color: #888; white-space: nowrap; }
+.ci-mini-var { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+.ci-mini-var.rupture { cursor: default; opacity: 0.4; }
+.ci-mini-plus {
+  position: absolute; bottom: -3px; right: -3px;
+  background: #1565c0; color: white; border-radius: 50%;
+  width: 14px; height: 14px; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 700; line-height: 1;
+}
+.ci-mini-label { font-size: 10px; color: #888; text-align: center; max-width: 50px; line-height: 1.2; }
+.ci-price-total { font-size: 13px; color: #555; margin-top: 6px; padding-top: 6px; border-top: 0.5px solid rgba(0,0,0,0.06); }
+.ci-price-total strong { color: var(--primary); }
+.ci-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.ci-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.ci-tag-promo { background: #fff3e0; color: #e65100; }
+.ci-tag-degressif { background: #e8f5e9; color: #2E7D32; }
