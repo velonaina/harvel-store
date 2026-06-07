@@ -1311,7 +1311,13 @@ function addToCartFromProduct(){
   if(sizes.length>0&&!isOne&&!selectedSize){showToast('⚠️ Veuillez choisir une taille','warning');return;}
   // Prix : option > dégressif > prix de base
   var paliers = parsePrixDegressif(p.prix_degressif);
-  var prixDegressif = paliers.length ? getPrixDegressif(paliers, selectedQty) : null;
+  // Calculer qty totale (variantes existantes + nouvelles) pour le prix dégressif
+  var qtyExistante = cart.reduce(function(s,x){ return x.id===p.id ? s+x.qty : s; }, 0);
+  var prixDegressif = paliers.length ? getPrixDegressif(paliers, qtyExistante + selectedQty) : null;
+  // Mettre à jour le prix des variantes existantes si dégressif change
+  if(paliers.length && qtyExistante > 0) {
+    cart.forEach(function(x){ if(x.id===p.id) x.price = getPrixDegressif(paliers, qtyExistante + selectedQty); });
+  }
   var couponBloque = paliers.length > 0 && selectedQty > 1;
   var price, qtyReelle;
   if(selectedOption && selectedOption.qty > 1) {
@@ -1554,7 +1560,6 @@ function removeFromCart(key){
   var item = cart.find(function(x){return x.cartKey===key;});
   var prodId = item ? item.id : null;
   cart = cart.filter(function(x){return x.cartKey!==key;});
-  // Recalculer prix dégressif pour les variantes restantes du même produit
   if(prodId) {
     var prod = products.find(function(p){return p.id==prodId;});
     if(prod && prod.prix_degressif) {
