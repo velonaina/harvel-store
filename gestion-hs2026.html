@@ -665,11 +665,25 @@
     liste.innerHTML = '<span class="spinner-sm"></span> Chargement...'
     const { data } = await supabase.from('produit_images').select('*').eq('produit_id', produitId).order('type').order('ordre')
     if (!data || !data.length) { liste.innerHTML = '<p style="color:#aaa;font-size:.85rem;">Aucune image.</p>'; return }
-    liste.innerHTML = data.map(img => `<div class="img-card">
-      <img src="${img.url}" onerror="this.style.display='none'" />
-      <div class="img-info">${img.type} #${img.ordre}</div>
-      <button class="btn-danger btn-sm" onclick="supprimerImage('${img.id}','${produitId}')">🗑️</button>
-    </div>`).join('')
+    // Récupérer les couleurs du produit pour le sélecteur
+    const { data: prodData } = await supabase.from('produits').select('couleurs').eq('id', produitId).single()
+    const couleursList = prodData && prodData.couleurs ? prodData.couleurs : []
+    const couleursArr = Array.isArray(couleursList) ? couleursList : couleursList.split(',').map(c => c.trim()).filter(Boolean)
+
+    liste.innerHTML = data.map(img => {
+      const isCouleur = img.type === 'couleur'
+      const selectCouleur = isCouleur ? `
+        <select class="couleur-sel" style="width:100%;margin-top:4px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:.75rem;" onchange="assignerCouleurImage('${img.id}', this.value)">
+          <option value="">— Couleur —</option>
+          ${couleursArr.map(c => `<option value="${c}" ${img.couleur_nom === c ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>` : ''
+      return `<div class="img-card">
+        <img src="${img.url}" onerror="this.style.display='none'" />
+        <div class="img-info">${img.type} #${img.ordre}${img.couleur_nom ? ' — '+img.couleur_nom : ''}</div>
+        ${selectCouleur}
+        <button class="btn-danger btn-sm" style="margin-top:4px;" onclick="supprimerImage('${img.id}','${produitId}')">🗑️</button>
+      </div>`
+    }).join('')
   }
 
   window.previewUpload = function(input) {
@@ -709,6 +723,12 @@
       document.getElementById('upload-preview').style.display = 'none'
     } catch(e) { progress.textContent = '❌ ' + e.message; showToast('❌ Erreur upload', 'error') }
     btn.disabled = false
+  }
+
+  window.assignerCouleurImage = async function(imageId, couleurNom) {
+    const { error } = await supabase.from('produit_images').update({ couleur_nom: couleurNom || null }).eq('id', imageId)
+    if (error) { showToast('❌ Erreur', 'error'); return }
+    showToast('✅ Couleur associée', 'success')
   }
 
   window.supprimerImage = async function(imageId, produitId) {
