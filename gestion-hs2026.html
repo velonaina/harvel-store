@@ -694,17 +694,18 @@
   }
 
   window.toggleCouleurUpload = async function(type) {
-    const wrap = document.getElementById('upload-couleur-wrap')
-    const sel = document.getElementById('upload-couleur')
+    var wrap = document.getElementById('upload-couleur-wrap');
+    var sel = document.getElementById('upload-couleur');
     if (type === 'couleur') {
-      wrap.style.display = ''
-      const { data } = await supabase.from('produits').select('couleurs').eq('id', currentProduitImages).single()
-      const couleurs = data && data.couleurs
-        ? (Array.isArray(data.couleurs) ? data.couleurs : data.couleurs.split(',').map(c => c.trim()).filter(Boolean))
-        : []
-      sel.innerHTML = '<option value="">— Choisir —</option>' + couleurs.map(c => `<option value="${c}">${c}</option>`).join('')
+      wrap.style.display = '';
+      var res = await supabase.from('produits').select('couleurs').eq('id', currentProduitImages).single();
+      var data = res.data;
+      var couleurs = data && data.couleurs
+        ? (Array.isArray(data.couleurs) ? data.couleurs : data.couleurs.split(',').map(function(c){ return c.trim(); }).filter(Boolean))
+        : [];
+      sel.innerHTML = '<option value="">— Choisir —</option>' + couleurs.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
     } else {
-      wrap.style.display = 'none'
+      wrap.style.display = 'none';
     }
   }
 
@@ -734,8 +735,9 @@
       })
       const uploadData = await uploadRes.json()
       if (!uploadData.success) throw new Error(uploadData.error)
-      const { error } = const couleurNom = type === 'couleur' ? (document.getElementById('upload-couleur').value || null) : null
-      const { error } = await supabase.from('produit_images').insert({ produit_id: currentProduitImages, url: uploadData.url, type, ordre, couleur_nom: couleurNom })
+      var couleurNom = type === 'couleur' ? (document.getElementById('upload-couleur').value || null) : null
+      var insertError = await supabase.from('produit_images').insert({ produit_id: currentProduitImages, url: uploadData.url, type, ordre, couleur_nom: couleurNom })
+      var error = insertError.error
       if (error) throw new Error(error.message)
       if (type === 'principale' && ordre === 1) await supabase.from('produits').update({ image_url: uploadData.url }).eq('id', currentProduitImages)
       progress.textContent = '✅ ' + uploadData.url
