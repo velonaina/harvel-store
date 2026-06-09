@@ -1096,6 +1096,7 @@
         <td><div class="actions-cell">
           <button class="btn-success btn-sm" onclick="ouvrirFacture('${num}')">🖨️</button>
           <a href="${waUrl}" target="_blank"><button class="btn-primary btn-sm">💬</button></a>
+          <button class="btn-danger btn-sm" onclick="supprimerCommande('${num}')" title="Supprimer la commande">🗑️</button>
         </div></td>
       </tr>`
     }).join('')
@@ -1105,6 +1106,31 @@
     const f=document.getElementById('filtre-commandes').value
     if(f==='tous')afficherCommandes(toutesLesCommandes)
     else afficherCommandes(toutesLesCommandes.filter(c=>c['Statut']===f))
+  }
+
+  window.supprimerCommande = async function(num) {
+    if(!confirm('Supprimer la commande ' + num + ' ? Cette action est irréversible.')) return
+    var ok = false
+    // 1. Supprimer dans Supabase
+    try {
+      var res = await supabase.from('commandes').delete().eq('numero', num)
+      if(!res.error) ok = true
+    } catch(e) { console.error('Supabase delete error:', e) }
+    // 2. Marquer comme supprimée dans Google Sheets via proxy
+    try {
+      await fetch(API_URL_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'supprimer_commande', num: num, secret: SECRET })
+      })
+    } catch(e) { console.error('Sheets delete error:', e) }
+    if(ok) {
+      showToast('🗑️ Commande ' + num + ' supprimée', 'success')
+      toutesLesCommandes = toutesLesCommandes.filter(function(c){ return c['N° Commande'] !== num })
+      afficherCommandes(toutesLesCommandes)
+    } else {
+      showToast('❌ Erreur suppression Supabase — vérifiez les permissions RLS', 'error')
+    }
   }
 
   window.ouvrirFacture = function(numCommande) {
