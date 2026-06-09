@@ -1096,6 +1096,7 @@
         <td><div class="actions-cell">
           <button class="btn-success btn-sm" onclick="ouvrirFacture('${num}')">🖨️</button>
           <a href="${waUrl}" target="_blank"><button class="btn-primary btn-sm">💬</button></a>
+          <button class="btn-danger btn-sm" onclick="supprimerCommande('${num}')" title="Supprimer">🗑️</button>
         </div></td>
       </tr>`
     }).join('')
@@ -1105,6 +1106,24 @@
     const f=document.getElementById('filtre-commandes').value
     if(f==='tous')afficherCommandes(toutesLesCommandes)
     else afficherCommandes(toutesLesCommandes.filter(c=>c['Statut']===f))
+  }
+
+  window.supprimerCommande = async function(num) {
+    if(!confirm('Supprimer la commande ' + num + ' ? Cette action est irréversible.')) return
+    try {
+      var res = await fetch(API_URL_PROXY + '/supabase-commande', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'X-Secret-Token': SECRET },
+        body: JSON.stringify({ numero: num })
+      })
+      var data = await res.json()
+      if(!data.success) throw new Error(data.error)
+      showToast('🗑️ Commande ' + num + ' supprimée', 'success')
+      toutesLesCommandes = toutesLesCommandes.filter(function(c){ return c['N° Commande'] !== num })
+      afficherCommandes(toutesLesCommandes)
+    } catch(e) {
+      showToast('❌ Erreur : ' + e.message, 'error')
+    }
   }
 
   window.ouvrirFacture = function(numCommande) {
