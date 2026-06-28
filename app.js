@@ -2390,7 +2390,6 @@ async function soumettreAvisCmd() {
 }
 // ===== SUIVI AVEC TOKEN =====
 async function ouvrirSuiviAvecToken(numCommande, trackToken) {
-  // Activer la page suivi sans passer par showPage() pour ne pas ecraser le hash
   document.querySelectorAll(".page").forEach(function(el){el.classList.remove("active");});
   document.querySelectorAll(".nav-links button").forEach(function(b){b.classList.remove("active");});
   var pageSuivi = document.getElementById("page-suivi");
@@ -2404,18 +2403,26 @@ async function ouvrirSuiviAvecToken(numCommande, trackToken) {
   if(form) form.style.display = "none";
   result.innerHTML = "<div class=\"suivi-loading\">⏳ Chargement de votre suivi...</div>";
   try {
+    // 1. Chercher dans Apps Script (commandes site)
     var url = API_URL+'?action=suivi&commande='+encodeURIComponent(numCommande)+'&track_token='+encodeURIComponent(trackToken);
     var res = await fetch(url, {redirect:'follow'});
     var data = JSON.parse(await res.text());
-    if(!data.success) {
-      result.innerHTML = '<div class="suivi-error">❌ '+data.error+'</div>';
+    if(data.success) {
+      var inputNum = document.getElementById('suivi-input');
+      if(inputNum) inputNum.value = numCommande;
+      afficherResultatSuivi(data.commande);
       return;
     }
-    // Pré-remplir les champs du formulaire suivi
-    var inputNum = document.getElementById('suivi-input');
-    if(inputNum) inputNum.value = numCommande;
-    // Déclencher l'affichage du résultat directement
-    afficherResultatSuivi(data.commande);
+    // 2. Fallback Supabase (commandes Messenger)
+    var sbRes = await fetch('https://harvel-proxy.herryharivelo.workers.dev/suivi?numero='+encodeURIComponent(numCommande)+'&token='+encodeURIComponent(trackToken));
+    var sbData = await sbRes.json();
+    if(sbData.success) {
+      var inputNum = document.getElementById('suivi-input');
+      if(inputNum) inputNum.value = numCommande;
+      afficherResultatSuivi(sbData.commande);
+      return;
+    }
+    result.innerHTML = '<div class="suivi-error">❌ Commande introuvable.</div>';
   } catch(e) {
     result.innerHTML = '<div class="suivi-error">❌ Erreur de chargement. Veuillez réessayer.</div>';
   }
