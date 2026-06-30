@@ -1,4 +1,6 @@
-// supabase-client.js — NE PAS commiter sur GitHub (ajouter au .gitignore)
+// supabase-client.js — clé "anon" uniquement (sûr même en repo public)
+// Utilisé par le SITE PUBLIC harvel-store.com (produits, avis, recommandations, codes promo)
+// Les opérations ADMIN sensibles passent désormais par harvel-proxy.js (service_role protégée côté serveur)
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/+esm'
 
