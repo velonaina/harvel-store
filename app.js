@@ -1069,8 +1069,18 @@ function goToSlide(index){
   if(thumbs){
     thumbs.querySelectorAll('.carousel-thumb').forEach(function(t,i){t.className='carousel-thumb'+(i===carouselIndex?' active':'');});
     // Auto-scroll vers la miniature active
-    var activeThumb=thumbs.querySelectorAll('.carousel-thumb')[carouselIndex];
-    if(activeThumb) activeThumb.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    // Afficher toutes les miniatures si on dépasse les 5 premières
+    var allThumbs = thumbs.querySelectorAll('.carousel-thumb');
+    if(carouselIndex >= allThumbs.length) {
+      afficherToutesLesMiniatures();
+    }
+    var activeThumb = thumbs.querySelectorAll('.carousel-thumb')[carouselIndex];
+    if(activeThumb){
+      var thumbLeft = activeThumb.offsetLeft;
+      var thumbWidth = activeThumb.offsetWidth;
+      var containerWidth = thumbs.offsetWidth;
+      thumbs.scrollTo({left: thumbLeft - (containerWidth/2) + (thumbWidth/2), behavior:'smooth'});
+    }
   }
 }
 function carouselNext(){ goToSlide(carouselIndex+1); }
