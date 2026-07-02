@@ -1974,41 +1974,101 @@ async function submitOrder(){
     var waMsg='Bonjour Harvel Store ! 👋\n\nJe viens de passer une commande et je souhaite garder une trace de mon numéro :\n📋 *'+orderNum+'*\n\nMerci !';
     document.getElementById('wa-order-btn').href='https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(waMsg);
 
-    // ── Décrémenter stock Supabase (produit global + variante) ──
-    cart.forEach(async function(item){
-      var prod = products.find(function(p){ return p.id==item.id; });
-      if(prod){
-        prod.stock = Math.max(0, prod.stock - item.qty);
-        try {
-          const { supabase: sb } = await import('./supabase-client.js');
-          await sb.from('produits').update({ stock: prod.stock }).eq('id', prod.id);
-          // Décrémenter la variante si applicable
-          if(prod.variantes && prod.variantes.length && item.variant){
-            var parts = item.variant.split(' — ');
-            var couleur = null, taille = null;
-            parts.forEach(function(part){
-              var colors = getColors(prod);
-              var sizes = getSizes(prod);
-              if(colors.indexOf(part) >= 0) couleur = part;
-              if(sizes.indexOf(part) >= 0) taille = part;
-            });
-            var v = prod.variantes.find(function(v){
-              var tMatch = taille ? v.taille === taille : !v.taille;
-              var cMatch = couleur ? v.couleur === couleur : !v.couleur;
-              return tMatch && cMatch;
-            });
-            if(v){
-              v.stock = Math.max(0, v.stock - item.qty);
-              await sb.from('variantes')
-                .update({ stock: v.stock })
-                .eq('produit_id', prod.id)
-                .eq('taille', v.taille || '')
-                .eq('couleur', v.couleur || '');
-            }
-          }
-        } catch(e) { console.error('Stock update error:', e); }
+    // ── Décrémenter stock via proxy (variante + recalcul total produit) ──
+cart.forEach(async function(item){
+  var prod = products.find(function(p){ return p.id==item.id; });
+  if(!prod) return;
+  try {
+    var hasVariantes = prod.variantes && prod.variantes.length > 0;
+
+    if(hasVariantes && item.variant){
+      // 1. Identifier taille + couleur depuis le label "Taille — Couleur"
+      var parts = item.variant.split(' — ');
+      var couleur = null, taille = null;
+      parts.forEach(function(part){
+        if(getColors(prod).indexOf(part) >= 0) couleur = part;
+        if(getSizes(prod).indexOf(part) >= 0) taille = part;
+      });
+      var v = prod.variantes.find(function(vr){
+        var tMatch = taille ? vr.taille === taille : !vr.taille;
+        var cMatch = couleur ? vr.couleur === couleur : !vr.couleur;
+        return tMatch && cMatch;
+      });
+      if(v){
+        // Mettre à jour stock local (UI)
+        v.stock = Math.max(0, v.stock - item.qty);
+
+        // 2. Décrémenter la variante via proxy
+        await fetch(API_URL + '/admin/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Code': 'HS2026@Harvel',
+            'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
+          },
+          body: JSON.stringify({
+            table: 'variantes',
+            payload: { stock: v.stock },
+            filters: [
+              { col: 'produit_id', op: 'eq', val: prod.id },
+              { col: 'taille',     op: 'eq', val: v.taille  || '' },
+              { col: 'couleur',    op: 'eq', val: v.couleur || '' },
+            ],
+          }),
+        });
+
+        // 3. Recalculer stock total = SUM des variantes depuis Supabase
+        var resVariantes = await fetch(API_URL + '/admin/query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Code': 'HS2026@Harvel',
+            'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
+          },
+          body: JSON.stringify({
+            table: 'variantes',
+            select: 'stock',
+            filters: [{ col: 'produit_id', op: 'eq', val: prod.id }],
+          }),
+        });
+        var dataVariantes = await resVariantes.json();
+        var stockTotal = (dataVariantes.data || []).reduce(function(s, vr){ return s + (vr.stock || 0); }, 0);
+
+        // 4. Mettre à jour produits.stock avec le total réel
+        prod.stock = stockTotal;
+        await fetch(API_URL + '/admin/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Code': 'HS2026@Harvel',
+            'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
+          },
+          body: JSON.stringify({
+            table: 'produits',
+            payload: { stock: stockTotal },
+            filters: [{ col: 'id', op: 'eq', val: prod.id }],
+          }),
+        });
       }
-    });
+    } else {
+      // Produit sans variantes — décrémentation simple
+      prod.stock = Math.max(0, prod.stock - item.qty);
+      await fetch(API_URL + '/admin/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Code': 'HS2026@Harvel',
+          'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
+        },
+        body: JSON.stringify({
+          table: 'produits',
+          payload: { stock: prod.stock },
+          filters: [{ col: 'id', op: 'eq', val: prod.id }],
+        }),
+      });
+    }
+  } catch(e) { console.error('Stock update error:', e); }
+});
 
     // ── Résumé commande dans page success ──
     var resumeItems = cart.map(function(i){
