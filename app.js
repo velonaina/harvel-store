@@ -902,7 +902,7 @@ function openProduct(id){
 (renderBadgesProduit(p) ? '<div style="margin-bottom:10px;">'+renderBadgesProduit(p)+'</div>' : '')+
         '<div class="pd-category">'+p.cat+(p.sous_categorie?' — '+p.sous_categorie:'')+'</div>'+
         '<div class="pd-name">'+p.name+'</div>'+
-        (p.guide_tailles ? '<button class="guide-tailles-btn" onclick="ouvrirGuidesTailles(currentProduct)">📏 Guide des tailles</button>' : '')+
+        (p.guide_tailles && (function(){ try { var g=JSON.parse(p.guide_tailles); return g && g.cols && g.cols.length > 0; } catch(e){ return false; } })() ? '<button class="guide-tailles-btn" onclick="ouvrirGuidesTailles(currentProduct)">📏 Guide des tailles</button>' : '')+
         (p.moyenne_avis?'<div class="pd-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="pd-nb-avis">('+p.moyenne_avis.count+' avis)</span></div>':'')+
         '<div class="pd-price" id="pd-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
         (p.matiere?'<div class="pd-matiere">🧵 <strong>Matière :</strong> '+p.matiere+'</div>':'')+
