@@ -1066,7 +1066,12 @@ function goToSlide(index){
   var dots=document.getElementById('carousel-dots');
   if(dots) dots.querySelectorAll('.carousel-dot').forEach(function(d,i){d.className='carousel-dot'+(i===carouselIndex?' active':'');});
   var thumbs=document.getElementById('carousel-thumbs');
-  if(thumbs) thumbs.querySelectorAll('.carousel-thumb').forEach(function(t,i){t.className='carousel-thumb'+(i===carouselIndex?' active':'');});
+  if(thumbs){
+    thumbs.querySelectorAll('.carousel-thumb').forEach(function(t,i){t.className='carousel-thumb'+(i===carouselIndex?' active':'');});
+    // Auto-scroll vers la miniature active
+    var activeThumb=thumbs.querySelectorAll('.carousel-thumb')[carouselIndex];
+    if(activeThumb) activeThumb.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  }
 }
 function carouselNext(){ goToSlide(carouselIndex+1); }
 function carouselPrev(){ goToSlide(carouselIndex-1); }
