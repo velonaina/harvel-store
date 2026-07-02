@@ -886,17 +886,14 @@ function openProduct(id){
   var carouselHtml=allImages.length>0?allImages.map(function(u,i){return '<img src="'+u+'" class="'+(i===0?'active':'')+'" onerror="this.style.display=\'none\'"/>';}).join(''):'<div class="no-img">'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</div>';
   var arrowHtml=allImages.length>1?'<button class="carousel-arrow prev" onclick="carouselPrev()">‹</button><button class="carousel-arrow next" onclick="carouselNext()">›</button>':'';
   var dotsHtml=allImages.map(function(_,i){return '<div class="carousel-dot '+(i===0?'active':'')+'" onclick="goToSlide('+i+')"></div>';}).join('');
-  var THUMB_MAX = 5;
-var thumbsHtml = allImages.length > 1
-  ? '<div class="carousel-thumbs" id="carousel-thumbs">'
-    + allImages.slice(0, THUMB_MAX).map(function(u,i){
-        return '<img src="'+u+'" class="carousel-thumb '+(i===0?'active':'')+'" onclick="goToSlide('+i+')" onerror="this.style.display=\'none\'"/>';
-      }).join('')
-    + (allImages.length > THUMB_MAX
-        ? '<div class="carousel-thumb-more" onclick="afficherToutesLesMiniatures()">+' + (allImages.length - THUMB_MAX) + '</div>'
-        : '')
-    + '</div>'
-  : '';
+  var THUMB_VISIBLE = 5;
+  var thumbsHtml = allImages.length > 1
+    ? '<div class="carousel-thumbs" id="carousel-thumbs" style="max-width:'+(THUMB_VISIBLE*66)+'px;">'
+      + allImages.map(function(u,i){
+          return '<img src="'+u+'" class="carousel-thumb '+(i===0?'active':'')+'" onclick="goToSlide('+i+')" onerror="this.style.display=\'none\'"/>';
+        }).join('')
+      + '</div>'
+    : '';
   var waUrl=getWhatsAppUrl(p);
   document.getElementById('product-detail').innerHTML=
     '<button class="back-to-shop" onclick="showPage(\'shop\')" style="margin-bottom:16px;width:auto;padding:8px 16px;">← Retour</button>'+
