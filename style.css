@@ -1404,3 +1404,5 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
   0%   { background: #c8edb8; }
   100% { background: #f0fce8; }
 }
+.carousel-thumb-more{width:60px;height:60px;border-radius:8px;border:2px solid var(--border);background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:var(--muted);cursor:pointer;flex-shrink:0;}
+.carousel-thumb-more:hover{border-color:var(--primary);color:var(--primary);}
