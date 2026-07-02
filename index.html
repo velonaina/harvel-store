@@ -393,63 +393,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- POPUP CODE PROMO -->
-<div id="popup-promo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
-  <div style="width:320px;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-    <div style="display:flex;height:7px;"><div style="background:#FFFFFF;flex:1;border-right:0.5px solid #eee;"></div><div style="background:#FC3D32;flex:1;"></div><div style="background:#007A3D;flex:1;"></div></div>
-    <div style="background:#FC3D32;padding:18px 20px 14px;text-align:center;position:relative;">
-      <button onclick="fermerPopup()" style="position:absolute;top:8px;right:10px;background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;">✕</button>
-      <div style="font-size:32px;margin-bottom:6px;">🇲🇬</div>
-      <div style="color:#fff;font-size:16px;font-weight:600;">Fête de l'Indépendance !</div>
-      <div style="color:rgba(255,255,255,0.85);font-size:12px;margin-top:3px;">Offre spéciale 26 juin 2026</div>
-    </div>
-    <div style="background:#fff;padding:18px 20px;text-align:center;">
-      <div id="popup-discount" style="font-size:44px;font-weight:700;color:#FC3D32;line-height:1;">-10%</div>
-      <div style="font-size:12px;color:#666;margin-bottom:14px;">sur toute la boutique</div>
-      <div style="background:#007A3D;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span id="popup-code" style="color:#fff;font-size:18px;font-weight:700;font-family:monospace;letter-spacing:2px;">FETY26</span>
-        <button onclick="copierCode()" style="background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:#fff;padding:6px 12px;font-size:11px;cursor:pointer;" id="btn-copier">📋 Copier</button>
-      </div>
-      <div id="popup-validity" style="font-size:11px;color:#888;margin-bottom:14px;">Valable jusqu'au 30 juin 2026</div>
-      <button onclick="utiliserCode()" style="background:#FC3D32;color:#fff;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:600;width:100%;margin-bottom:8px;cursor:pointer;">Utiliser maintenant</button>
-      <button onclick="fermerPopup()" style="background:transparent;color:#aaa;border:none;font-size:12px;cursor:pointer;width:100%;">Continuer sans code</button>
-    </div>
-    <div style="display:flex;height:5px;"><div style="background:#FFFFFF;flex:1;border-right:0.5px solid #eee;"></div><div style="background:#FC3D32;flex:1;"></div><div style="background:#007A3D;flex:1;"></div></div>
-  </div>
-</div>
-
-<script>
-function afficherPopup() {
-  var el = document.getElementById('popup-promo');
-  el.style.display = 'flex';
-  el.style.alignItems = 'center';
-  el.style.justifyContent = 'center';
-}
-
-function fermerPopup() {
-  document.getElementById('popup-promo').style.display = 'none';
-}
-
-function copierCode() {
-  var code = document.getElementById('popup-code').innerText;
-  navigator.clipboard.writeText(code).then(function() {
-    document.getElementById('btn-copier').innerText = '✅ Copié !';
-    setTimeout(function() {
-      document.getElementById('btn-copier').innerText = '📋 Copier';
-    }, 2000);
-  });
-}
-
-function utiliserCode() {
-  copierCode();
-  fermerPopup();
-  var shop = document.getElementById('page-shop');
-  if (shop) window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-setTimeout(afficherPopup, 5000);
-</script>
-
 <!-- DRAWER COMMANDE (style Alibaba) -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer-commande">
