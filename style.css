@@ -140,7 +140,8 @@ nav{background:#fff;padding:0 20px;display:flex;align-items:center;justify-conte
 .carousel-dots{display:flex;justify-content:center;gap:6px;padding:10px;}
 .carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:.2s;}
 .carousel-dot.active{background:var(--primary);}
-.carousel-thumbs{display:flex;gap:6px;padding:0 10px 10px;overflow-x:auto;}
+.carousel-thumbs{display:flex;gap:6px;padding:0 10px 10px;overflow-x:auto;max-width:100%;scrollbar-width:none;}
+.carousel-thumbs::-webkit-scrollbar{display:none;}
 .carousel-thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;cursor:pointer;border:2px solid transparent;transition:.2s;flex-shrink:0;}
 .carousel-thumb.active{border-color:var(--primary);}
 .product-details{background:#fff;border-radius:14px;padding:20px;border:1px solid var(--border);box-shadow:0 2px 10px #3dbd0010;}
