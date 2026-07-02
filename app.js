@@ -891,7 +891,7 @@ function openProduct(id){
   document.getElementById('product-detail').innerHTML=
     '<button class="back-to-shop" onclick="showPage(\'shop\')" style="margin-bottom:16px;width:auto;padding:8px 16px;">← Retour</button>'+
     '<div class="product-page">'+
-      '<div style="min-width:0;overflow:hidden;"><div class="carousel-wrap">'+
+      '<div style="min-width:0;width:100%;overflow:hidden;"><div class="carousel-wrap" style="overflow:hidden;">'+
         '<button id="fav-btn" class="fav-btn'+(isFav?' active':'')+'" onclick="toggleFavori(\''+p.id+'\')" title="'+(isFav?'Retirer des favoris':'Ajouter aux favoris')+'">'+FAV_SVG+'</button>'+
         '<div class="carousel-main" id="carousel-main">'+carouselHtml+'</div>'+
         arrowHtml+
