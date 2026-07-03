@@ -320,7 +320,12 @@ function getStockVariante(p, taille, couleur){
 
 function isTailleDisponible(p, taille){
   if(!p.variantes || !p.variantes.length) return true;
-  // Une taille est disponible si au moins une variante de cette taille a stock > 0
+  if(drawerColor) {
+    var result = p.variantes.some(function(v){
+      return v.taille === taille && v.couleur === drawerColor && v.stock > 0;
+    });
+    return result;
+  }
   return p.variantes.some(function(v){
     return v.taille === taille && v.stock > 0;
   });
@@ -627,6 +632,22 @@ function drawerSelectColor(c, ci, el){
   if(thumb && imgUrl){ thumb.src = imgUrl; thumb.style.display=''; }
   // Mettre à jour le carrousel de la fiche
   updateCarouselForColor(ci);
+  // Rafraîchir les boutons taille selon la couleur sélectionnée
+  var prod = currentProduct;
+  var sizes = getSizes(prod);
+  var sizeGrid = document.getElementById('drawer-size-grid');
+  if(sizeGrid && sizes.length) {
+    var isOne = sizes.length===1 && sizes[0].toLowerCase().includes('one');
+    sizeGrid.innerHTML = sizes.map(function(s){
+      var dispo = isTailleDisponible(prod, s);
+      return '<button class="drawer-size-btn'+(isOne?' one-size':'')+(dispo?'':' rupture')+'" '+(dispo?'onclick="drawerSelectSize(\''+s+'\',this)"':'disabled')+'>'+s+(dispo?'':'<br><small style="font-size:.65rem;color:#e00;font-weight:600;">Rupture</small>')+'</button>';
+    }).join('');
+    if(drawerSize) {
+      sizeGrid.querySelectorAll('.drawer-size-btn').forEach(function(btn){
+        if(btn.textContent.trim().startsWith(drawerSize)) btn.classList.add('active');
+      });
+    }
+  }
   drawerUpdateSubtotal();
 }
 
@@ -776,6 +797,15 @@ function drawerAddToCart(){
     if(firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
     showToast('⚠️ Veuillez compléter votre sélection','warning');
     return;
+  }
+
+  // Vérifier stock de la variante sélectionnée
+  if(p.variantes && p.variantes.length) {
+    var stockVariante = getStockVariante(p, drawerSize || (isOne ? sizes[0] : null), drawerColor);
+    if(stockVariante <= 0) {
+      showToast('❌ Cette variante est en rupture de stock','error');
+      return;
+    }
   }
 
   // Sync avec les variables globales pour réutiliser addToCartFromProduct
