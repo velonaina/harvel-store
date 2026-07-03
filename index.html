@@ -209,12 +209,12 @@
   <div class="about-section">
     <h3>🚚 Zones de livraison</h3>
     <div class="about-zones">
-      <div class="about-zone-row"><div class="about-zone-dot" style="background:#22c55e;"></div><div><strong>Zone 1</strong> — Tanà centre : <span style="color:#16a34a;font-weight:700;">4 000 Ar</span></div></div>
-      <div class="about-zone-row"><div class="about-zone-dot" style="background:#eab308;"></div><div><strong>Zone 2</strong> — Banlieue proche : <span style="color:#ca8a04;font-weight:700;">5 000 Ar</span></div></div>
-      <div class="about-zone-row"><div class="about-zone-dot" style="background:#f97316;"></div><div><strong>Zone 3</strong> — Banlieue éloignée : <span style="color:#ea580c;font-weight:700;">6 000 Ar</span></div></div>
-      <div class="about-zone-row"><div class="about-zone-dot" style="background:#ef4444;"></div><div><strong>Zone 4</strong> — Environs éloignés : <span style="color:#dc2626;font-weight:700;">À confirmer</span></div></div>
-      <div class="about-zone-row"><div class="about-zone-dot" style="background:#8b5cf6;"></div><div><strong>Autres régions</strong> — Envoi par colis : <span style="color:#7c3aed;font-weight:700;">4 000 Ar + P.A</span><br/><span style="font-size:.78rem;color:var(--muted);">💳 Paiement Mobile Money avant envoi — nous contacter via WhatsApp ou Facebook</span></div></div>
-    </div>
+  <div class="about-zone-row"><div class="about-zone-dot" style="background:#22c55e;"></div><div><strong>Zone 1</strong> — Tanà centre : <span style="color:#16a34a;font-weight:700;">4 000 Ar</span></div></div>
+  <div class="about-zone-row"><div class="about-zone-dot" style="background:#eab308;"></div><div><strong>Zone 2</strong> — Banlieue proche : <span style="color:#ca8a04;font-weight:700;">5 000 Ar</span><br/><span style="font-size:.78rem;color:var(--muted);">Ambohimangakely, Alasora, Sabotsy Namehana, Tanjombato, Itaosy, Andoharanofotsy, Talatamaty, Ampitatafika</span></div></div>
+  <div class="about-zone-row"><div class="about-zone-dot" style="background:#f97316;"></div><div><strong>Zone 3</strong> — Banlieue éloignée : <span style="color:#ea580c;font-weight:700;">6 000 Ar</span><br/><span style="font-size:.78rem;color:var(--muted);">Ambohitrimanjaka, Ivato, Iavoloha, Ambohimanambola</span></div></div>
+  <div class="about-zone-row"><div class="about-zone-dot" style="background:#ef4444;"></div><div><strong>Zone 4</strong> — Environs éloignés : <span style="color:#dc2626;font-weight:700;">À confirmer</span></div></div>
+  <div class="about-zone-row"><div class="about-zone-dot" style="background:#8b5cf6;"></div><div><strong>Autres régions</strong> — Envoi par colis : <span style="color:#7c3aed;font-weight:700;">4 000 Ar + P.A</span><br/><span style="font-size:.78rem;color:var(--muted);">💳 Paiement Mobile Money avant envoi — nous contacter via WhatsApp ou Facebook</span></div></div>
+</div>
   </div>
   <div class="about-section">
     <h3>📞 Nous contacter</h3>
@@ -297,14 +297,27 @@
       </div>
     </div>
     <div class="livraison-zones">
-      <h4>🚚 Frais de livraison</h4>
-      <div class="zone-row"><div class="zone-dot" style="background:#22c55e;"></div><div class="zone-info"><div class="zone-name">Zone 1 — Tanà centre</div></div><div class="zone-price" style="color:#16a34a;">4 000 Ar</div></div>
-      <div class="zone-row"><div class="zone-dot" style="background:#eab308;"></div><div class="zone-info"><div class="zone-name">Zone 2 — Banlieue proche</div><div class="zone-lieux">Ambohimangakely, Alasora, Sabotsy Namehana, Tanjombato, Itaosy, Andoharanofotsy, Talatamaty, Ampitatafika</div></div><div class="zone-price" style="color:#ca8a04;">5 000 Ar</div></div>
-      <div class="zone-row"><div class="zone-dot" style="background:#f97316;"></div><div class="zone-info"><div class="zone-name">Zone 3 — Banlieue éloignée</div><div class="zone-lieux">Ambohitrimanjaka, Ivato, Iavoloha, Ambohimanambola</div></div><div class="zone-price" style="color:#ea580c;">6 000 Ar</div></div>
-      <div class="zone-row"><div class="zone-dot" style="background:#ef4444;"></div><div class="zone-info"><div class="zone-name">Zone 4 — Environs éloignés</div></div><div class="zone-price" style="color:#dc2626;">À confirmer</div></div>
-      <div class="zone-row"><div class="zone-dot" style="background:#8b5cf6;"></div><div class="zone-info"><div class="zone-name">Autres régions & provinces</div><div class="zone-lieux">Envoi par colis — Port À (P.A) payé par le client<br/>💳 Paiement par Mobile Money avant envoi — nous contacter via WhatsApp ou Facebook</div></div><div class="zone-price" style="color:#7c3aed;">4 000 Ar + P.A</div></div>
-      <div class="livraison-note">💰 <strong>Paiement à la livraison</strong> (produits + frais de livraison)<br/>⏱️ Délai variable selon votre zone — confirmé par téléphone.</div>
-    </div>
+  <h4>🚚 Zone de livraison</h4>
+  <div class="form-group">
+    <select id="select-zone" onchange="updateZoneLivraison()" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem;background:#fff;">
+      <option value="">Sélectionnez votre zone...</option>
+      <option value="4000">Zone 1 — Tanà centre (+4 000 Ar)</option>
+      <option value="5000">Zone 2 — Banlieue proche (+5 000 Ar)</option>
+      <option value="6000">Zone 3 — Banlieue éloignée (+6 000 Ar)</option>
+      <option value="confirm">Zone 4 — Environs éloignés (à confirmer)</option>
+      <option value="province">Autres régions & provinces (4 000 Ar + P.A)</option>
+    </select>
+  </div>
+  <div style="font-size:.8rem;color:var(--muted);margin-top:6px;">
+  📍 Vous ne savez pas quelle zone ? <button onclick="showPage('about')" style="background:none;border:none;color:var(--primary);font-weight:600;cursor:pointer;font-size:.8rem;padding:0;text-decoration:underline;">Voir les zones de livraison →</button>
+</div>
+  <div id="zone-detail" style="font-size:.8rem;color:var(--muted);margin-top:-8px;margin-bottom:8px;"></div>
+  <div class="mini-cart-total" id="total-avec-livraison" style="display:none;">
+    <span>Total estimé</span>
+    <span id="total-livraison-val" style="color:#e53935;font-weight:700;"></span>
+  </div>
+  <div class="livraison-note">💰 <strong>Paiement à la livraison</strong> (produits + frais de livraison)<br/>⏱️ Délai variable selon votre zone — confirmé par téléphone.</div>
+</div>
     <div class="livraison-info">🚚 Nous vous contacterons pour confirmer votre commande et l'heure de livraison.</div>
     <div class="form-group"><label>Nom complet *</label><input type="text" id="f-name" placeholder="Ex: Jean Rakoto"/></div>
     <div class="form-group"><label>Téléphone *</label><input type="tel" id="f-phone" placeholder="Ex: 034 00 000 00"/></div>

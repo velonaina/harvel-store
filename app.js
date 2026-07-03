@@ -1880,6 +1880,32 @@ function miniRemove(key){
   renderMiniCart();
   if(!cart.length) showToast('Panier vide — ajoutez des articles','warning');
 }
+
+function updateZoneLivraison(){
+  var select = document.getElementById('select-zone');
+  var detail = document.getElementById('zone-detail');
+  var totalBlock = document.getElementById('total-avec-livraison');
+  var totalVal = document.getElementById('total-livraison-val');
+  var val = select ? select.value : '';
+  var sous_total = cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var details = {
+    '4000': 'Tanà centre',
+    '5000': 'Ambohimangakely, Alasora, Sabotsy Namehana, Tanjombato, Itaosy, Andoharanofotsy, Talatamaty, Ampitatafika',
+    '6000': 'Ambohitrimanjaka, Ivato, Iavoloha, Ambohimanambola',
+    'confirm': 'Frais à confirmer par téléphone selon votre localisation.',
+    'province': 'Envoi par colis — Port À (P.A) payé par le client. Paiement Mobile Money avant envoi.',
+  };
+  if(detail) detail.textContent = details[val] || '';
+  if(!val || val === 'confirm' || val === 'province'){
+    if(totalBlock) totalBlock.style.display = 'none';
+  } else {
+    var frais = Number(val);
+    if(totalBlock) totalBlock.style.display = 'flex';
+    if(totalVal) totalVal.textContent = (sous_total + frais).toLocaleString('fr') + ' Ar';
+  }
+}
+function goToOrder(){showPage('order');renderMiniCart();}
+
 function goToOrder(){showPage('order');renderMiniCart();}
 function copyOrderNum(){
   var num=document.getElementById('success-order-num').textContent.replace('📋 ','').trim();
