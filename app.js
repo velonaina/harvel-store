@@ -563,7 +563,7 @@ function openDrawer(){
     var isOne = sizes.length===1 && sizes[0].toLowerCase().includes('one');
     sizeGrid.innerHTML = sizes.map(function(s){
       var dispo = isTailleDisponible(p, s);
-      return '<button class="drawer-size-btn'+(isOne?' one-size':'')+(dispo?'':' rupture')+'" '+(dispo?'onclick="drawerSelectSize(\''+s+'\',this)"':'disabled')+'>'+s+'</button>';
+      return '<button class="drawer-size-btn'+(isOne?' one-size':'')+(dispo?'':' rupture')+'" '+(dispo?'onclick="drawerSelectSize(\''+s+'\',this)"':'disabled')+'>'+s+(dispo?'':'<br><small style="font-size:.65rem;color:#e00;font-weight:600;">Rupture</small>')+'</button>';
     }).join('');
     if(isOne){ drawerSize = sizes[0]; document.getElementById('drawer-size-label').textContent = sizes[0]; }
     else document.getElementById('drawer-size-label').textContent = '— choisissez';
