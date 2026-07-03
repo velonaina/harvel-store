@@ -1363,6 +1363,24 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
   margin-bottom: 8px;
 }
 .dc-cta-main:hover { background: #2e4a1e; }
+.dc-cta-orange {
+  background: #ff6f00;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 13px 16px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background .15s;
+  margin-bottom: 8px;
+}
+.dc-cta-orange:hover { background: #e65100; }
 
 /* Bouton WhatsApp */
 .dc-cta-wa {
