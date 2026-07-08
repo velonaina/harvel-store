@@ -2055,7 +2055,7 @@ async function submitOrder(){
     total: total,
   };
 
-  try{
+try{
     // ── Décrémentation ATOMIQUE avant création commande ──
     var decremented = []; // pour rollback en cas d'échec
     for (var di = 0; di < cart.length; di++) {
@@ -2079,23 +2079,14 @@ async function submitOrder(){
       }
       // variante_introuvable ou erreur technique → non bloquant (comme le bot)
     }
-    // ── Envoi vers Apps Script (principal) ──
-    var res=await fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-    var data=await res.json();
-    if(!data.success) {
-      for (var rb = 0; rb < decremented.length; rb++) {
-        var rbi = decremented[rb];
-        await rpcStock('/commande/reincrement-stock', rbi.id, rbi.taille, rbi.couleur, rbi.qty);
-      }
-      throw new Error(data.error);
-    }
-    var orderNum=data.commande;
-    // Utiliser le token retourné par Apps Script (il génère le sien)
-    var finalToken = data.track_token || trackToken;
 
-    // ── Envoi vers Supabase en parallèle (ne bloque pas) ──
+    // ── Génération numéro commande côté client ──
+    var orderNum = 'CMD-' + new Date().getTime().toString().slice(-6);
+    var finalToken = trackToken;
+
+    // ── Envoi vers Supabase (principal) ──
     var cartSnapshot = cart.map(function(i){ return Object.assign({},i); });
-    enregistrerCommandeSupabase(orderNum, finalToken, name, phone, address, note, cartSnapshot, total, codePromo);
+    await enregistrerCommandeSupabase(orderNum, finalToken, name, phone, address, note, cartSnapshot, total, codePromo);
 
     // ── Affichage page succès ──
     document.getElementById('success-order-num').textContent='📋 '+orderNum;
@@ -2131,7 +2122,14 @@ async function submitOrder(){
     }
     ['f-name','f-phone','f-address','f-note'].forEach(function(id){document.getElementById(id).value='';});
     cart=[];updateCartCount();showPage('success');
-  }catch(err){showToast('❌ Erreur lors de l\'envoi. Réessayez.','error');}
+  }catch(err){
+    // Rollback stock si la commande n'a pas pu être créée
+    for (var rb = 0; rb < decremented.length; rb++) {
+      var rbi = decremented[rb];
+      await rpcStock('/commande/reincrement-stock', rbi.id, rbi.taille, rbi.couleur, rbi.qty);
+    }
+    showToast('❌ Erreur lors de l\'envoi. Réessayez.','error');
+  }
   finally{btn.disabled=false;btn.textContent='✅ Confirmer la commande';}
 }
 function resetAndGoHome(){
