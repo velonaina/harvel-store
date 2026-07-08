@@ -987,15 +987,21 @@ async function chargerAvis(produitId) {
   if(!section) return;
   section.innerHTML = '<div class="avis-loading">Chargement des avis...</div>';
   try {
-    var url = API_URL+'?action=avis&produit_id='+produitId;
-    var res = await fetch(url, {redirect:'follow'});
-    var data = JSON.parse(await res.text());
-    var avis = data.avis || [];
+    const { supabase: sb } = await import('./supabase-client.js');
+    const { data, error } = await sb.from('avis')
+      .select('note, commentaire, nom, anonyme, created_at')
+      .eq('produit_id', String(produitId))
+      .eq('valide', true)
+      .order('created_at', { ascending: false });
+    if(error) throw new Error(error.message);
+    var avis = data || [];
     var moy = avis.length ? (avis.reduce(function(s,a){return s+a.note;},0)/avis.length).toFixed(1) : null;
     var avisList = avis.length
       ? avis.map(function(a){
+          var nom = a.anonyme ? 'Anonyme' : (a.nom || 'Client');
+          var date = new Date(a.created_at).toLocaleDateString('fr');
           return '<div class="avis-item">'+
-            '<div class="avis-header">'+etoiles(a.note)+'<span class="avis-nom">'+a.nom+'</span><span class="avis-date">'+a.date+'</span></div>'+
+            '<div class="avis-header">'+etoiles(a.note)+'<span class="avis-nom">'+nom+'</span><span class="avis-date">'+date+'</span></div>'+
             (a.commentaire?'<div class="avis-comment">'+a.commentaire+'</div>':'')+
           '</div>';
         }).join('')
