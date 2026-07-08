@@ -173,9 +173,8 @@ async function suivreCommande(){
   result.innerHTML='<div class="loading"><div class="spinner"></div><p>Recherche en cours...</p></div>';
   result.classList.add('show');
   try{
-    var url=API_URL+'?action=suivi&commande='+encodeURIComponent(num)+'&phone='+encodeURIComponent(phone);
-    var res=await fetch(url,{redirect:'follow'});
-    var data=JSON.parse(await res.text());
+    var res=await fetch(API_URL+'/suivi-phone?numero='+encodeURIComponent(num)+'&phone='+encodeURIComponent(phone));
+    var data=await res.json();
     if(!data.success||!data.commande){
       result.innerHTML='<div class="suivi-error">❌ Commande introuvable ou téléphone incorrect.<br/>Vérifiez vos informations et réessayez.<br/><br/>💡 Numéro oublié ? Contactez-nous via WhatsApp ou Facebook ci-dessus.</div>';
       return;
