@@ -2499,18 +2499,8 @@ async function ouvrirSuiviAvecToken(numCommande, trackToken) {
   if(form) form.style.display = "none";
   result.innerHTML = "<div class=\"suivi-loading\">⏳ Chargement de votre suivi...</div>";
   try {
-    // 1. Chercher dans Apps Script (commandes site)
-    var url = API_URL+'?action=suivi&commande='+encodeURIComponent(numCommande)+'&track_token='+encodeURIComponent(trackToken);
-    var res = await fetch(url, {redirect:'follow'});
-    var data = JSON.parse(await res.text());
-    if(data.success) {
-      var inputNum = document.getElementById('suivi-input');
-      if(inputNum) inputNum.value = numCommande;
-      afficherResultatSuivi(data.commande);
-      return;
-    }
-    // 2. Fallback Supabase (commandes Messenger)
-    var sbRes = await fetch('https://harvel-proxy.herryharivelo.workers.dev/suivi?numero='+encodeURIComponent(numCommande)+'&token='+encodeURIComponent(trackToken));
+    // Suivi via proxy Supabase (commandes site + Messenger)
+    var sbRes = await fetch(API_URL + '/suivi?numero=' + encodeURIComponent(numCommande) + '&token=' + encodeURIComponent(trackToken));
     var sbData = await sbRes.json();
     if(sbData.success) {
       var inputNum = document.getElementById('suivi-input');
