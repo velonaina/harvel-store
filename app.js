@@ -985,6 +985,8 @@ function etoiles(note) {
 async function chargerAvis(produitId) {
   var section = document.getElementById('avis-section');
   if(!section) return;
+  // UUID stocké dans une variable globale — jamais inséré dans les onclick inline
+  window._avisProduitId = String(produitId);
   section.innerHTML = '<div class="avis-loading">Chargement des avis...</div>';
   try {
     const { supabase: sb } = await import('./supabase-client.js');
@@ -1009,25 +1011,25 @@ async function chargerAvis(produitId) {
     section.innerHTML =
       '<div class="avis-titre">⭐ Avis clients'+(moy?' — <span class="avis-moy">'+moy+'/5</span> ('+avis.length+' avis)':'')+'</div>'+
       avisList+
-      '<button class="avis-btn-ouvrir" onclick="toggleFormulaireAvis(\''+produitId+'\')">✍️ Laisser un avis</button>'+
+      '<button class="avis-btn-ouvrir" onclick="toggleFormulaireAvis(window._avisProduitId)">✍️ Laisser un avis</button>'+
       '<div id="avis-form-'+produitId+'" class="avis-form" style="display:none;">'+
         '<div class="avis-form-titre">Votre avis</div>'+
         '<div class="avis-note-wrap">'+
           '<span class="avis-note-label">Note :</span>'+
           '<div class="avis-etoiles-sel" id="etoiles-sel-'+produitId+'">'+
             [1,2,3,4,5].map(function(i){
-              return '<span class="etoile-sel" data-note="'+i+'" onclick="selEtoile(\''+produitId+'\','+i+')">☆</span>';
+              return '<span class="etoile-sel" data-note="'+i+'" onclick="selEtoile(window._avisProduitId,'+i+')">☆</span>';
             }).join('')+
           '</div>'+
         '</div>'+
         '<textarea id="avis-comment-'+produitId+'" class="avis-textarea" placeholder="Votre commentaire (optionnel)..."></textarea>'+
         '<input id="avis-nom-'+produitId+'" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean Rakoto)"/>'+
         '<label class="avis-anon-label">'+
-          '<input type="checkbox" id="avis-anon-'+produitId+'" onchange="toggleAnon(\''+produitId+'\')"/> Rester anonyme'+
+          '<input type="checkbox" id="avis-anon-'+produitId+'" onchange="toggleAnon(window._avisProduitId)"/> Rester anonyme'+
         '</label>'+
         '<input id="avis-tel-'+produitId+'" class="avis-input" type="tel" placeholder="Votre téléphone * (requis)"/>'+
         '<div id="avis-msg-'+produitId+'" class="avis-msg"></div>'+
-        '<button class="avis-submit-btn" onclick="soumettreAvis(\''+produitId+'\')">Envoyer mon avis</button>'+
+        '<button class="avis-submit-btn" onclick="soumettreAvis(window._avisProduitId)">Envoyer mon avis</button>'+
       '</div>';
   } catch(e) {
     section.innerHTML = '<div class="avis-empty">Impossible de charger les avis.</div>';
@@ -1065,7 +1067,7 @@ async function soumettreAvis(produitId) {
   if(note < 1) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez sélectionner une note.'; return; }
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
   var payload = {
-    produit_id: String(currentProduct.sheet_id || produitId),
+    produit_id: String(produitId),
     produit_nom: currentProduct ? currentProduct.name : '',
     note: note,
     commentaire: comment ? comment.value.trim() : '',
