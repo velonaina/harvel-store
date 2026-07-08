@@ -960,7 +960,7 @@ function openProduct(id){
   window.location.hash = 'product-'+(currentProduct.slug || id);
   showPage('product');
   initCarouselSwipe();
-  chargerAvis(p.sheet_id || p.id);
+  chargerAvis(p.id);
 }
 // ===== AVIS PRODUITS =====
 // Étoiles illustrées avec demi-étoile selon moyenne
