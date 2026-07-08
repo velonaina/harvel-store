@@ -1009,25 +1009,25 @@ async function chargerAvis(produitId) {
     section.innerHTML =
       '<div class="avis-titre">⭐ Avis clients'+(moy?' — <span class="avis-moy">'+moy+'/5</span> ('+avis.length+' avis)':'')+'</div>'+
       avisList+
-      '<button class="avis-btn-ouvrir" onclick="toggleFormulaireAvis('+produitId+')">✍️ Laisser un avis</button>'+
+      '<button class="avis-btn-ouvrir" onclick="toggleFormulaireAvis(\''+produitId+'\')">✍️ Laisser un avis</button>'+
       '<div id="avis-form-'+produitId+'" class="avis-form" style="display:none;">'+
         '<div class="avis-form-titre">Votre avis</div>'+
         '<div class="avis-note-wrap">'+
           '<span class="avis-note-label">Note :</span>'+
           '<div class="avis-etoiles-sel" id="etoiles-sel-'+produitId+'">'+
             [1,2,3,4,5].map(function(i){
-              return '<span class="etoile-sel" data-note="'+i+'" onclick="selEtoile('+produitId+','+i+')">☆</span>';
+              return '<span class="etoile-sel" data-note="'+i+'" onclick="selEtoile(\''+produitId+'\','+i+')">☆</span>';
             }).join('')+
           '</div>'+
         '</div>'+
         '<textarea id="avis-comment-'+produitId+'" class="avis-textarea" placeholder="Votre commentaire (optionnel)..."></textarea>'+
         '<input id="avis-nom-'+produitId+'" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean Rakoto)"/>'+
         '<label class="avis-anon-label">'+
-          '<input type="checkbox" id="avis-anon-'+produitId+'" onchange="toggleAnon('+produitId+')"/> Rester anonyme'+
+          '<input type="checkbox" id="avis-anon-'+produitId+'" onchange="toggleAnon(\''+produitId+'\')"/> Rester anonyme'+
         '</label>'+
         '<input id="avis-tel-'+produitId+'" class="avis-input" type="tel" placeholder="Votre téléphone * (requis)"/>'+
         '<div id="avis-msg-'+produitId+'" class="avis-msg"></div>'+
-        '<button class="avis-submit-btn" onclick="soumettreAvis('+produitId+')">Envoyer mon avis</button>'+
+        '<button class="avis-submit-btn" onclick="soumettreAvis(\''+produitId+'\')">Envoyer mon avis</button>'+
       '</div>';
   } catch(e) {
     section.innerHTML = '<div class="avis-empty">Impossible de charger les avis.</div>';
