@@ -1975,35 +1975,31 @@ function genTrackToken() {
 
 // ===== ENREGISTRER COMMANDE DANS SUPABASE VIA WORKER =====
 async function enregistrerCommandeSupabase(orderNum, trackToken, name, phone, address, note, cartItems, total, codePromo) {
-  try {
-    var cmdId = crypto.randomUUID();
-    var payload = {
-      cmdId:      cmdId,
-      orderNum:   orderNum,
-      trackToken: trackToken,
-      name:       name,
-      phone:      phone,
-      address:    address,
-      note:       note || null,
-      items:      cartItems.map(function(i){
-        return { id: i.id, name: i.name, variant: i.variant||null, price: i.price, qty: i.qty };
-      }),
-      total:      total,
-      codePromo:  codePromo || null,
-    };
-    var res = await fetch(API_URL + '/supabase-commande', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
-      },
-      body: JSON.stringify(payload),
-    });
-    var data = await res.json();
-    if(!data.success) console.error('Supabase commande error:', data.error);
-  } catch(e) {
-    console.error('Erreur enregistrement Supabase:', e);
-  }
+  var cmdId = crypto.randomUUID();
+  var payload = {
+    cmdId:      cmdId,
+    orderNum:   orderNum,
+    trackToken: trackToken,
+    name:       name,
+    phone:      phone,
+    address:    address,
+    note:       note || null,
+    items:      cartItems.map(function(i){
+      return { id: i.id, name: i.name, variant: i.variant||null, price: i.price, qty: i.qty };
+    }),
+    total:      total,
+    codePromo:  codePromo || null,
+  };
+  var res = await fetch(API_URL + '/supabase-commande', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
+    },
+    body: JSON.stringify(payload),
+  });
+  var data = await res.json();
+  if(!data.success) throw new Error(data.error || 'Erreur Supabase commande');
 }
 
 // ===== STOCK ATOMIQUE VIA RPC =====
