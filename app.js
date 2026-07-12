@@ -2318,9 +2318,62 @@ async function ouvrirFormulaireAvis(numCommande) {
   if(!content) return;
   content.innerHTML = '<div class="avis-cmd-loading">⏳ Chargement de votre formulaire...</div>';
   try {
-    var url = API_URL + '?action=commande_avis&num=' + encodeURIComponent(numCommande);
-    var res = await fetch(url, {redirect:'follow'});
-    var data = JSON.parse(await res.text());
+    // Récupération commande via proxy Supabase
+    var cmdRes = await fetch(API_URL + '/suivi-phone?numero=' + encodeURIComponent(numCommande) + '&phone=avis');
+    // On passe par /admin/query pour récupérer les items
+    var itemsRes = await fetch(API_URL + '/admin/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Code': ADMIN_CODE,
+        'X-Secret-Token': SECRET_TOKEN,
+      },
+      body: JSON.stringify({
+        table: 'commandes_items',
+        select: 'produit_id,produit_nom,variante,quantite',
+        filters: [{ col: 'commande_id', op: 'eq', val: numCommande }],
+      }),
+    });
+    // Récupération id commande via commandes
+    var cmdQueryRes = await fetch(API_URL + '/admin/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Code': ADMIN_CODE,
+        'X-Secret-Token': SECRET_TOKEN,
+      },
+      body: JSON.stringify({
+        table: 'commandes',
+        select: 'id,numero',
+        filters: [{ col: 'numero', op: 'eq', val: numCommande }],
+      }),
+    });
+    var cmdQueryData = await cmdQueryRes.json();
+    var commande = cmdQueryData.success && cmdQueryData.data && cmdQueryData.data[0];
+    if (!commande) {
+      content.innerHTML = '<div class="avis-cmd-error"><p>⚠️ Commande introuvable ou déjà évaluée.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button></div>';
+      return;
+    }
+    var itemsQueryRes = await fetch(API_URL + '/admin/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Code': ADMIN_CODE,
+        'X-Secret-Token': SECRET_TOKEN,
+      },
+      body: JSON.stringify({
+        table: 'commandes_items',
+        select: 'produit_id,produit_nom,variante,quantite',
+        filters: [{ col: 'commande_id', op: 'eq', val: commande.id }],
+      }),
+    });
+    var itemsQueryData = await itemsQueryRes.json();
+    var data = { success: true, items: [] };
+    if (itemsQueryData.success && itemsQueryData.data && itemsQueryData.data.length) {
+      data.items = itemsQueryData.data.map(function(i) {
+        return { id: i.produit_id, nom: i.produit_nom, variante: i.variante, quantite: i.quantite };
+      });
+    }
     if(!data.success || !data.items || !data.items.length) {
       content.innerHTML = '<div class="avis-cmd-error"><p>⚠️ Commande introuvable ou déjà évaluée.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button></div>';
       return;
@@ -2481,14 +2534,6 @@ async function soumettreAvisCmd() {
     // Masquer le bouton envoyer
     var btn = document.querySelector('.avis-submit-btn');
     if(btn) btn.style.display = 'none';
-    // Marquer la commande comme soumise pour expirer le lien
-    try {
-      await fetch(API_URL, {
-        method:'POST', redirect:'follow',
-        headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({action:'marquer_avis_soumis',  num:numCommande})
-      });
-    } catch(e) {}
   }
 }
 // ===== SUIVI AVEC TOKEN =====
