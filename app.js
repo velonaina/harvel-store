@@ -2001,7 +2001,7 @@ async function enregistrerCommandeSupabase(orderNum, trackToken, name, phone, ad
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
+      'X-Secret-Token': 'HRV-Kp9mXq2R-7nJvBt4W-Lc3dYs8F',
     },
     body: JSON.stringify(payload),
   });
@@ -2016,7 +2016,7 @@ async function rpcStock(route, prodId, taille, couleur, qty) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Secret-Token': 'HRV-Ef07NQlS-2eGRNdYB-t2AlEmlw',
+        'X-Secret-Token': 'HRV-Kp9mXq2R-7nJvBt4W-Lc3dYs8F',
       },
       body: JSON.stringify({ produitId: prodId, taille: taille, couleur: couleur, quantite: qty }),
     });
