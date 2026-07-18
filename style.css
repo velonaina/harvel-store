@@ -909,18 +909,19 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 
 /* ── Header barre ── */
 .dc-header-bar {
-  background: var(--text);
+  background: var(--primary-light);
+  border: 0.5px solid var(--border);
   padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-radius: 12px 12px 0 0;
+  border-radius: 10px 10px 0 0;
   margin-bottom: 0;
 }
 .dc-header-title {
   font-size: 15px;
   font-weight: 800;
-  color: #fff;
+  color: var(--primary);
 }
 .dc-header-badge {
   background: var(--primary);
@@ -1378,8 +1379,8 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
   margin-bottom: 8px;
 }
 .dc-cta-main:hover { background: #2e4a1e; }
-.dc-cta-orange {
-  background: #ff6f00;
+.dc-cta-green {
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 9px;
@@ -1395,9 +1396,30 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
   transition: background .15s;
   margin-bottom: 8px;
 }
+.dc-cta-green:hover { background: var(--primary-dark); }
+
+.dc-cta-orange {
+  background: #ff6f00;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 16px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-decoration: none;
+  font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+  transition: background .15s;
+  margin-bottom: 8px;
+}
 .dc-cta-orange:hover { background: #e65100; }
 
-/* Bouton WhatsApp */
 .dc-cta-wa {
   background: #25D366;
   color: #fff;
@@ -1418,6 +1440,23 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
   transition: background .15s;
 }
 .dc-cta-wa:hover { background: #1da851; }
+
+.dc-cta-autres {
+  background: none;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  border-radius: 9px;
+  padding: 10px 16px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 8px;
+  box-sizing: border-box;
+  transition: background .15s;
+}
+.dc-cta-autres:hover { background: var(--primary-light); }
 
 /* ── Responsive desktop ── */
 @media (min-width: 768px) {
