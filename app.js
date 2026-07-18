@@ -2518,15 +2518,14 @@ async function ouvrirFormulaireAvis(numCommande) {
         '</div>'+
         '<div class="avis-cmd-section">'+
           '<div class="avis-cmd-section-titre">👤 Vos informations</div>'+
-          '<input id="avis-cmd-nom" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean R.)"/>'+
-          '<label class="avis-anon-label">'+
-            '<input type="checkbox" id="avis-cmd-anon" onchange="toggleAnonCmd()"/> Rester anonyme'+
-          '</label>'+
+          ''
         '</div>'+
         '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
         '<button class="avis-submit-btn" id="btn-envoyer-avis" onclick="soumettreAvisCmd()">✅ Envoyer mes avis</button>'+
         '<button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button>'+
       '</div>';
+    // Pré-remplir le prénom
+
   } catch(e) {
     content.innerHTML = '<div class="avis-cmd-error"><p>❌ Erreur de chargement. Veuillez réessayer.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour</button></div>';
   }
@@ -2549,21 +2548,13 @@ function selEtoileRecCmd(note) {
   });
   wrap.dataset.note = note;
 }
-function toggleAnonCmd() {
-  var cb = document.getElementById('avis-cmd-anon');
-  var nomInput = document.getElementById('avis-cmd-nom');
-  if(nomInput) {
-    nomInput.disabled = cb && cb.checked;
-    nomInput.placeholder = cb && cb.checked ? 'Anonyme' : 'Votre prénom (ex: Jean R.)';
-  }
-}
 async function soumettreAvisCmd() {
   var numCommande = avisFormData.numCommande;
   var items = avisFormData.items || [];
   var msgEl = document.getElementById('avis-cmd-msg');
   var telEl = document.getElementById('avis-cmd-tel');
-  var nomEl = document.getElementById('avis-cmd-nom');
-  var anonEl = document.getElementById('avis-cmd-anon');
+  
+  
   var recTexte = document.getElementById('rec-texte-cmd');
   var recWrap = document.getElementById('etoiles-rec-cmd');
   // Vérifications
@@ -2577,8 +2568,8 @@ async function soumettreAvisCmd() {
   }
   msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
   var phone = avisFormData.phone || '';
-  var nom = nomEl ? nomEl.value.trim() : (avisFormData.nom || '');
-  var anonyme = anonEl ? anonEl.checked : false;
+  var nom = avisFormData.nom || '';
+  var anonyme = false;
   var erreurs = [];
   // Soumettre les avis produits via Supabase
   const { supabase: sb } = await import('./supabase-client.js');
