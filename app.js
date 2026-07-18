@@ -2009,8 +2009,8 @@ function updateZoneLivraison(){
 // ── Retour dynamique depuis le formulaire ─────────────────────
 var _orderFromExpress = false;
 function retourDepuisOrder(){
-  if(_orderFromExpress){ _orderFromExpress=false; showPage('shop'); }
-  else { showPage('cart'); }
+  _orderFromExpress = false;
+  showPage('cart');
 }
 
 // ── Mini panier collapsible ────────────────────────────────────
@@ -2264,7 +2264,7 @@ function showPage(p){
   }
   if(p==='order') {
     var btnRetour = document.getElementById('btn-retour-order');
-    if(btnRetour) btnRetour.textContent = _orderFromExpress ? '← Retour' : '← Retour au panier';
+    if(btnRetour) btnRetour.textContent = '← Retour au panier';
   }
   // Ne pas écraser le hash si on est sur un lien suivi avec token
   var currentHash = window.location.hash.replace('#','');
