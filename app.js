@@ -2472,7 +2472,7 @@ async function ouvrirFormulaireAvis(numCommande) {
             }).join('')+
           '</div>'+
         '</div>'+
-        '<p class="avis-question">Qu\'est-ce que vous aimez le plus dans ce produit ?<br/><span style="font-size:.8rem;color:#888;font-style:italic;">Inona no tena tiananareo amin\'ity vokatra ity ?</span></p>'+
+        '<p class="avis-question">Ce produit vous a-t-il satisfait(e) ? Qu\'avez-vous le plus apprécié ?<br/><span class="avis-question-mg">Nahafapo anao ve ity vokatra ity? Inona no tena tianao taminy?</span></p>'+
         '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="Votre commentaire (optionnel)... / Soraty eto ny hevitrao (tsy voatery)..."></textarea>'+
       '</div>';
     }).join('');
@@ -2498,7 +2498,7 @@ async function ouvrirFormulaireAvis(numCommande) {
                 }).join('')+
               '</div>'+
             '</div>'+
-            '<p class="avis-question">Comment s\'est passée votre commande chez nous ?<br/><span style="font-size:.8rem;color:#888;font-style:italic;">Nandeha tsara ve ny baiko natanareo ?</span></p>'+
+            '<p class="avis-question">Êtes-vous satisfait(e) de votre expérience d\'achat chez Harvel Store ? Qu\'avez-vous le plus apprécié, et qu\'aimeriez-vous que nous améliorions ?<br/><span class="avis-question-mg">Nahafapo anao ve ny fiantsenana tao amin\'i Harvel Store? Inona no tianao indrindra, ary inona no mbola azo hatsaraina?</span></p>'+
             '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Votre commentaire (optionnel)... / Soraty eto ny hevitrao (tsy voatery)..."></textarea>'+
           '</div>'+
         '</div>'+
