@@ -6,6 +6,8 @@ var MAINTENANCE_MSG = "Nous effectuons des améliorations pour mieux vous servir
 var GROS_COMMANDE_LIMITE = 10; // Au-delà → redirection WhatsApp
 var MAINTENANCE_DUREE = "30 minutes"; // Laisse vide "" pour ne pas afficher la durée
 var API_URL = "https://harvel-proxy.herryharivelo.workers.dev";
+var ADMIN_CODE = "HS2026@Harvel";
+var SECRET_TOKEN = "HRV-Kp9mXq2R-7nJvBt4W-Lc3dYs8F";
 // Token supprimé — géré côté serveur par le proxy Cloudflare
 var WA_NUMBER = "261346158199";
 var COLOR_MAP = {
