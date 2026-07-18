@@ -834,7 +834,11 @@ function drawerCommanderWA(){
   window.open(getWhatsAppUrl(p), '_blank');
   closeDrawer();
 }
+var _cmdMaintenantLock = false;
 function drawerCommanderMaintenant(){
+  if(_cmdMaintenantLock) return;
+  _cmdMaintenantLock = true;
+  setTimeout(function(){ _cmdMaintenantLock = false; }, 600);
   var p = currentProduct;
   if(!p) return;
   var colors = getColors(p), sizes = getSizes(p);
