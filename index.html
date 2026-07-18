@@ -283,32 +283,23 @@
         <span id="mini-cart-total"></span>
       </div>
     </div>
-    <div class="livraison-zones">
-      <h4>🚚 Zone de livraison</h4>
-      <div class="form-group">
-        <select id="select-zone" onchange="updateZoneLivraison()" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem;background:#fff;">
-          <option value="">Sélectionnez votre zone...</option>
-          <option value="4000">Zone 1 — Tanà centre (+4 000 Ar)</option>
-          <option value="5000">Zone 2 — Banlieue proche (+5 000 Ar)</option>
-          <option value="6000">Zone 3 — Banlieue éloignée (+6 000 Ar)</option>
-          <option value="confirm">Zone 4 — Environs éloignés (à confirmer)</option>
-          <option value="province">Autres régions & provinces (4 000 Ar + P.A)</option>
-        </select>
-      </div>
-      <div style="font-size:.8rem;color:var(--muted);margin-top:6px;">
-        📍 Vous ne savez pas quelle zone ? <button onclick="showPage('about')" style="background:none;border:none;color:var(--primary);font-weight:600;cursor:pointer;font-size:.8rem;padding:0;text-decoration:underline;">Voir les zones de livraison →</button>
-      </div>
-      <div id="zone-detail" style="font-size:.8rem;color:var(--muted);margin-top:-8px;margin-bottom:8px;"></div>
-      <div class="mini-cart-total" id="total-avec-livraison" style="display:none;">
-        <span>Total estimé</span>
-        <span id="total-livraison-val" style="color:#e53935;font-weight:700;"></span>
-      </div>
-      <div class="livraison-note">💰 <strong>Paiement à la livraison</strong> (produits + frais de livraison)<br/>⏱️ Délai variable selon votre zone — confirmé par téléphone.</div>
+    <div class="form-group"><label>Prénom *</label><input type="text" id="f-name" placeholder="Ex: Jean" autocomplete="given-name"/></div>
+    <div class="form-group">
+      <label>Téléphone *</label>
+      <span style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">Numéro malgache joinable</span>
+      <input type="tel" id="f-phone" placeholder="Ex: 034 00 000 00" autocomplete="tel"/>
     </div>
-    <div class="livraison-info">🚚 Nous vous contacterons pour confirmer votre commande et l'heure de livraison.</div>
-    <div class="form-group"><label>Prénom *</label><input type="text" id="f-name" placeholder="Ex: Jean"/></div>
-    <div class="form-group"><label>Téléphone *</label><input type="tel" id="f-phone" placeholder="Ex: 034 00 000 00"/></div>
-    <div class="form-group"><label>Quartier / Zone <span style="color:var(--muted);font-weight:400;font-size:.85rem;">(optionnel)</span></label><input type="text" id="f-address" placeholder="Ex: Analakely, Ivato..."/></div>
+    <div class="form-group">
+      <label>Adresse de livraison *</label>
+      <span style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:6px;">En province ? Indiquez votre ville — nous vous appellerons pour les détails d'envoi.</span>
+      <input type="text" id="f-address" placeholder="Ex: Analakely Tana, Toamasina centre, Ambovombe..." autocomplete="off"/>
+    </div>
+    <div style="font-size:.8rem;color:#1a6b3a;background:#edfae3;border:0.5px solid #b6e8c8;border-radius:8px;padding:10px 12px;margin-bottom:14px;">
+      💰 <strong>Paiement à la livraison</strong> — Nous vous appellerons pour confirmer.
+    </div>
+    <select id="select-zone" style="display:none;" onchange="updateZoneLivraison()"></select>
+    <div id="total-avec-livraison" style="display:none;"></div>
+    <div id="zone-detail" style="display:none;"></div>
     <button class="submit-btn" id="submit-btn" onclick="submitOrder()">✅ Confirmer la commande</button>
   </div>
 </div>

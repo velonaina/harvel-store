@@ -834,6 +834,59 @@ function drawerCommanderWA(){
   window.open(getWhatsAppUrl(p), '_blank');
   closeDrawer();
 }
+function drawerCommanderMaintenant(){
+  var p = currentProduct;
+  if(!p) return;
+  var colors = getColors(p), sizes = getSizes(p);
+  var isOne = sizes.length===1 && sizes[0].toLowerCase().includes('one');
+  var colorSection = document.getElementById('drawer-colors-section');
+  var sizeSection = document.getElementById('drawer-sizes-section');
+  if(colorSection) colorSection.classList.remove('drawer-section-error');
+  if(sizeSection) sizeSection.classList.remove('drawer-section-error');
+  var hasError = false;
+  if(colors.length && !drawerColor){ if(colorSection) colorSection.classList.add('drawer-section-error'); hasError = true; }
+  if(sizes.length && !isOne && !drawerSize){ if(sizeSection) sizeSection.classList.add('drawer-section-error'); hasError = true; }
+  if(hasError){
+    var firstError = document.querySelector('.drawer-section-error');
+    if(firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
+    showToast('⚠️ Veuillez compléter votre sélection','warning');
+    return;
+  }
+  if(p.variantes && p.variantes.length) {
+    var stockVariante = getStockVariante(p, drawerSize || (isOne ? sizes[0] : null), drawerColor);
+    if(stockVariante <= 0) { showToast('❌ Cette variante est en rupture de stock','error'); return; }
+  }
+  selectedColor = drawerColor;
+  selectedSize = drawerSize || (isOne ? sizes[0] : null);
+  selectedOption = drawerOption;
+  selectedQty = drawerQty;
+  selectedCodePromo = drawerPromo ? { code: drawerPromo.nom, remise: drawerPromo.remise, prixFinal: null } : null;
+  if(selectedCodePromo){
+    var paliers = parsePrixDegressif(p.prix_degressif);
+    var baseP = paliers.length ? getPrixDegressif(paliers, selectedQty) : p.price;
+    var rem = selectedCodePromo.remise;
+    selectedCodePromo.prixFinal = rem.includes('%') ? Math.round(baseP*(1-parseFloat(rem)/100)) : Math.max(0,baseP-Number(rem));
+  }
+  addToCartFromProduct();
+  closeDrawer();
+  prefillOrderForm();
+  showPage('order');
+  renderMiniCart();
+}
+
+function prefillOrderForm(){
+  try {
+    var saved = JSON.parse(localStorage.getItem('harvel_client') || '{}');
+    if(saved.name){ var el=document.getElementById('f-name'); if(el) el.value=saved.name; }
+    if(saved.phone){ var el=document.getElementById('f-phone'); if(el) el.value=saved.phone; }
+    if(saved.address){ var el=document.getElementById('f-address'); if(el) el.value=saved.address; }
+  } catch(e){}
+}
+
+function saveClientToStorage(name, phone, address){
+  try { localStorage.setItem('harvel_client', JSON.stringify({name:name, phone:phone, address:address})); } catch(e){}
+}
+
 function updateFavCount(){
   var count = getFavoris().length;
   var navBadge = document.getElementById('fav-nav-count');
@@ -944,7 +997,6 @@ function openProduct(id){
         (p.matiere?'<div class="pd-matiere">🧵 <strong>Matière :</strong> '+p.matiere+'</div>':'')+
         (p.description?'<div class="pd-desc">'+p.description+'</div>':'')+
         (p.prix_degressif ? renderPrixDegressifTable(parsePrixDegressif(p.prix_degressif), 1) : '')+
-        ''+
         '<div class="prod-stock'+(p.stock<=3?' stock-low':'')+'" style="margin-bottom:14px;">'+(p.stock===0?'❌ Rupture de stock':p.stock<=3?'⚠️ Plus que '+p.stock+' en stock':'✅ En stock ('+p.stock+')')+'</div>'+
         '<button class="back-to-shop" onclick="showPage(\'shop\')">← Continuer mes achats</button>'+
       '</div>'+
@@ -1941,9 +1993,7 @@ function updateZoneLivraison(){
     if(totalVal) totalVal.textContent = (sous_total + frais).toLocaleString('fr') + ' Ar';
   }
 }
-function goToOrder(){showPage('order');renderMiniCart();}
-
-function goToOrder(){showPage('order');renderMiniCart();}
+function goToOrder(){prefillOrderForm();showPage('order');renderMiniCart();}
 function copyOrderNum(){
   var num=document.getElementById('success-order-num').textContent.replace('📋 ','').trim();
   if(navigator.clipboard && navigator.clipboard.writeText){
@@ -2040,9 +2090,11 @@ function parseVariantItem(item, prod) {
 async function submitOrder(){
   var name=document.getElementById('f-name').value.trim();
   var phone=document.getElementById('f-phone').value.trim();
-  var address=document.getElementById('f-address').value.trim();
-  var note=document.getElementById('f-note').value.trim();
+  var address=document.getElementById('f-address')?document.getElementById('f-address').value.trim():'';
+  var note=document.getElementById('f-note')?document.getElementById('f-note').value.trim():'';
+  var zone='';
   if(!name||!phone||!address){showToast('⚠️ Veuillez remplir tous les champs obligatoires.','warning');return;}
+  saveClientToStorage(name, phone, address);
   if(!cart.length){showToast('⚠️ Votre panier est vide.','warning');return;}
   var btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ Envoi en cours...';
 
