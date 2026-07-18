@@ -2516,10 +2516,6 @@ async function ouvrirFormulaireAvis(numCommande) {
             '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Partagez votre expérience globale avec Harvel Store..."></textarea>'+
           '</div>'+
         '</div>'+
-        '<div class="avis-cmd-section">'+
-          '<div class="avis-cmd-section-titre">👤 Vos informations</div>'+
-          ''
-        '</div>'+
         '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
         '<button class="avis-submit-btn" id="btn-envoyer-avis" onclick="soumettreAvisCmd()">✅ Envoyer mes avis</button>'+
         '<button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button>'+
