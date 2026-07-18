@@ -1084,7 +1084,7 @@ async function chargerAvis(produitId) {
             }).join('')+
           '</div>'+
         '</div>'+
-        '<textarea id="avis-comment-'+produitId+'" class="avis-textarea" placeholder="Votre commentaire (optionnel)..."></textarea>'+
+        '<textarea id="avis-comment-'+produitId+'" class="avis-textarea" placeholder="Votre commentaire (optionnel)... / Soraty eto ny hevitrao (tsy voatery)..."></textarea>'+
         '<input id="avis-nom-'+produitId+'" class="avis-input" type="text" placeholder="Votre prénom (ex: Jean Rakoto)"/>'+
         '<label class="avis-anon-label">'+
           '<input type="checkbox" id="avis-anon-'+produitId+'" onchange="toggleAnon(window._avisProduitId)"/> Rester anonyme'+
@@ -2465,39 +2465,41 @@ async function ouvrirFormulaireAvis(numCommande) {
       return '<div class="avis-cmd-produit">'+
         '<div class="avis-cmd-produit-nom">🛍️ '+item.nom+'</div>'+
         '<div class="avis-note-wrap">'+
-          '<span class="avis-note-label">Votre note :</span>'+
+          '<span class="avis-note-label">Votre note <span class="avis-label-mg">/ Naoty omenao</span> :</span>'+
           '<div class="avis-etoiles-sel" id="etoiles-prod-'+idx+'" data-note="0">'+
             [1,2,3,4,5].map(function(i){
               return '<span class="etoile-sel" onclick="selEtoileProd('+idx+','+i+')">☆</span>';
             }).join('')+
           '</div>'+
         '</div>'+
-        '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="Qu\'est-ce que vous aimez le plus dans ce produit ?"></textarea>'+
+        '<p class="avis-question">Qu\'est-ce que vous aimez le plus dans ce produit ?<br/><span style="font-size:.8rem;color:#888;font-style:italic;">Inona no tena tiananareo amin\'ity vokatra ity ?</span></p>'+
+        '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="Votre commentaire (optionnel)... / Soraty eto ny hevitrao (tsy voatery)..."></textarea>'+
       '</div>';
     }).join('');
     content.innerHTML =
       '<div class="avis-cmd-wrap">'+
         '<div class="avis-cmd-header">'+
           '<div class="avis-cmd-logo">🛍️ Harvel Store</div>'+
-          '<h2 class="avis-cmd-titre">Votre avis compte !</h2>'+
-          '<p class="avis-cmd-sous-titre">Commande <strong>'+numCommande+'</strong> — Merci pour votre confiance 😊</p>'+
+          '<h2 class="avis-cmd-titre">Votre avis compte !<br/><span class="avis-titre-mg">Zava-dehibe aminay ny hevitrao!</span></h2>'+
+          '<p class="avis-cmd-sous-titre">Commande <strong>'+numCommande+'</strong> — Merci pour votre confiance 😊<br/><span class="avis-sous-titre-mg">Kaomandy <strong>'+numCommande+'</strong> — Misaotra anao tamin\'ny fahatokisanao anay.</span></p>'+
         '</div>'+
         '<div class="avis-cmd-section">'+
-          '<div class="avis-cmd-section-titre">⭐ Vos avis sur les produits</div>'+
+          '<div class="avis-cmd-section-titre">⭐ Vos avis sur les produits<br/><span class="avis-section-mg">Ny hevitrao momba ny vokatra</span></div>'+
           produitsHtml+
         '</div>'+
         '<div class="avis-cmd-section">'+
-          '<div class="avis-cmd-section-titre">💬 Votre expérience avec Harvel Store</div>'+
+          '<div class="avis-cmd-section-titre">💬 Votre expérience avec Harvel Store<br/><span class="avis-section-mg">Ny traikefanao tamin\'i Harvel Store</span></div>'+
           '<div class="avis-cmd-produit">'+
             '<div class="avis-note-wrap">'+
-              '<span class="avis-note-label">Note globale :</span>'+
+              '<span class="avis-note-label">Note globale <span class="avis-label-mg">/ Naoty ankapobeny</span> :</span>'+
               '<div class="avis-etoiles-sel" id="etoiles-rec-cmd" data-note="0">'+
                 [1,2,3,4,5].map(function(i){
                   return '<span class="etoile-sel" onclick="selEtoileRecCmd('+i+')">☆</span>';
                 }).join('')+
               '</div>'+
             '</div>'+
-            '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Comment s\'est passée votre commande chez nous ?"></textarea>'+
+            '<p class="avis-question">Comment s\'est passée votre commande chez nous ?<br/><span style="font-size:.8rem;color:#888;font-style:italic;">Nandeha tsara ve ny baiko natanareo ?</span></p>'+
+            '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Votre commentaire (optionnel)... / Soraty eto ny hevitrao (tsy voatery)..."></textarea>'+
           '</div>'+
         '</div>'+
         '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+

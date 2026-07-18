@@ -440,6 +440,12 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .avis-etoiles-sel{display:flex;gap:4px;}
 .etoile-sel{font-size:1.4rem;cursor:pointer;color:#ccc;transition:.15s;}
 .etoile-sel.active{color:#f5a623;}
+.avis-question{font-size:.88rem;font-weight:600;color:var(--text);margin:0 0 6px 0;line-height:1.5;}
+.avis-question-mg{font-size:.78rem;font-weight:400;color:#888;font-style:italic;display:block;margin-top:2px;}
+.avis-titre-mg{font-size:.85rem;font-weight:400;color:var(--primary);font-style:italic;display:block;margin-top:2px;}
+.avis-sous-titre-mg{font-size:.78rem;color:var(--muted);font-style:italic;display:block;margin-top:2px;}
+.avis-section-mg{font-size:.78rem;font-weight:400;color:var(--muted);font-style:italic;display:block;margin-top:2px;}
+.avis-label-mg{font-size:.78rem;font-weight:400;color:var(--muted);font-style:italic;}
 .avis-textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;resize:vertical;min-height:80px;margin-bottom:10px;box-sizing:border-box;}
 .avis-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;margin-bottom:10px;box-sizing:border-box;}
 .avis-anon-label{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);margin-bottom:10px;cursor:pointer;}
