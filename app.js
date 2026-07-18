@@ -384,10 +384,10 @@ function renderProductGrid(id,list){
     var badge = renderBadgesProduit(p);
     var imgHtml=ph.length>0?'<img src="'+ph[0]+'" alt="'+p.name+'" onerror="this.parentElement.innerHTML=\'📦\'"/>':'<span>'+(p.emoji&&!p.emoji.startsWith('http')?p.emoji:'📦')+'</span>';
     var stockHtml=p.stock===0?'❌ Rupture':p.stock<=3?'⚠️ Plus que '+p.stock:'✅ En stock';
-    var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Voir le produit →</button>';
+    var btnHtml=p.stock===0?'<button class="view-btn" disabled>Indisponible</button>':'<button class="view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Je le veux ! →</button>';
     var isFavCard = getFavoris().indexOf(String(p.id)) >= 0;
     var favCardBtn = '<button class="fav-card-btn'+(isFavCard?' active':'')+'" data-pid="'+p.id+'" onclick="event.stopPropagation();toggleFavori(\''+p.id+'\')" title="Favoris">'+FAV_SVG+'</button>';
-    return '<div class="product-card" onclick="openProduct(\''+p.id+'\')">'+badge+favCardBtn+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div>'+(p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+'<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
+    return '<div class="product-card" onclick="openProduct(\''+p.id+'\')">'+badge+favCardBtn+'<div class="prod-img">'+imgHtml+'</div><div class="prod-info"><div class="prod-name">'+p.name+'</div>'+(p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+'<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div><div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+btnHtml+'</div></div>';
   }).join('')+'</div>';
 }
 var homeLimit = 4;
@@ -834,48 +834,6 @@ function drawerCommanderWA(){
   window.open(getWhatsAppUrl(p), '_blank');
   closeDrawer();
 }
-
-function drawerCommanderMaintenant(){
-  var p = currentProduct;
-  if(!p) return;
-  var colors = getColors(p), sizes = getSizes(p);
-  var isOne = sizes.length===1 && sizes[0].toLowerCase().includes('one');
-  var colorSection = document.getElementById('drawer-colors-section');
-  var sizeSection = document.getElementById('drawer-sizes-section');
-  if(colorSection) colorSection.classList.remove('drawer-section-error');
-  if(sizeSection) sizeSection.classList.remove('drawer-section-error');
-  var hasError = false;
-  if(colors.length && !drawerColor){ if(colorSection) colorSection.classList.add('drawer-section-error'); hasError = true; }
-  if(sizes.length && !isOne && !drawerSize){ if(sizeSection) sizeSection.classList.add('drawer-section-error'); hasError = true; }
-  if(hasError){
-    var firstError = document.querySelector('.drawer-section-error');
-    if(firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
-    showToast('⚠️ Veuillez compléter votre sélection','warning');
-    return;
-  }
-  if(p.variantes && p.variantes.length) {
-    var stockVariante = getStockVariante(p, drawerSize || (isOne ? sizes[0] : null), drawerColor);
-    if(stockVariante <= 0) { showToast('❌ Cette variante est en rupture de stock','error'); return; }
-  }
-  // Ajouter au panier temporairement et aller directement au formulaire
-  selectedColor = drawerColor;
-  selectedSize = drawerSize || (isOne ? sizes[0] : null);
-  selectedOption = drawerOption;
-  selectedQty = drawerQty;
-  selectedCodePromo = drawerPromo ? { code: drawerPromo.nom, remise: drawerPromo.remise, prixFinal: null } : null;
-  if(selectedCodePromo){
-    var paliers = parsePrixDegressif(p.prix_degressif);
-    var baseP = paliers.length ? getPrixDegressif(paliers, selectedQty) : p.price;
-    var rem = selectedCodePromo.remise;
-    selectedCodePromo.prixFinal = rem.includes('%') ? Math.round(baseP*(1-parseFloat(rem)/100)) : Math.max(0,baseP-Number(rem));
-  }
-  addToCartFromProduct();
-  closeDrawer();
-  // Pré-remplir le formulaire depuis localStorage
-  prefillOrderForm();
-  showPage('order');
-  renderMiniCart();
-}
 function updateFavCount(){
   var count = getFavoris().length;
   var navBadge = document.getElementById('fav-nav-count');
@@ -925,7 +883,7 @@ function renderFavoris(){
         (p.moyenne_avis?'<div class="prod-etoiles-moy">'+etoilesMoyenne(p.moyenne_avis.moyenne)+'<span class="prod-nb-avis">('+p.moyenne_avis.count+')</span></div>':'')+
         '<div class="prod-price">'+(p.prix_barre?'<span class="prix-barre">'+fmt(p.prix_barre)+'</span><span class="prix-promo">'+fmt(p.price)+'</span><span class="promo-badge">-'+Math.round((1-p.price/p.prix_barre)*100)+'%</span>':fmt(p.price))+'</div>'+
         '<div class="prod-stock'+(p.stock<=3?' stock-low':'')+'">'+stockHtml+'</div>'+
-        '<button class="view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Voir le produit →</button>'+
+        '<button class="view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Je le veux ! →</button>'+
       '</div>'+
     '</div>';
   }).join('')+'</div>'+
@@ -986,7 +944,7 @@ function openProduct(id){
         (p.matiere?'<div class="pd-matiere">🧵 <strong>Matière :</strong> '+p.matiere+'</div>':'')+
         (p.description?'<div class="pd-desc">'+p.description+'</div>':'')+
         (p.prix_degressif ? renderPrixDegressifTable(parsePrixDegressif(p.prix_degressif), 1) : '')+
-        '<div class="pd-viewers">👁️ <span class="viewer-count-'+p.id+'">'+v+' personne'+(v>1?'s':'')+' regardent ce produit</span></div>'+
+        ''+
         '<div class="prod-stock'+(p.stock<=3?' stock-low':'')+'" style="margin-bottom:14px;">'+(p.stock===0?'❌ Rupture de stock':p.stock<=3?'⚠️ Plus que '+p.stock+' en stock':'✅ En stock ('+p.stock+')')+'</div>'+
         '<button class="back-to-shop" onclick="showPage(\'shop\')">← Continuer mes achats</button>'+
       '</div>'+
@@ -1983,8 +1941,9 @@ function updateZoneLivraison(){
     if(totalVal) totalVal.textContent = (sous_total + frais).toLocaleString('fr') + ' Ar';
   }
 }
-function goToOrder(){prefillOrderForm();showPage("order");renderMiniCart();}
+function goToOrder(){showPage('order');renderMiniCart();}
 
+function goToOrder(){showPage('order');renderMiniCart();}
 function copyOrderNum(){
   var num=document.getElementById('success-order-num').textContent.replace('📋 ','').trim();
   if(navigator.clipboard && navigator.clipboard.writeText){
@@ -2078,35 +2037,12 @@ function parseVariantItem(item, prod) {
   return { couleur: couleur, taille: taille };
 }
 
-// ── Pré-remplissage formulaire depuis localStorage ──────────
-function prefillOrderForm(){
-  try {
-    var saved = JSON.parse(localStorage.getItem('harvel_client') || '{}');
-    if(saved.name){ var el=document.getElementById('f-name'); if(el) el.value=saved.name; }
-    if(saved.phone){ var el=document.getElementById('f-phone'); if(el) el.value=saved.phone; }
-    if(saved.zone){ var el=document.getElementById('select-zone'); if(el){ el.value=saved.zone; updateZoneLivraison(); } }
-  } catch(e){}
-}
-function saveClientToStorage(name, phone, zone){
-  try { localStorage.setItem('harvel_client', JSON.stringify({name:name, phone:phone, zone:zone})); } catch(e){}
-}
-
 async function submitOrder(){
   var name=document.getElementById('f-name').value.trim();
   var phone=document.getElementById('f-phone').value.trim();
-  var zoneEl=document.getElementById('select-zone');
-  var zone=zoneEl?zoneEl.value:'';
-  var address=document.getElementById('f-address')?document.getElementById('f-address').value.trim():'';
-  var note=document.getElementById('f-note')?document.getElementById('f-note').value.trim():'';
-  if(!name||!phone){showToast('⚠️ Veuillez remplir votre nom et téléphone.','warning');return;}
-  if(!zone){showToast('⚠️ Veuillez sélectionner votre zone de livraison.','warning');return;}
-  // Sauvegarder pour pré-remplissage futur
-  saveClientToStorage(name, phone, zone);
-  // Construire adresse depuis la zone si pas renseignée
-  if(!address){
-    var zoneLabels={'4000':'Tanà centre','5000':'Banlieue proche','6000':'Banlieue éloignée','confirm':'Environs éloignés (à confirmer)','province':'Province'};
-    address = zoneLabels[zone] || zone;
-  }
+  var address=document.getElementById('f-address').value.trim();
+  var note=document.getElementById('f-note').value.trim();
+  if(!name||!phone||!address){showToast('⚠️ Veuillez remplir tous les champs obligatoires.','warning');return;}
   if(!cart.length){showToast('⚠️ Votre panier est vide.','warning');return;}
   var btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='⏳ Envoi en cours...';
 
@@ -2184,7 +2120,7 @@ try{
         '<div class="suivi-resume-title">🛍️ Détail de votre commande</div>'+
         resumeItems+
         '<div class="suivi-total">Total : <strong>'+fmt(total)+'</strong></div>'+
-        '<div class="suivi-adresse">📍 '+address+'</div>';
+        '';
       resumeEl.style.display = 'block';
     }
     ['f-name','f-phone','f-address','f-note'].forEach(function(id){document.getElementById(id).value='';});
