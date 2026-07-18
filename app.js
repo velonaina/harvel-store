@@ -2262,7 +2262,10 @@ function showPage(p){
     // Réafficher le bouton flottant si panier non vide
     updateCartCount();
   }
-  if(p==='avis-cmd') {} // contenu généré dynamiquement
+  if(p==='order') {
+    var btnRetour = document.getElementById('btn-retour-order');
+    if(btnRetour) btnRetour.textContent = _orderFromExpress ? '← Retour' : '← Retour au panier';
+  }
   // Ne pas écraser le hash si on est sur un lien suivi avec token
   var currentHash = window.location.hash.replace('#','');
   if(p !== 'product' && !currentHash.startsWith('suivi-')) {
