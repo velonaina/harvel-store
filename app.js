@@ -2215,7 +2215,7 @@ try{
         '';
       resumeEl.style.display = 'block';
     }
-    ['f-name','f-phone','f-address','f-note'].forEach(function(id){document.getElementById(id).value='';});
+    ['f-name','f-phone','f-address'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
     cart=[];updateCartCount();showPage('success');
   }catch(err){
     // Rollback stock si la commande n'a pas pu être créée
