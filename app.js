@@ -2415,23 +2415,7 @@ async function ouvrirFormulaireAvis(numCommande) {
   if(!content) return;
   content.innerHTML = '<div class="avis-cmd-loading">⏳ Chargement de votre formulaire...</div>';
   try {
-    // Récupération commande via proxy Supabase
-    var cmdRes = await fetch(API_URL + '/suivi-phone?numero=' + encodeURIComponent(numCommande) + '&phone=avis');
-    // On passe par /admin/query pour récupérer les items
-    var itemsRes = await fetch(API_URL + '/admin/query', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Admin-Code': ADMIN_CODE,
-        'X-Secret-Token': SECRET_TOKEN,
-      },
-      body: JSON.stringify({
-        table: 'commandes_items',
-        select: 'produit_id,produit_nom,variante,quantite',
-        filters: [{ col: 'commande_id', op: 'eq', val: numCommande }],
-      }),
-    });
-    // Récupération id commande via commandes
+    // Récupération id commande via /admin/query
     var cmdQueryRes = await fetch(API_URL + '/admin/query', {
       method: 'POST',
       headers: {
