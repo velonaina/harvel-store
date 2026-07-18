@@ -2460,57 +2460,116 @@ async function ouvrirFormulaireAvis(numCommande) {
       return;
     }
     avisFormData = { numCommande: numCommande, items: data.items, notes: {}, commentaires: {}, phone: commande.client_phone || '', nom: commande.client_nom || '' };
-    // Générer les sections avis par produit
-    var produitsHtml = data.items.map(function(item, idx) {
-      return '<div class="avis-cmd-produit">'+
-        '<div class="avis-cmd-produit-nom">🛍️ '+item.nom+'</div>'+
-        '<div class="avis-note-wrap">'+
-          '<span class="avis-note-label">Votre note <span class="avis-label-mg">/ Naoty omenao</span> :</span>'+
-          '<div class="avis-etoiles-sel" id="etoiles-prod-'+idx+'" data-note="0">'+
-            [1,2,3,4,5].map(function(i){
-              return '<span class="etoile-sel" onclick="selEtoileProd('+idx+','+i+')">☆</span>';
-            }).join('')+
-          '</div>'+
-        '</div>'+
-        '<p class="avis-question">Ce produit vous a-t-il satisfait(e) ? Qu\'avez-vous le plus apprécié ?<br/><span class="avis-question-mg">Nahafapo anao ve ity vokatra ity? Inona no tena tianao taminy?</span></p>'+
-        '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="Votre commentaire (optionnel)... / Soraty eto ny hevitrao (tsy voatery)..."></textarea>'+
-      '</div>';
-    }).join('');
+
+    // ── Sélecteur de langue ──────────────────────────────────────
     content.innerHTML =
       '<div class="avis-cmd-wrap">'+
         '<div class="avis-cmd-header">'+
           '<div class="avis-cmd-logo">🛍️ Harvel Store</div>'+
           '<h2 class="avis-cmd-titre">Votre avis compte !<br/><span class="avis-titre-mg">Zava-dehibe aminay ny hevitrao!</span></h2>'+
-          '<p class="avis-cmd-sous-titre">Commande <strong>'+numCommande+'</strong> — Merci pour votre confiance 😊<br/><span class="avis-sous-titre-mg">Kaomandy <strong>'+numCommande+'</strong> — Misaotra anao tamin\'ny fahatokisanao anay.</span></p>'+
+          '<p class="avis-cmd-sous-titre">Commande <strong>'+numCommande+'</strong><br/><span class="avis-sous-titre-mg">Kaomandy <strong>'+numCommande+'</strong></span></p>'+
         '</div>'+
-        '<div class="avis-cmd-section">'+
-          '<div class="avis-cmd-section-titre">⭐ Vos avis sur les produits<br/><span class="avis-section-mg">Ny hevitrao momba ny vokatra</span></div>'+
-          produitsHtml+
+        '<div class="avis-lang-selector">'+
+          '<div class="avis-lang-title">Choisissez votre langue<br/><span class="avis-lang-sub">Safidio ny fiteny</span></div>'+
+          '<button class="avis-lang-btn active" id="lang-btn-fr" onclick="avisSelectLang(\'fr\')">'+
+            '<span class="avis-lang-flag">🇫🇷</span>'+
+            '<div class="avis-lang-info"><div class="avis-lang-name">Français</div><div class="avis-lang-desc">Répondre en français</div></div>'+
+            '<span class="avis-lang-check" id="lang-check-fr">✓</span>'+
+          '</button>'+
+          '<button class="avis-lang-btn" id="lang-btn-mg" onclick="avisSelectLang(\'mg\')">'+
+            '<span class="avis-lang-flag">🇲🇬</span>'+
+            '<div class="avis-lang-info"><div class="avis-lang-name">Malagasy</div><div class="avis-lang-desc">Mamaly amin\'ny teny malagasy</div></div>'+
+            '<span class="avis-lang-check" id="lang-check-mg" style="display:none;">✓</span>'+
+          '</button>'+
         '</div>'+
-        '<div class="avis-cmd-section">'+
-          '<div class="avis-cmd-section-titre">💬 Votre expérience avec Harvel Store<br/><span class="avis-section-mg">Ny traikefanao tamin\'i Harvel Store</span></div>'+
-          '<div class="avis-cmd-produit">'+
-            '<div class="avis-note-wrap">'+
-              '<span class="avis-note-label">Note globale <span class="avis-label-mg">/ Naoty ankapobeny</span> :</span>'+
-              '<div class="avis-etoiles-sel" id="etoiles-rec-cmd" data-note="0">'+
-                [1,2,3,4,5].map(function(i){
-                  return '<span class="etoile-sel" onclick="selEtoileRecCmd('+i+')">☆</span>';
-                }).join('')+
-              '</div>'+
-            '</div>'+
-            '<p class="avis-question">Êtes-vous satisfait(e) de votre expérience d\'achat chez Harvel Store ? Qu\'avez-vous le plus apprécié, et qu\'aimeriez-vous que nous améliorions ?<br/><span class="avis-question-mg">Nahafapo anao ve ny fiantsenana tao amin\'i Harvel Store? Inona no tianao indrindra, ary inona no mbola azo hatsaraina?</span></p>'+
-            '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Votre commentaire (optionnel)... / Soraty eto ny hevitrao (tsy voatery)..."></textarea>'+
-          '</div>'+
-        '</div>'+
-        '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
-        '<button class="avis-submit-btn" id="btn-envoyer-avis" onclick="soumettreAvisCmd()">✅ Envoyer mes avis</button>'+
-        '<button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button>'+
+        '<button class="avis-lang-continue" onclick="avisAfficherFormulaire()">Continuer → Tohizo</button>'+
       '</div>';
-    // Pré-remplir le prénom
 
   } catch(e) {
     content.innerHTML = '<div class="avis-cmd-error"><p>❌ Erreur de chargement. Veuillez réessayer.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour</button></div>';
   }
+}
+
+var avisLang = 'fr';
+function avisSelectLang(lang) {
+  avisLang = lang;
+  var btnFr = document.getElementById('lang-btn-fr');
+  var btnMg = document.getElementById('lang-btn-mg');
+  var checkFr = document.getElementById('lang-check-fr');
+  var checkMg = document.getElementById('lang-check-mg');
+  if(lang === 'fr') {
+    if(btnFr) btnFr.classList.add('active');
+    if(btnMg) btnMg.classList.remove('active');
+    if(checkFr) checkFr.style.display = '';
+    if(checkMg) checkMg.style.display = 'none';
+  } else {
+    if(btnMg) btnMg.classList.add('active');
+    if(btnFr) btnFr.classList.remove('active');
+    if(checkMg) checkMg.style.display = '';
+    if(checkFr) checkFr.style.display = 'none';
+  }
+}
+
+function avisAfficherFormulaire() {
+  var content = document.getElementById('avis-cmd-content');
+  if(!content) return;
+  var items = avisFormData.items || [];
+  var numCommande = avisFormData.numCommande;
+  var fr = avisLang === 'fr';
+  var produitsHtml = items.map(function(item, idx) {
+    return '<div class="avis-cmd-produit">'+
+      '<div class="avis-cmd-produit-nom">🛍️ '+item.nom+'</div>'+
+      '<div class="avis-note-wrap">'+
+        '<span class="avis-note-label">'+(fr ? 'Votre note :' : 'Naoty omenao :')+'</span>'+
+        '<div class="avis-etoiles-sel" id="etoiles-prod-'+idx+'" data-note="0">'+
+          [1,2,3,4,5].map(function(i){
+            return '<span class="etoile-sel" onclick="selEtoileProd('+idx+','+i+')">☆</span>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+      '<p class="avis-question">'+(fr
+        ? 'Ce produit vous a-t-il satisfait(e) ? Qu\'avez-vous le plus apprécié ?'
+        : 'Nahafapo anao ve ity vokatra ity? Inona no tena tianao taminy?'
+      )+'</p>'+
+      '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="'+(fr ? 'Votre commentaire (optionnel)...' : 'Soraty eto ny hevitrao (tsy voatery)...')+'"></textarea>'+
+    '</div>';
+  }).join('');
+  content.innerHTML =
+    '<div class="avis-cmd-wrap">'+
+      '<div class="avis-cmd-header">'+
+        '<div class="avis-cmd-logo">🛍️ Harvel Store</div>'+
+        '<h2 class="avis-cmd-titre">'+(fr ? 'Votre avis compte !' : 'Zava-dehibe aminay ny hevitrao!')+'</h2>'+
+        '<p class="avis-cmd-sous-titre">'+(fr
+          ? 'Commande <strong>'+numCommande+'</strong> — Merci pour votre confiance 😊'
+          : 'Kaomandy <strong>'+numCommande+'</strong> — Misaotra anao tamin\'ny fahatokisanao anay.'
+        )+'</p>'+
+      '</div>'+
+      '<div class="avis-cmd-section">'+
+        '<div class="avis-cmd-section-titre">'+(fr ? '⭐ Vos avis sur les produits' : '⭐ Ny hevitrao momba ny vokatra')+'</div>'+
+        produitsHtml+
+      '</div>'+
+      '<div class="avis-cmd-section">'+
+        '<div class="avis-cmd-section-titre">'+(fr ? '💬 Votre expérience avec Harvel Store' : '💬 Ny traikefanao tamin\'i Harvel Store')+'</div>'+
+        '<div class="avis-cmd-produit">'+
+          '<div class="avis-note-wrap">'+
+            '<span class="avis-note-label">'+(fr ? 'Note globale :' : 'Naoty ankapobeny :')+'</span>'+
+            '<div class="avis-etoiles-sel" id="etoiles-rec-cmd" data-note="0">'+
+              [1,2,3,4,5].map(function(i){
+                return '<span class="etoile-sel" onclick="selEtoileRecCmd('+i+')">☆</span>';
+              }).join('')+
+            '</div>'+
+          '</div>'+
+          '<p class="avis-question">'+(fr
+            ? 'Êtes-vous satisfait(e) de votre expérience d\'achat chez Harvel Store ? Qu\'avez-vous le plus apprécié, et qu\'aimeriez-vous que nous améliorions ?'
+            : 'Nahafapo anao ve ny fiantsenana tao amin\'i Harvel Store? Inona no tianao indrindra, ary inona no mbola azo hatsaraina?'
+          )+'</p>'+
+          '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="'+(fr ? 'Votre commentaire (optionnel)...' : 'Soraty eto ny hevitrao (tsy voatery)...')+'"></textarea>'+
+        '</div>'+
+      '</div>'+
+      '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
+      '<button class="avis-submit-btn" id="btn-envoyer-avis" onclick="soumettreAvisCmd()">'+(fr ? '✅ Envoyer mes avis' : '✅ Alefa ny hevitro')+'</button>'+
+      '<button class="avis-cmd-retour" onclick="resetAndGoHome()">'+(fr ? '← Retour à la boutique' : '← Hiverina any amin\'ny fivarotana')+'</button>'+
+    '</div>';
 }
 function selEtoileProd(idx, note) {
   var wrap = document.getElementById('etoiles-prod-'+idx);

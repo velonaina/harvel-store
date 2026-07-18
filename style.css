@@ -440,12 +440,19 @@ footer{background:#1a2e10;color:#fff;text-align:center;padding:20px;margin-top:4
 .avis-etoiles-sel{display:flex;gap:4px;}
 .etoile-sel{font-size:1.4rem;cursor:pointer;color:#ccc;transition:.15s;}
 .etoile-sel.active{color:#f5a623;}
+.avis-lang-selector{padding:1rem 0;}
+.avis-lang-title{font-size:13px;font-weight:600;color:var(--text);text-align:center;margin-bottom:1rem;line-height:1.5;}
+.avis-lang-sub{font-size:11px;font-weight:400;color:var(--muted);font-style:italic;display:block;margin-top:2px;}
+.avis-lang-btn{width:100%;padding:14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);cursor:pointer;text-align:left;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-sizing:border-box;transition:.15s;}
+.avis-lang-btn.active{border-color:var(--primary);background:var(--primary-light);}
+.avis-lang-flag{font-size:24px;flex-shrink:0;}
+.avis-lang-info{flex:1;}
+.avis-lang-name{font-size:14px;font-weight:600;color:var(--text);}
+.avis-lang-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+.avis-lang-check{color:var(--primary);font-size:18px;font-weight:700;}
+.avis-lang-continue{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;box-sizing:border-box;margin-top:8px;}
+.avis-lang-continue:active{opacity:.85;}
 .avis-question{font-size:.88rem;font-weight:600;color:var(--text);margin:0 0 6px 0;line-height:1.5;}
-.avis-question-mg{font-size:.78rem;font-weight:400;color:#888;font-style:italic;display:block;margin-top:2px;}
-.avis-titre-mg{font-size:.85rem;font-weight:400;color:var(--primary);font-style:italic;display:block;margin-top:2px;}
-.avis-sous-titre-mg{font-size:.78rem;color:var(--muted);font-style:italic;display:block;margin-top:2px;}
-.avis-section-mg{font-size:.78rem;font-weight:400;color:var(--muted);font-style:italic;display:block;margin-top:2px;}
-.avis-label-mg{font-size:.78rem;font-weight:400;color:var(--muted);font-style:italic;}
 .avis-textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;resize:vertical;min-height:80px;margin-bottom:10px;box-sizing:border-box;}
 .avis-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;margin-bottom:10px;box-sizing:border-box;}
 .avis-anon-label{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);margin-bottom:10px;cursor:pointer;}
