@@ -2441,7 +2441,7 @@ async function ouvrirFormulaireAvis(numCommande) {
       },
       body: JSON.stringify({
         table: 'commandes',
-        select: 'id,numero',
+        select: 'id,numero,client_phone,client_nom',
         filters: [{ col: 'numero', op: 'eq', val: numCommande }],
       }),
     });
@@ -2475,7 +2475,7 @@ async function ouvrirFormulaireAvis(numCommande) {
       content.innerHTML = '<div class="avis-cmd-error"><p>⚠️ Commande introuvable ou déjà évaluée.</p><button class="avis-cmd-retour" onclick="resetAndGoHome()">← Retour à la boutique</button></div>';
       return;
     }
-    avisFormData = { numCommande: numCommande, items: data.items, notes: {}, commentaires: {} };
+    avisFormData = { numCommande: numCommande, items: data.items, notes: {}, commentaires: {}, phone: commande.client_phone || '', nom: commande.client_nom || '' };
     // Générer les sections avis par produit
     var produitsHtml = data.items.map(function(item, idx) {
       return '<div class="avis-cmd-produit">'+
@@ -2522,7 +2522,6 @@ async function ouvrirFormulaireAvis(numCommande) {
           '<label class="avis-anon-label">'+
             '<input type="checkbox" id="avis-cmd-anon" onchange="toggleAnonCmd()"/> Rester anonyme'+
           '</label>'+
-          '<input id="avis-cmd-tel" class="avis-input" type="tel" placeholder="Votre téléphone * (requis pour vérification)"/>'+
         '</div>'+
         '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
         '<button class="avis-submit-btn" id="btn-envoyer-avis" onclick="soumettreAvisCmd()">✅ Envoyer mes avis</button>'+
@@ -2568,9 +2567,6 @@ async function soumettreAvisCmd() {
   var recTexte = document.getElementById('rec-texte-cmd');
   var recWrap = document.getElementById('etoiles-rec-cmd');
   // Vérifications
-  if(!telEl || !telEl.value.trim()) {
-    msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return;
-  }
   var hasNote = false;
   items.forEach(function(item, idx) {
     var wrap = document.getElementById('etoiles-prod-'+idx);
@@ -2580,8 +2576,8 @@ async function soumettreAvisCmd() {
     msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez noter au moins un produit.'; return;
   }
   msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
-  var phone = telEl.value.trim();
-  var nom = nomEl ? nomEl.value.trim() : '';
+  var phone = avisFormData.phone || '';
+  var nom = nomEl ? nomEl.value.trim() : (avisFormData.nom || '');
   var anonyme = anonEl ? anonEl.checked : false;
   var erreurs = [];
   // Soumettre les avis produits via Supabase
