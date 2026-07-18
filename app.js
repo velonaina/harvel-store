@@ -2472,7 +2472,7 @@ async function ouvrirFormulaireAvis(numCommande) {
             }).join('')+
           '</div>'+
         '</div>'+
-        '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="Votre commentaire sur ce produit (optionnel)..."></textarea>'+
+        '<textarea class="avis-textarea" id="comment-prod-'+idx+'" placeholder="Qu\'est-ce que vous aimez le plus dans ce produit ?"></textarea>'+
       '</div>';
     }).join('');
     content.innerHTML =
@@ -2497,7 +2497,7 @@ async function ouvrirFormulaireAvis(numCommande) {
                 }).join('')+
               '</div>'+
             '</div>'+
-            '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Partagez votre expérience globale avec Harvel Store..."></textarea>'+
+            '<textarea class="avis-textarea" id="rec-texte-cmd" placeholder="Comment s\'est passée votre commande chez nous ?"></textarea>'+
           '</div>'+
         '</div>'+
         '<div id="avis-cmd-msg" class="avis-msg" style="margin:10px 0;"></div>'+
