@@ -874,6 +874,10 @@ function drawerCommanderMaintenant(){
   addToCartFromProduct();
   closeDrawer();
   prefillOrderForm();
+  _orderFromExpress = true;
+  _miniCartOpen = true;
+  var btnRetour = document.getElementById('btn-retour-order');
+  if(btnRetour) btnRetour.textContent = '← Retour';
   showPage('order');
   renderMiniCart();
 }
@@ -1927,6 +1931,8 @@ function renderMiniCart(){
   if(countEl) countEl.textContent=cart.reduce(function(s,i){return s+i.qty;},0)+' article(s)';
   if(totalEl) totalEl.textContent=fmt(sub);
   if(sb) sb.disabled=false;
+  var totalInline = document.getElementById('mini-cart-total-inline');
+  if(totalInline) totalInline.textContent = fmt(sub);
   itemsEl.innerHTML=cart.map(function(i){
     var thumb=i.thumb?'<img src="'+i.thumb+'" onerror="this.parentElement.innerHTML=\'📦\'"/>':(i.emoji&&!i.emoji.startsWith('http')?'<span>'+i.emoji+'</span>':'<span>📦</span>');
     var variant=i.variant?'<div class="mini-ci-variant">📌 '+i.variant+'</div>':'';
@@ -1997,7 +2003,34 @@ function updateZoneLivraison(){
     if(totalVal) totalVal.textContent = (sous_total + frais).toLocaleString('fr') + ' Ar';
   }
 }
-function goToOrder(){prefillOrderForm();showPage('order');renderMiniCart();}
+// ── Retour dynamique depuis le formulaire ─────────────────────
+var _orderFromExpress = false;
+function retourDepuisOrder(){
+  if(_orderFromExpress){ _orderFromExpress=false; showPage('shop'); }
+  else { showPage('cart'); }
+}
+
+// ── Mini panier collapsible ────────────────────────────────────
+var _miniCartOpen = true;
+function toggleMiniCart(){
+  _miniCartOpen = !_miniCartOpen;
+  var body = document.getElementById('mini-cart-body');
+  var icon = document.getElementById('mini-cart-toggle-icon');
+  var totalInline = document.getElementById('mini-cart-total-inline');
+  if(body) body.style.display = _miniCartOpen ? '' : 'none';
+  if(icon) icon.textContent = _miniCartOpen ? '▲' : '▼';
+  if(totalInline) totalInline.style.display = _miniCartOpen ? 'none' : '';
+}
+
+function goToOrder(){
+  prefillOrderForm();
+  _orderFromExpress=false;
+  _miniCartOpen=true;
+  var btnRetour = document.getElementById('btn-retour-order');
+  if(btnRetour) btnRetour.textContent = '← Retour au panier';
+  showPage('order');
+  renderMiniCart();
+}
 function copyOrderNum(){
   var num=document.getElementById('success-order-num').textContent.replace('📋 ','').trim();
   if(navigator.clipboard && navigator.clipboard.writeText){

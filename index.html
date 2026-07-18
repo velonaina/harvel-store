@@ -196,7 +196,7 @@
   <div class="about-section">
     <h3>📞 Nous contacter</h3>
     <div class="about-contact">
-      <div class="about-contact-item"><span>📱</span><div>WhatsApp : <a href="https://wa.me/261346158199" target="_blank">+261 34 61 581 99</a></div></div>
+      <div class="about-contact-item"><span>📱</span><div>WhatsApp : <a href="https://wa.me/261346158199" target="_blank">+261 34 615 81 99</a></div></div>
       <div class="about-contact-item"><span>👍</span><div>Facebook : <a href="https://www.facebook.com/harvelstore" target="_blank">@harvelstore</a></div></div>
       <div class="about-contact-item"><span>🕐</span><div>Disponible 7j/7 — Réponse rapide garantie</div></div>
     </div>
@@ -260,17 +260,23 @@
 <!-- ORDER -->
 <div class="page" id="page-order">
   <div class="order-form">
-    <button onclick="showPage('cart')" style="background:none;border:none;color:var(--primary);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;margin-bottom:12px;padding:0;">← Retour au panier</button>
+    <button id="btn-retour-order" onclick="retourDepuisOrder()" style="background:none;border:none;color:var(--primary);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;margin-bottom:12px;padding:0;">← Retour au panier</button>
     <h2>📋 Finaliser la commande</h2>
     <div class="mini-cart" id="mini-cart">
-      <div class="mini-cart-title">
+      <div class="mini-cart-title" style="cursor:pointer;" onclick="toggleMiniCart()">
         <span style="display:flex;align-items:center;gap:6px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2d7a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg> Mon panier</span>
-        <span id="mini-cart-count" style="color:var(--muted);font-size:.8rem;font-weight:400;"></span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span id="mini-cart-count" style="color:var(--muted);font-size:.8rem;font-weight:400;"></span>
+          <span id="mini-cart-total-inline" style="color:var(--primary);font-size:.85rem;font-weight:700;display:none;"></span>
+          <span id="mini-cart-toggle-icon" style="color:var(--muted);font-size:.8rem;">▲</span>
+        </span>
       </div>
-      <div id="mini-cart-items"></div>
-      <div class="mini-cart-total">
-        <span>Total produits</span>
-        <span id="mini-cart-total"></span>
+      <div id="mini-cart-body">
+        <div id="mini-cart-items"></div>
+        <div class="mini-cart-total">
+          <span>Total produits</span>
+          <span id="mini-cart-total"></span>
+        </div>
       </div>
     </div>
     <div class="form-group"><label>Prénom *</label><input type="text" id="f-name" placeholder="Ex: Jean" autocomplete="given-name"/></div>
@@ -290,7 +296,7 @@
     <select id="select-zone" style="display:none;" onchange="updateZoneLivraison()"></select>
     <div id="total-avec-livraison" style="display:none;"></div>
     <div id="zone-detail" style="display:none;"></div>
-    <button class="submit-btn" id="submit-btn" onclick="submitOrder()">✅ Confirmer la commande</button>
+    <button class="submit-btn" id="submit-btn" onclick="submitOrder()">✅ Confirmer — Paiement à la livraison</button>
   </div>
 </div>
 
@@ -434,7 +440,7 @@
     </div>
     <div class="drawer-footer-btns">
       <button class="drawer-btn-now" onclick="drawerCommanderMaintenant()" ontouchstart="drawerCommanderMaintenant()">
-        Commander maintenant
+        Valider mon choix
       </button>
       <div class="drawer-btn-row">
         <button class="drawer-btn-cart" onclick="drawerAddToCart()">
