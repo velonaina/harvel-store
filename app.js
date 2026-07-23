@@ -1126,8 +1126,11 @@ async function soumettreAvis(produitId) {
   var anonEl = document.getElementById('avis-anon-'+produitId);
   var telEl = document.getElementById('avis-tel-'+produitId);
   var msgEl = document.getElementById('avis-msg-'+produitId);
+  var btn = document.querySelector('#avis-form-'+produitId+' .avis-submit-btn');
+  if(btn && btn.disabled) return;
   if(note < 1) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez sélectionner une note.'; return; }
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Envoi...'; }
   var payload = {
     produit_id: String(produitId),
     produit_nom: currentProduct ? currentProduct.name : '',
@@ -1149,6 +1152,7 @@ async function soumettreAvis(produitId) {
     setTimeout(function(){ toggleFormulaireAvis(produitId); }, 2000);
   } catch(e) {
     msgEl.className='avis-msg error'; msgEl.textContent='❌ Erreur lors de l\'envoi.';
+    if(btn){ btn.disabled = false; btn.textContent = 'Envoyer mon avis'; }
   }
 }
 // ===== CAROUSEL =====
@@ -2374,8 +2378,11 @@ async function soumettreRec() {
   var anonEl  = document.getElementById('rec-anon');
   var telEl   = document.getElementById('rec-tel');
   var msgEl   = document.getElementById('rec-msg');
+  var btn = document.querySelector('.avis-submit-btn[onclick="soumettreRec()"]');
+  if(btn && btn.disabled) return;
   if(!texteEl||!texteEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez écrire un témoignage.'; return; }
   if(!telEl||!telEl.value.trim()) { msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Votre téléphone est requis.'; return; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Envoi...'; }
   var payload = {
     note: note,
     texte: texteEl.value.trim(),
@@ -2397,6 +2404,7 @@ async function soumettreRec() {
     if(telEl) telEl.value='';
   } catch(e) {
     msgEl.className='avis-msg error'; msgEl.textContent='❌ Erreur lors de l\'envoi.';
+    if(btn){ btn.disabled = false; btn.textContent = 'Envoyer mon témoignage'; }
   }
 }
 // ===== FORMULAIRE AVIS POST-LIVRAISON =====
@@ -2594,6 +2602,8 @@ async function soumettreAvisCmd() {
   var items = avisFormData.items || [];
   var msgEl = document.getElementById('avis-cmd-msg');
   var telEl = document.getElementById('avis-cmd-tel');
+  var btn = document.getElementById('btn-envoyer-avis');
+  if(btn && btn.disabled) return;
   
   
   var recTexte = document.getElementById('rec-texte-cmd');
@@ -2607,6 +2617,7 @@ async function soumettreAvisCmd() {
   if(!hasNote) {
     msgEl.className='avis-msg error'; msgEl.textContent='⚠️ Veuillez noter au moins un produit.'; return;
   }
+  if(btn){ btn.disabled = true; btn.textContent = 'Envoi...'; }
   msgEl.className='avis-msg'; msgEl.textContent='⏳ Envoi en cours...';
   var phone = avisFormData.phone || '';
   var nom = avisFormData.nom || '';
@@ -2653,11 +2664,11 @@ async function soumettreAvisCmd() {
   if(erreurs.length) {
     msgEl.className='avis-msg error';
     msgEl.textContent='⚠️ Certains avis n\'ont pas pu être envoyés : '+erreurs.join(', ');
+    if(btn){ btn.disabled = false; btn.textContent = '✅ Envoyer mes avis'; }
   } else {
     msgEl.className='avis-msg success';
     msgEl.textContent='✅ Merci pour vos avis ! Ils seront affichés après validation. 😊';
     // Masquer le bouton envoyer
-    var btn = document.querySelector('.avis-submit-btn');
     if(btn) btn.style.display = 'none';
   }
 }
