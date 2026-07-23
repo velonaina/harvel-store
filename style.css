@@ -263,6 +263,7 @@ nav{background:#fff;padding:0 20px;display:flex;align-items:center;justify-conte
 .suivi-statut{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:.85rem;font-weight:700;margin-bottom:14px;}
 .statut-attente{background:#fff3cd;color:#856404;}
 .statut-confirme{background:#d1fae5;color:#065f46;}
+.statut-prepare{background:#ede7f6;color:#4527a0;}
 .statut-expedie{background:#dbeafe;color:#1e40af;}
 .statut-livre{background:#edfae3;color:#2e9100;}
 .statut-annule{background:#fef2f2;color:#991b1b;}

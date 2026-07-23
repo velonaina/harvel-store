@@ -163,9 +163,9 @@ function getWaSuiviUrl(num, statut) {
   var msg = messages[statut] || 'Bonjour Harvel Store ! 👋 J\'ai une question sur ma commande *' + num + '*. Merci !';
   return 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
 }
-var STATUT_STEPS=['En attente','Confirmé','Expédié','Livré'];
-var STATUT_ICONS={'En attente':'⏳','Confirmé':'✅','Expédié':'🚚','Livré':'🎉','Annulé':'❌'};
-var STATUT_CLASS={'En attente':'statut-attente','Confirmé':'statut-confirme','Expédié':'statut-expedie','Livré':'statut-livre','Annulé':'statut-annule'};
+var STATUT_STEPS=['En attente','Confirmé','Préparé','Expédié','Livré'];
+var STATUT_ICONS={'En attente':'⏳','Confirmé':'✅','Préparé':'📦','Expédié':'🚚','Livré':'🎉','Annulé':'❌'};
+var STATUT_CLASS={'En attente':'statut-attente','Confirmé':'statut-confirme','Préparé':'statut-prepare','Expédié':'statut-expedie','Livré':'statut-livre','Annulé':'statut-annule'};
 async function suivreCommande(){
   var num=document.getElementById('suivi-input').value.trim().toUpperCase();
   var phone=document.getElementById('suivi-phone').value.trim().replace(/\s/g,'');
@@ -2705,9 +2705,9 @@ function afficherResultatSuivi(c) {
   var result = document.getElementById('suivi-result');
   if(!result || !c) return;
   var statut = c.statut || 'En attente';
-  var STATUTS = ['En attente','Confirmé','Expédié','Livré','Annulé'];
-  var STATUT_ICONS = {'En attente':'⏳','Confirmé':'✅','Expédié':'🚚','Livré':'🎉','Annulé':'❌'};
-  var STATUT_CLASS = {'En attente':'statut-attente','Confirmé':'statut-confirme','Expédié':'statut-expedie','Livré':'statut-livre','Annulé':'statut-annule'};
+  var STATUTS = ['En attente','Confirmé','Préparé','Expédié','Livré','Annulé'];
+  var STATUT_ICONS = {'En attente':'⏳','Confirmé':'✅','Préparé':'📦','Expédié':'🚚','Livré':'🎉','Annulé':'❌'};
+  var STATUT_CLASS = {'En attente':'statut-attente','Confirmé':'statut-confirme','Préparé':'statut-prepare','Expédié':'statut-expedie','Livré':'statut-livre','Annulé':'statut-annule'};
   var stepsHtml = STATUTS.filter(function(s){return s!=='Annulé';}).map(function(s){
     var isDone = STATUTS.indexOf(statut) > STATUTS.indexOf(s) && statut !== 'Annulé';
     var isActive = s === statut;
