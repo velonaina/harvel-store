@@ -2076,9 +2076,22 @@ function genTrackToken() {
   return token;
 }
 
+// ===== UUID avec repli pour navigateurs anciens (iOS < 15.4, etc.) =====
+function genUUID() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try { return crypto.randomUUID(); } catch(e) {}
+  }
+  // Repli manuel (RFC4122 v4) si crypto.randomUUID indisponible
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // ===== ENREGISTRER COMMANDE DANS SUPABASE VIA WORKER =====
 async function enregistrerCommandeSupabase(orderNum, trackToken, name, phone, address, note, cartItems, total, codePromo) {
-  var cmdId = crypto.randomUUID();
+  var cmdId = genUUID();
   var payload = {
     cmdId:      cmdId,
     orderNum:   orderNum,
